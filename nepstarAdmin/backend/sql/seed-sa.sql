@@ -20,6 +20,17 @@ INSERT INTO sa_menu (id, parent_id, name_zh, name_en, name_es, icon, route_path,
 (9, 6, '菜单管理', 'Menu Management', 'Gestión de Menús', 'menu', '/system/menus', 3, 1, NOW()),
 (10, 6, '组织管理', 'Organization Management', 'Gestión de Organizaciones', 'organization', '/system/organizations', 4, 1, NOW());
 
+-- 健康管理模块菜单（顶级 + 三个子页；按 /health 幂等防重）
+INSERT INTO sa_menu (id, parent_id, name_zh, name_en, name_es, icon, route_path, sort_order, status, created_at)
+SELECT t.id, t.parent_id, t.name_zh, t.name_en, t.name_es, t.icon, t.route_path, t.sort_order, 1, NOW()
+FROM (
+    SELECT 12 AS id, NULL AS parent_id, '健康管理' AS name_zh, 'Health Management' AS name_en, 'Gestión de Salud' AS name_es, 'data-analysis' AS icon, '/health' AS route_path, 5 AS sort_order
+    UNION ALL SELECT 13, 12, '指标管理', 'Indicator Management', 'Gestión de Indicadores', 'list', '/health/indicators', 1
+    UNION ALL SELECT 14, 12, '商品管理', 'Product Management', 'Gestión de Productos', 'goods', '/health/products', 2
+    UNION ALL SELECT 15, 12, '方案管理', 'Plan Management', 'Gestión de Planes', 'document', '/health/plans', 3
+) t
+WHERE NOT EXISTS (SELECT 1 FROM sa_menu WHERE route_path = '/health');
+
 -- Default admin role (idempotent) — data_scope=all for full org access
 INSERT INTO sa_role (role_name, role_code, data_scope, status, created_at)
 SELECT 'SystemAdmin', 'admin', 'all', 1, NOW()

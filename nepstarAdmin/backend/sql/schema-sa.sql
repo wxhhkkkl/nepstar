@@ -124,3 +124,75 @@ CREATE TABLE IF NOT EXISTS sa_device_change_log (
     changed_by  BIGINT       NOT NULL COMMENT '操作人',
     changed_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='设备组织变更日志';
+
+-- =============================================
+-- 健康管理模块 (方案/商品/指标) —— 001-add-health-management
+-- =============================================
+
+-- 11. 健康指标表（两级：一级=分类，二级=指标项，parent_id 自引用）
+CREATE TABLE IF NOT EXISTS sa_indicator (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    parent_id   BIGINT       NULL COMMENT '一级=NULL；二级=所属一级指标ID',
+    ind_code    VARCHAR(50)  NOT NULL COMMENT '指标编码（一级/二级全局唯一）',
+    ind_name    VARCHAR(100) NOT NULL COMMENT '指标名称',
+    description VARCHAR(500) NULL COMMENT '说明',
+    sort_order  INT          DEFAULT 0 COMMENT '同级排序',
+    status      TINYINT      DEFAULT 1 COMMENT '1=启用,0=禁用',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     NULL,
+    INDEX idx_parent (parent_id),
+    UNIQUE KEY uk_ind_code (ind_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='健康指标(两级)';
+
+-- 12. 商品表
+CREATE TABLE IF NOT EXISTS sa_product (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(100)  NOT NULL COMMENT '商品名称',
+    description  VARCHAR(500)  NULL COMMENT '文字说明',
+    detail_html  LONGTEXT      NULL COMMENT '图文详情HTML',
+    cover_url    VARCHAR(500)  NULL COMMENT '封面图URL(第一张图片)',
+    status       TINYINT       DEFAULT 1 COMMENT '1=启用,0=禁用',
+    sort_order   INT           DEFAULT 0 COMMENT '排序',
+    created_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME      NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品';
+
+-- 13. 商品图片表
+CREATE TABLE IF NOT EXISTS sa_product_image (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_id  BIGINT       NOT NULL COMMENT '商品ID (sa_product.id)',
+    image_url   VARCHAR(500) NOT NULL COMMENT 'OSS图片URL',
+    sort_order  INT          DEFAULT 0 COMMENT '排序(最小为封面)',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品图片';
+
+-- 14. 健康方案表
+CREATE TABLE IF NOT EXISTS sa_plan (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plan_name   VARCHAR(100) NOT NULL COMMENT '方案名称',
+    description VARCHAR(500) NULL COMMENT '描述/目标',
+    status      TINYINT      DEFAULT 1 COMMENT '1=启用,0=禁用',
+    sort_order  INT          DEFAULT 0 COMMENT '排序',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='健康方案';
+
+-- 15. 方案-商品关联表
+CREATE TABLE IF NOT EXISTS sa_plan_product (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plan_id     BIGINT NOT NULL COMMENT '方案ID (sa_plan.id)',
+    product_id  BIGINT NOT NULL COMMENT '商品ID (sa_product.id)',
+    sort_order  INT    DEFAULT 0 COMMENT '方案内展示顺序',
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_plan_product (plan_id, product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='方案-商品关联';
+
+-- 16. 方案-指标关联表（严格精确关联，粒度由所引用指标节点类型决定）
+CREATE TABLE IF NOT EXISTS sa_plan_indicator (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plan_id      BIGINT NOT NULL COMMENT '方案ID (sa_plan.id)',
+    indicator_id BIGINT NOT NULL COMMENT '指标ID (sa_indicator.id, 一级或二级)',
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_plan_indicator (plan_id, indicator_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='方案-指标关联';

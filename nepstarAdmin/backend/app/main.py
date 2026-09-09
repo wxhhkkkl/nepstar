@@ -5,9 +5,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .api import auth, customers, dashboard, devices, menus, organizations, reports, roles, users
+from .api import auth, customers, dashboard, devices, indicators, menus, organizations, reports, roles, users
 from .database import async_session
 from .i18n import get_message
+from .services.health_seed import seed_health_menus
 from .services.organization_service import seed_root_org
 from .services.role_service import seed_admin_role
 
@@ -52,6 +53,7 @@ app.include_router(devices.router, prefix="/api/v1")
 app.include_router(reports.router, prefix="/api/v1")
 app.include_router(customers.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(indicators.router, prefix="/api/v1")
 
 
 # Error handler middleware
@@ -94,6 +96,7 @@ async def startup_event():
     """Ensure root organization and admin role exist on application startup."""
     async with async_session() as db:
         await seed_root_org(db)
+        await seed_health_menus(db)  # 健康管理菜单，须在 seed_admin_role 之前执行以便自动授权
         await seed_admin_role(db)
 
 
