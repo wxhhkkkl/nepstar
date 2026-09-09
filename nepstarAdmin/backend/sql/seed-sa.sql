@@ -1,3 +1,5 @@
+USE `nepstar`;
+
 -- Seed data for Smart Admin
 -- Super admin account: admin / Admin@123 (bcrypt hash)
 

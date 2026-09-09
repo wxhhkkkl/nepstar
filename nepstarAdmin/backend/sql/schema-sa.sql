@@ -1,7 +1,9 @@
 -- =============================================
 -- Smart Admin 新表创建脚本 (sa_* 前缀)
--- 数据库: platform (MySQL 5.6+)
+-- 数据库: nepstar (MySQL 5.6+)
 -- =============================================
+
+USE `nepstar`;
 
 -- 1. 系统用户表
 CREATE TABLE IF NOT EXISTS sa_user (

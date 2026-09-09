@@ -5,11 +5,12 @@ from datetime import datetime
 from sqlalchemy import BigInteger, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...database import Base
+from ...database import Base, NEPSTAR_SCHEMA
 
 
 class SARole(Base):
     __tablename__ = "sa_role"
+    __table_args__ = {"schema": NEPSTAR_SCHEMA}
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     role_name: Mapped[str] = mapped_column(String(50), nullable=False)

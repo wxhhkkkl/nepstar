@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     DATABASE_URL: str = "mysql+aiomysql://root:root@localhost:3306/smart_admin"
     CONFIG_DATABASE_URL: str = ""
+    NEPSTAR_DATABASE_URL: str = ""  # 系统表(sa_*)所在库，读/写
     JWT_SECRET_KEY: str = "change-me-in-production"
     JWT_EXPIRATION_SECONDS: int = 7200
     JWT_ALGORITHM: str = "HS256"

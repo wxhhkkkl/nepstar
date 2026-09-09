@@ -5,11 +5,12 @@ from datetime import datetime
 from sqlalchemy import BigInteger, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...database import Base
+from ...database import Base, NEPSTAR_SCHEMA
 
 
 class SAMenu(Base):
     __tablename__ = "sa_menu"
+    __table_args__ = {"schema": NEPSTAR_SCHEMA}
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     parent_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)

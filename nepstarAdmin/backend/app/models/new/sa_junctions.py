@@ -5,12 +5,12 @@ from datetime import datetime
 from sqlalchemy import BigInteger, DateTime, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ...database import Base
+from ...database import Base, NEPSTAR_SCHEMA
 
 
 class SARoleMenu(Base):
     __tablename__ = "sa_role_menu"
-    __table_args__ = (UniqueConstraint("role_id", "menu_id"),)
+    __table_args__ = (UniqueConstraint("role_id", "menu_id"), {"schema": NEPSTAR_SCHEMA})
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     role_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -21,7 +21,7 @@ class SARoleMenu(Base):
 
 class SAUserRole(Base):
     __tablename__ = "sa_user_role"
-    __table_args__ = (UniqueConstraint("user_id", "role_id"),)
+    __table_args__ = (UniqueConstraint("user_id", "role_id"), {"schema": NEPSTAR_SCHEMA})
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -31,7 +31,7 @@ class SAUserRole(Base):
 
 class SARoleOrg(Base):
     __tablename__ = "sa_role_org"
-    __table_args__ = (UniqueConstraint("role_id", "org_id"),)
+    __table_args__ = (UniqueConstraint("role_id", "org_id"), {"schema": NEPSTAR_SCHEMA})
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     role_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -41,7 +41,7 @@ class SARoleOrg(Base):
 
 class SAUserOrg(Base):
     __tablename__ = "sa_user_org"
-    __table_args__ = (UniqueConstraint("user_id", "org_id"),)
+    __table_args__ = (UniqueConstraint("user_id", "org_id"), {"schema": NEPSTAR_SCHEMA})
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
