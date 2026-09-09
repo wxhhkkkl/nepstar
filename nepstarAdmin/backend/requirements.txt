@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+alembic
+aiomysql
+pydantic
+pydantic-settings
+pyjwt
+bcrypt>=4.0.0
+babel
+structlog
+python-multipart
+pytest
+pytest-asyncio
+pytest-cov
+httpx
