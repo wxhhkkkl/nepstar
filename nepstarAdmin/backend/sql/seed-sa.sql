@@ -52,6 +52,6 @@ WHERE u.username = 'admin' AND r.role_code = 'admin'
 
 -- Default root organization (idempotent)
 INSERT INTO sa_organization (org_name, org_code, parent_id, sort_order, created_at)
-SELECT 'LOONGQI', 'LOONGQI', NULL, 0, NOW()
+SELECT 'NEPSTAR', 'NEPSTAR', NULL, 0, NOW()
 FROM DUAL
-WHERE NOT EXISTS (SELECT 1 FROM sa_organization WHERE org_code = 'LOONGQI');
+WHERE NOT EXISTS (SELECT 1 FROM sa_organization WHERE org_code = 'NEPSTAR');

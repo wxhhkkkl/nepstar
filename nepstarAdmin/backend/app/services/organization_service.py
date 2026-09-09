@@ -8,12 +8,12 @@ from ..security.org_filter import get_user_authorized_orgs, is_admin
 
 
 async def seed_root_org(db: AsyncSession) -> None:
-    """Ensure root organization 'LOONGQI' exists (idempotent)."""
+    """Ensure root organization 'NEPSTAR' exists (idempotent)."""
     existing = (await db.execute(
-        select(SAOrganization).where(SAOrganization.org_code == "LOONGQI")
+        select(SAOrganization).where(SAOrganization.org_code == "NEPSTAR")
     )).scalar_one_or_none()
     if not existing:
-        root = SAOrganization(org_name="LOONGQI", org_code="LOONGQI", parent_id=None, sort_order=0)
+        root = SAOrganization(org_name="NEPSTAR", org_code="NEPSTAR", parent_id=None, sort_order=0)
         db.add(root)
         await db.commit()
 
@@ -64,7 +64,7 @@ async def delete_org(db: AsyncSession, org_id: int):
     """Delete an organization. Rejects root org and orgs with children."""
     org = (await db.execute(select(SAOrganization).where(SAOrganization.id == org_id))).scalar_one()
     # Guard: cannot delete root organization
-    if org.org_code == "LOONGQI":
+    if org.org_code == "NEPSTAR":
         raise ValueError("Cannot delete the root organization")
     # Guard: cannot delete if has children
     children = (await db.execute(

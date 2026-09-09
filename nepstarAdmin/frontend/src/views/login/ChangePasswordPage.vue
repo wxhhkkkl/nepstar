@@ -54,7 +54,7 @@ async function handleChange() {
 </script>
 
 <style scoped>
-.login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; background: radial-gradient(circle at 20% 10%, #3d3d78, transparent 30%), #17172f; }
+.login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; background: radial-gradient(circle at 20% 10%, #123f42, transparent 30%), #0e2f31; }
 .login-card { width: min(420px, 100%); padding: 20px; border: 0; border-radius: 22px; box-shadow: 0 28px 80px rgba(0,0,0,.28); animation: card-in .6s var(--ease); }
 .login-card h2 { text-align: center; margin-bottom: 24px; }
 .error { color: #f56c6c; text-align: center; }

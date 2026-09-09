@@ -187,7 +187,7 @@ onMounted(() => {
 .page-title { font-size: 22px; font-weight: 600; color: #1e293b; margin: 0 0 16px 0; }
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .toolbar-left { display: flex; align-items: center; gap: 8px; }
-.org-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #e0e7ff; color: #4338ca; border-radius: 6px; font-size: 13px; }
+.org-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #d6f0f1; color: #026066; border-radius: 6px; font-size: 13px; }
 .badge-close { cursor: pointer; font-size: 12px; }
 .error-alert { margin-bottom: 16px; }
 .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04); }

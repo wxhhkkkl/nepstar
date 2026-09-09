@@ -136,7 +136,7 @@ defineExpose({ setCheckedKeys });
   border-bottom: 1px solid #e8ecf1;
 }
 .header-icon {
-  color: #6366f1;
+  color: #029ba0;
   font-size: 16px;
 }
 
@@ -201,14 +201,14 @@ defineExpose({ setCheckedKeys });
   transition: background 0.15s;
 }
 ::deep(.el-tree-node__content:hover) {
-  background: #eef2ff;
+  background: #e0f4f4;
 }
 ::deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background: #e0e7ff;
-  color: #4338ca;
+  background: #d6f0f1;
+  color: #026066;
 }
 ::deep(.el-tree-node.is-current > .el-tree-node__content .node-label) {
-  color: #4338ca;
+  color: #026066;
   font-weight: 500;
 }
 ::deep(.el-tree-node__expand-icon) {
@@ -216,6 +216,6 @@ defineExpose({ setCheckedKeys });
   font-size: 12px;
 }
 ::deep(.el-tree-node__expand-icon:hover) {
-  color: #6366f1;
+  color: #029ba0;
 }
 </style>

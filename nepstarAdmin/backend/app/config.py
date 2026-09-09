@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     PASSWORD_MIN_LENGTH: int = 8
     DEFAULT_LANG: str = "zh-CN"
     LOG_LEVEL: str = "INFO"
-    COMPANY_ID: str = "225671"  # 全局设备过滤——所有设备查询强制限制此company_id
-    DEPT_ID: str = "225671"  # 全局报告部门过滤——所有检测报告查询强制限制此dept_id
+    COMPANY_ID: str = "225721"  # 全局设备过滤——所有设备查询强制限制此company_id
+    DEPT_ID: str = "225721"  # 全局报告部门过滤——所有检测报告查询强制限制此dept_id
     REPORT_BASE_URL: str = "https://kj101.jiankangzhan.com/common.html"  # 检测报告展示页基础URL
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}

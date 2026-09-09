@@ -136,7 +136,7 @@ function makeChartOption(title: string, key: 'report_count' | 'customer_count') 
       data,
       barMaxWidth: 28,
       itemStyle: {
-        color: key === 'report_count' ? '#6969e8' : '#18a999',
+        color: key === 'report_count' ? '#17b3b7' : '#18a999',
         borderRadius: [7, 7, 0, 0],
       },
     }],
@@ -159,7 +159,7 @@ onMounted(fetchData);
 .stat-card:hover::after { transform: scale(1.2); }
 .stat-value { font-size: 34px; font-weight: 760; color: #24263b; letter-spacing: -.04em; }
 .stat-label { font-size: 14px; color: #64748b; margin-top: 4px; }
-.stat-card.dev { color: #6969e8; border-top: 3px solid #6969e8; }
+.stat-card.dev { color: #17b3b7; border-top: 3px solid #17b3b7; }
 .stat-card.ins { color: #18a999; border-top: 3px solid #18a999; }
 .stat-card.cust { color: #e59b35; border-top: 3px solid #e59b35; }
 .filter-bar { background: #fff; border-radius: 12px; padding: 16px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: flex; align-items: center; }

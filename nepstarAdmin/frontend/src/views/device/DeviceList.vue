@@ -51,7 +51,7 @@
           <el-table-column prop="device_name" :label="$t('device.deviceName')" min-width="140" />
           <el-table-column :label="$t('device.orgName') || '所属组织'" width="120">
             <template #default="{ row }">
-              {{ row._org_name || 'LOONGQI' }}
+              {{ row._org_name || 'NEPSTAR' }}
             </template>
           </el-table-column>
           <el-table-column :label="$t('device.reportLanguage') || '报告语言'" width="110">

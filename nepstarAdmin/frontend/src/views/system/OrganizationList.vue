@@ -57,7 +57,7 @@
               <el-button
                 text size="small" type="danger"
                 @click.stop="confirmDelete(data)"
-                :disabled="data.org_code === 'LOONGQI' && data.parent_id === null"
+                :disabled="data.org_code === 'NEPSTAR' && data.parent_id === null"
               >
                 <el-icon><Delete /></el-icon>
                 <span class="action-text">{{ $t('common.delete') }}</span>
@@ -345,7 +345,7 @@ onMounted(fetchTree)
   color: #3b82f6;
 }
 .tree-node:not(.is-leaf) .node-icon {
-  color: #6366f1;
+  color: #029ba0;
 }
 
 /* ── Node body ── */

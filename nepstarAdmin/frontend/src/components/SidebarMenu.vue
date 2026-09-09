@@ -3,7 +3,7 @@
     :default-active="route.path"
     router
     background-color="transparent"
-    text-color="#a5b4fc"
+    text-color="#76d4d7"
     active-text-color="#ffffff"
     class="side-menu"
   >

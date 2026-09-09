@@ -7,9 +7,9 @@
     <div class="mobile-mask" @click="mobileMenuOpen = false" />
     <aside class="sidebar">
       <div class="logo">
-        <span class="logo-mark">LQ</span>
+        <span class="logo-mark">NEP</span>
         <div class="logo-copy">
-          <strong>LOONGQI</strong>
+          <strong>NEPSTAR</strong>
           <span>SMART ADMIN</span>
         </div>
       </div>
@@ -31,8 +31,6 @@
           <span class="welcome">{{ $t('app.welcomeBack') }}{{ displayName }}</span>
         </div>
         <div class="topbar-actions">
-          <LangSwitcher />
-          <span class="divider" />
           <el-dropdown trigger="click">
             <button class="user-chip">
               <span class="avatar">{{ avatarText }}</span>
@@ -64,7 +62,6 @@ import { ArrowDown, Menu } from '@element-plus/icons-vue';
 import { useAppStore } from '@/stores/app';
 import { useAuthStore } from '@/stores/auth';
 import SidebarMenu from '@/components/SidebarMenu.vue';
-import LangSwitcher from '@/components/LangSwitcher.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -91,9 +88,9 @@ function logout() { authStore.logout(); router.push('/login'); }
 
 <style>
 .layout { display: flex; min-height: 100vh; }
-.sidebar { position: relative; z-index: 30; display: flex; width: 250px; flex-shrink: 0; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 20% 0%, #303060 0, transparent 38%), var(--sidebar-bg); box-shadow: 8px 0 30px rgba(23,23,47,.08); }
+.sidebar { position: relative; z-index: 30; display: flex; width: 250px; flex-shrink: 0; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 20% 0%, #155055 0, transparent 38%), var(--sidebar-bg); box-shadow: 8px 0 30px rgba(23,23,47,.08); }
 .logo { display: flex; align-items: center; gap: 12px; height: 82px; padding: 0 22px; color: white; }
-.logo-mark { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid rgba(255,255,255,.22); border-radius: 13px; background: linear-gradient(145deg, #7777ee, #4d4dbe); box-shadow: 0 8px 22px rgba(91,91,214,.38); font-size: 14px; font-weight: 800; letter-spacing: .05em; }
+.logo-mark { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid rgba(255,255,255,.22); border-radius: 13px; background: linear-gradient(145deg, #17b3b7, #02787d); box-shadow: 0 8px 22px rgba(2,155,160,.38); font-size: 14px; font-weight: 800; letter-spacing: .05em; }
 .logo-copy { display: flex; flex-direction: column; gap: 2px; }
 .logo-copy strong { font-size: 16px; letter-spacing: .08em; }
 .logo-copy span, .nav-label { color: #777b9e; font-size: 9px; font-weight: 700; letter-spacing: .18em; }
@@ -108,8 +105,8 @@ function logout() { authStore.logout(); router.push('/login'); }
 .topbar-actions { display: flex; align-items: center; gap: 14px; }
 .divider { width: 1px; height: 26px; background: var(--border); }
 .user-chip { display: flex; align-items: center; gap: 10px; padding: 5px 7px; border: 0; border-radius: 12px; color: var(--text); background: transparent; cursor: pointer; transition: background .2s ease; }
-.user-chip:hover { background: #f4f4fa; }
-.avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; color: #fff; background: linear-gradient(145deg, #6868df, #8f7ce8); font-weight: 700; box-shadow: 0 5px 14px rgba(91,91,214,.25); }
+.user-chip:hover { background: #eef6f6; }
+.avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; color: #fff; background: linear-gradient(145deg, #17b3b7, #029ba0); font-weight: 700; box-shadow: 0 5px 14px rgba(2,155,160,.25); }
 .user-copy { display: flex; min-width: 76px; flex-direction: column; align-items: flex-start; }
 .user-copy strong { max-width: 120px; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .user-copy small { color: #9a9dae; font-size: 10px; }

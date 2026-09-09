@@ -1,11 +1,11 @@
 :root {
-  --primary: #5b5bd6;
-  --primary-dark: #4545b8;
-  --primary-soft: #eeeeff;
-  --accent: #18a999;
-  --sidebar-bg: #17172f;
+  --primary: #029ba0;
+  --primary-dark: #02787d;
+  --primary-soft: #e0f4f4;
+  --accent: #029ba0;
+  --sidebar-bg: #0e2f31;
   --sidebar-text: #a8abc7;
-  --sidebar-active: #6969e8;
+  --sidebar-active: #17b3b7;
   --content-bg: #f5f6fa;
   --surface: rgba(255, 255, 255, .92);
   --text: #202238;
@@ -32,7 +32,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 button, input { font: inherit; }
-::selection { color: #fff; background: rgba(91, 91, 214, .8); }
+::selection { color: #fff; background: rgba(2, 155, 160, .8); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 99px; background: #c9cad7; background-clip: padding-box; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -51,7 +51,7 @@ button, input { font: inherit; }
   height: 3px;
   margin-top: 8px;
   border-radius: 99px;
-  background: linear-gradient(90deg, var(--primary), #8c7cf0);
+  background: linear-gradient(90deg, var(--primary), #17b3b7);
   content: "";
 }
 
@@ -63,7 +63,7 @@ button, input { font: inherit; }
   transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s ease;
 }
 .card:hover, .chart-card:hover {
-  border-color: rgba(91, 91, 214, .16) !important;
+  border-color: rgba(2, 155, 160, .16) !important;
   box-shadow: var(--shadow) !important;
 }
 
@@ -81,20 +81,20 @@ button, input { font: inherit; }
   transition: transform .2s var(--ease), box-shadow .2s ease, background-color .2s ease;
 }
 .el-button:not(.is-disabled):active { transform: scale(.97); }
-.el-button--primary:not(.is-link) { box-shadow: 0 6px 14px rgba(91, 91, 214, .2); }
+.el-button--primary:not(.is-link) { box-shadow: 0 6px 14px rgba(2, 155, 160, .2); }
 .el-input__wrapper, .el-select__wrapper, .el-textarea__inner {
   border-radius: var(--radius-sm) !important;
   box-shadow: 0 0 0 1px var(--border) inset !important;
   transition: box-shadow .2s ease, transform .2s ease !important;
 }
 .el-input__wrapper.is-focus, .el-select__wrapper.is-focused {
-  box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 4px rgba(91, 91, 214, .1) !important;
+  box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 4px rgba(2, 155, 160, .1) !important;
 }
 .el-table { --el-table-border-color: #eff0f5; --el-table-header-bg-color: #f8f8fc; border-radius: 12px; }
 .el-table th.el-table__cell { height: 48px; color: #5b5f77; font-weight: 650; }
 .el-table td.el-table__cell { height: 52px; }
 .el-table__row { transition: transform .2s var(--ease), background .2s ease; }
-.el-table__body tr:hover > td.el-table__cell { background: #f7f7ff !important; }
+.el-table__body tr:hover > td.el-table__cell { background: #eef7f7 !important; }
 .el-dialog {
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.7);

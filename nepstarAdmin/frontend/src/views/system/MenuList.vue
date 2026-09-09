@@ -152,7 +152,7 @@ onMounted(fetchTree)
   color: #3b82f6;
 }
 .tree-node:not(.is-leaf) .node-icon {
-  color: #6366f1;
+  color: #029ba0;
 }
 
 /* ── Node body ── */
