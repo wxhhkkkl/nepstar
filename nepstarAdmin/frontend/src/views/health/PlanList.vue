@@ -30,8 +30,9 @@
             <el-switch :model-value="row.status" :active-value="1" :inactive-value="0" @change="(v: number) => toggleStatus(row, v)" />
           </template>
         </el-table-column>
-        <el-table-column :label="$t('common.operation')" width="150" fixed="right">
+        <el-table-column :label="$t('common.operation')" width="200" fixed="right">
           <template #default="{ row }">
+            <el-button text type="primary" size="small" @click="openDetail(row)">{{ $t('common.view') }}</el-button>
             <el-button text type="primary" size="small" @click="openEdit(row)">{{ $t('common.edit') }}</el-button>
             <el-popconfirm :title="$t('health.planConfirmDelete')" @confirm="handleDelete(row.id)">
               <template #reference>
@@ -51,6 +52,7 @@
     </div>
 
     <PlanEditDialog v-if="dialogVisible" v-model:visible="dialogVisible" :plan="editing" @saved="onSaved" />
+    <PlanDetailDialog v-if="detailVisible" v-model:visible="detailVisible" :plan="detailPlan" />
   </div>
 </template>
 
@@ -61,6 +63,7 @@ import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { deletePlan, fetchPlans, updatePlan, type PlanListItem } from '@/api/health'
 import PlanEditDialog from './PlanEditDialog.vue'
+import PlanDetailDialog from './PlanDetailDialog.vue'
 
 const { t } = useI18n()
 
@@ -73,6 +76,8 @@ const kw = ref('')
 
 const dialogVisible = ref(false)
 const editing = ref<PlanListItem | null>(null)
+const detailVisible = ref(false)
+const detailPlan = ref<PlanListItem | null>(null)
 
 function errText(key?: string): string {
   if (!key) return t('health.operationFailed')
@@ -99,6 +104,11 @@ function openCreate() {
 function openEdit(row: PlanListItem) {
   editing.value = row
   dialogVisible.value = true
+}
+
+function openDetail(row: PlanListItem) {
+  detailPlan.value = row
+  detailVisible.value = true
 }
 
 async function onSaved() {

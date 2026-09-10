@@ -78,6 +78,20 @@ async def test_create_sets_cover_to_lowest_sort_order_image():
 
 
 @pytest.mark.asyncio
+async def test_create_rejects_too_many_images(monkeypatch):
+    """FR-204: server-side per-product image count limit (not just the FE uploader)."""
+    from app.config import settings
+    from app.schemas.product import ProductCreate
+    from app.services.product_service import create_product
+
+    monkeypatch.setattr(settings, "PRODUCT_MAX_IMAGE_COUNT", 2)
+    db = AsyncMock()
+    images = [ProductImageIn(url=f"u{i}.jpg", sort_order=i) for i in range(3)]
+    with pytest.raises(ValueError, match="product.too_many_images"):
+        await create_product(db, ProductCreate(name="多图商品", images=images))
+
+
+@pytest.mark.asyncio
 async def test_update_replaces_images_and_rejects_empty():
     db = AsyncMock()
     db.execute = AsyncMock(return_value=db_result(scalar_one_or_none=prod_row()))

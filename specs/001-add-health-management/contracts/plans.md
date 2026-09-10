@@ -32,6 +32,7 @@ Query: `page=1`, `page_size=10`, `keyword` (matches name/description). Each reco
 
 - `level` is **derived**: 1 when the referenced indicator has `parent_id == null`, else 2. No stored granularity column.
 - The frontend edit dialog can reconstruct checked state from `indicators[]` (each entry is a checked node) rendered over the `/indicators/tree`.
+- `indicators[]` is returned **grouped and deterministically ordered** (FR-305): each level-1 category by its `sort_order`, immediately followed by its level-2 children (by their `sort_order`), then the next category.
 - Indicators whose `status` is 0 (stopped) are still returned with `status:0` so the UI can show a 已停用 tag (spec edge case).
 
 ## POST /api/v1/plans — create
@@ -55,7 +56,7 @@ Body = any subset of create fields; if `product_ids`/`indicator_ids` provided, a
 
 ## DELETE /api/v1/plans/{id}
 
-No external-reference guard (spec FR-306); requires confirm in UI. Service deletes the plan's own `sa_plan_product` + `sa_plan_indicator` rows first, then the plan. Success `ApiResponse()`.
+No external-reference guard (spec FR-306); requires confirm in UI. Service deletes the plan's own `sa_plan_product` + `sa_plan_indicator` rows first, then the plan. Success `ApiResponse()`; unknown id → `409` with `plan.not_found`.
 
 ## Error keys
 

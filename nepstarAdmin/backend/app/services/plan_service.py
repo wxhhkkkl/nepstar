@@ -118,16 +118,31 @@ async def get_plan_detail(db: AsyncSession, plan_id: int) -> dict:
             .where(SAPlanIndicator.plan_id == plan_id)
         )
     ).all()
-    parent_ids = [ind.parent_id for _, ind in ind_rows if ind.parent_id is not None]
-    parent_names: dict[int, str] = {}
-    if parent_ids:
-        for prow in (
+    # Deterministic, grouped ordering (FR-305): each level-1 category first (by its
+    # sort_order), then its level-2 children (by their sort_order), then the next category.
+    parent_names: dict[int, str] = {
+        ind.id: ind.ind_name for _, ind in ind_rows if ind.parent_id is None
+    }
+    parent_rank: dict[int, tuple[int, int]] = {
+        ind.id: (ind.sort_order, ind.id) for _, ind in ind_rows if ind.parent_id is None
+    }
+    missing_parents = [
+        ind.parent_id
+        for _, ind in ind_rows
+        if ind.parent_id is not None and ind.parent_id not in parent_rank
+    ]
+    if missing_parents:
+        for pid, pname, psort in (
             await db.execute(
-                select(SAIndicator.id, SAIndicator.ind_name).where(SAIndicator.id.in_(parent_ids))
+                select(SAIndicator.id, SAIndicator.ind_name, SAIndicator.sort_order).where(
+                    SAIndicator.id.in_(missing_parents)
+                )
             )
         ).all():
-            parent_names[prow[0]] = prow[1]
-    detail["indicators"] = [
+            parent_names[pid] = pname
+            parent_rank[pid] = (psort, pid)
+
+    items = [
         {
             "indicator_id": ind.id,
             "level": 1 if ind.parent_id is None else 2,
@@ -136,8 +151,22 @@ async def get_plan_detail(db: AsyncSession, plan_id: int) -> dict:
             "parent_id": ind.parent_id,
             "parent_name": parent_names.get(ind.parent_id) if ind.parent_id else None,
             "status": ind.status,
+            "sort_order": ind.sort_order,
         }
         for _, ind in ind_rows
+    ]
+
+    def _key(item: dict) -> tuple:
+        if item["parent_id"] is None:
+            category = (item["sort_order"], item["indicator_id"])
+            depth = 0
+        else:
+            category = parent_rank.get(item["parent_id"], (10**9, item["parent_id"]))
+            depth = 1
+        return (category, depth, item["sort_order"], item["indicator_id"])
+
+    detail["indicators"] = [
+        {k: v for k, v in item.items() if k != "sort_order"} for item in sorted(items, key=_key)
     ]
     return detail
 

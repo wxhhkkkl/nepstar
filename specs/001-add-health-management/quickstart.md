@@ -13,6 +13,7 @@ nepstarAdmin/frontend/   Vue 3 app     (src/, vite.config.ts)
 
 - `backend/.env` must contain (values never committed):
   `OSS_ACCESSKEY_ID`, `OSS_ACCESSKEY_KEY`, and the new `OSS_ENDPOINT` (region endpoint, e.g. `oss-cn-hangzhou.aliyuncs.com`) and `OSS_BUCKET=nepstar`. Bucket must be **public-read** for URLs to render in list/detail (spec SC-003).
+  ⚠️ `OSS_ENDPOINT` must **NOT** include the bucket prefix — use `oss-cn-beijing.aliyuncs.com`, not `nepstar.oss-cn-beijing.aliyuncs.com` (oss2 then builds `nepstar.nepstar.…` → `InvalidBucketName`, surfacing as `product.upload_failed`).
 - New backend dep: `oss2` (add to `pyproject.toml` + `requirements.txt`, then `pip install`).
 - New frontend deps: `@wangeditor/editor`, `@wangeditor/editor-for-vue` (`npm install`).
 - Schema/db: run the new alembic migration (`003_add_health_module`) to create the 6 tables on `nepstar`; the startup seed `seed_health_menus` inserts the 4 menu rows and the existing `seed_admin_role` re-grant makes them visible to `admin` on next boot. `schema-sa.sql`/`seed-sa.sql` updated in the same commit for fresh bootstrap/doc.

@@ -260,3 +260,7 @@ Task: "api/health.ts → ProductList.vue → ProductImageUploader.vue → Produc
 ## Post-Implementation Fixes
 
 - [x] T063 [US2] **Fix**: wangEditor 图文详情插入的图片改为经后端上传 OSS（原先默认 base64 内嵌，`detail_html` 会膨胀且不入 `nepstar`。新增 `nepstarAdmin/frontend/src/views/health/richTextImageUpload.ts`（`customUploadImage` → `uploadProductImage` → `insertFn(url)`），在 `nepstarAdmin/frontend/src/views/health/ProductEditDialog.vue` 配置 `MENU_CONF.uploadImage.customUpload` 且 `base64LimitSize: 0`、工具栏 `excludeKeys: ['group-video']`；测试 `nepstarAdmin/frontend/src/views/health/__tests__/richTextImageUpload.spec.ts`（3 例）。
+- [x] T064 [US2] **Fix (analyze C1)**: 服务端强制单商品图片数量上限 —— `nepstarAdmin/backend/app/services/product_service.py::_replace_images` 超限抛 `product.too_many_images`；i18n zh/en/es 新增该键；测试 `tests/unit/test_product_service.py` + `tests/api/test_health_products.py`。
+- [x] T065 [US3] **Fix (analyze U1)**: 方案详情指标返回**按一级分组、确定性排序**（一级按 sort_order，紧随其二级子项）—— `app/services/plan_service.py::get_plan_detail`；测试 `tests/unit/test_plan_service.py`（乱序输入 → 分组有序输出）+ `tests/api/test_health_plans.py`。
+- [x] T066 [US3] **Fix (analyze C2)**: 新增只读**方案详情视图** `nepstarAdmin/frontend/src/views/health/PlanDetailDialog.vue`（关联商品带封面、指标按一级分组、已停用标记），`PlanList.vue` 增加「查看」入口；i18n 补 `common.view`；测试 `__tests__/PlanDetailDialog.spec.ts`（3 例）。
+- [x] T067 **Fix (analyze DOC)**: 文档补丁 —— `quickstart.md` 增 `OSS_ENDPOINT` 不得含 bucket 前缀警告；`contracts/products.md` 记 `product.too_many_images` 且注明服务端强制；`contracts/plans.md` 记 DELETE `plan.not_found` 与详情分组排序；`spec.md` SC-005 补数据量前提（≤1,000 条指标）。

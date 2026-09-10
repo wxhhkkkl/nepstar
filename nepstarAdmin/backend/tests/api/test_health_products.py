@@ -26,6 +26,25 @@ async def test_list_products(client, admin_headers):
 
 
 @pytest.mark.asyncio
+async def test_create_rejects_exceeding_image_limit(client, admin_headers, monkeypatch):
+    """FR-204: count limit enforced server-side (bypassing the FE uploader)."""
+    monkeypatch.setattr(settings, "PRODUCT_MAX_IMAGE_COUNT", 1)
+    r = await client.post(
+        BASE,
+        json={
+            "name": "超限商品",
+            "images": [
+                {"url": "https://x/1.jpg", "sort_order": 0},
+                {"url": "https://x/2.jpg", "sort_order": 1},
+            ],
+        },
+        headers=admin_headers,
+    )
+    assert r.json()["code"] == 400
+    assert r.json()["message"] == "product.too_many_images"
+
+
+@pytest.mark.asyncio
 async def test_create_requires_image(client, admin_headers):
     r = await client.post(BASE, json={"name": "无图商品"}, headers=admin_headers)
     assert r.json()["code"] == 400

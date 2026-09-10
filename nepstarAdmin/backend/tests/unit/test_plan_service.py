@@ -108,7 +108,7 @@ async def test_detail_derives_indicator_level_and_parent_name():
             res(scalar_one=plan_row()),  # plan
             res(rows_all=[(pp, prod)]),  # products join
             res(rows_all=[(ji, ind)]),  # indicators join
-            res(rows_all=[(5, "体重管理")]),  # parent names
+            res(rows_all=[(5, "体重管理", 1)]),  # missing parent meta (id, name, sort_order)
         ]
     )
     from app.services.plan_service import get_plan_detail
@@ -117,3 +117,42 @@ async def test_detail_derives_indicator_level_and_parent_name():
     assert detail["products"][0]["name"] == "复合维生素"
     assert detail["indicators"][0]["level"] == 2
     assert detail["indicators"][0]["parent_name"] == "体重管理"
+
+
+def ind_row(id, parent_id, sort_order, name):
+    r = MagicMock(spec=SAIndicator)
+    r.id = id
+    r.parent_id = parent_id
+    r.ind_code = f"C{id}"
+    r.ind_name = name
+    r.status = 1
+    r.sort_order = sort_order
+    return r
+
+
+@pytest.mark.asyncio
+async def test_detail_orders_indicators_grouped_by_category():
+    """FR-305: grouped, deterministic order — category by sort_order, then its children."""
+    cat_b = ind_row(20, None, 2, "乙类")
+    cat_a = ind_row(10, None, 1, "甲类")
+    child_a = ind_row(11, 10, 5, "甲-子")
+    child_b = ind_row(21, 20, 1, "乙-子")
+
+    def ji(ind):
+        m = MagicMock(spec=SAPlanIndicator)
+        m.indicator_id = ind.id
+        return m
+
+    db = AsyncMock()
+    db.execute = AsyncMock(side_effect=[
+        res(scalar_one=plan_row()),  # plan
+        res(rows_all=[]),            # products join
+        # indicators joined in a deliberately scrambled order
+        res(rows_all=[(ji(cat_b), cat_b), (ji(child_a), child_a),
+                      (ji(cat_a), cat_a), (ji(child_b), child_b)]),
+    ])
+    from app.services.plan_service import get_plan_detail
+
+    detail = await get_plan_detail(db, 1)
+    assert [i["indicator_id"] for i in detail["indicators"]] == [10, 11, 20, 21]
+    assert [i["level"] for i in detail["indicators"]] == [1, 2, 1, 2]

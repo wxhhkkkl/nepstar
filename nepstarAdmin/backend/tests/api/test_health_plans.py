@@ -109,3 +109,30 @@ async def test_plan_unknown_product_rejected(client, admin_headers):
     )
     assert r.json()["code"] == 400
     assert r.json()["message"] == "plan.product_not_found"
+
+
+@pytest.mark.asyncio
+async def test_plan_indicator_detail_grouped_and_ordered(client, admin_headers):
+    """FR-305: indicators come back grouped by category, ordered by sort_order."""
+    cat1 = await _make_indicator(client, admin_headers, "甲类指标")
+    kid1 = await _make_indicator(client, admin_headers, "甲类子项", parent_id=cat1)
+    cat2 = await _make_indicator(client, admin_headers, "乙类指标")
+    kid2 = await _make_indicator(client, admin_headers, "乙类子项", parent_id=cat2)
+    # give 乙类 a smaller sort_order so it must come first
+    await client.put(f"{INDICATORS}/{cat1}", json={"sort_order": 2}, headers=admin_headers)
+    await client.put(f"{INDICATORS}/{cat2}", json={"sort_order": 1}, headers=admin_headers)
+
+    plan = (
+        await client.post(
+            PLANS,
+            json={"name": "排序方案", "indicator_ids": [kid2, cat1, cat2, kid1]},
+            headers=admin_headers,
+        )
+    ).json()["data"]
+    detail = (await client.get(f"{PLANS}/{plan['id']}", headers=admin_headers)).json()["data"]
+    assert [i["indicator_id"] for i in detail["indicators"]] == [cat2, kid2, cat1, kid1]
+    assert [i["level"] for i in detail["indicators"]] == [1, 2, 1, 2]
+
+    await client.delete(f"{PLANS}/{plan['id']}", headers=admin_headers)
+    for iid in (kid1, kid2, cat1, cat2):
+        await client.delete(f"{INDICATORS}/{iid}", headers=admin_headers)

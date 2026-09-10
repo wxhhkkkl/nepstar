@@ -3,6 +3,7 @@
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..config import settings
 from ..database import NEPSTAR_SCHEMA
 from ..models.new.sa_product import SAProduct, SAProductImage
 from ..schemas.product import ProductCreate, ProductUpdate
@@ -92,6 +93,9 @@ async def _replace_images(db: AsyncSession, product_id: int, images: list) -> st
     """Delete-then-insert the image set; returns the new cover url (first by sort_order)."""
     if not images:
         raise ValueError("product.image_required")
+    ordered = sorted(images, key=lambda i: i.sort_order)
+    if len(ordered) > settings.PRODUCT_MAX_IMAGE_COUNT:
+        raise ValueError("product.too_many_images")
     existing = (
         (await db.execute(select(SAProductImage).where(SAProductImage.product_id == product_id)))
         .scalars()
@@ -100,7 +104,6 @@ async def _replace_images(db: AsyncSession, product_id: int, images: list) -> st
     for img in existing:
         await db.delete(img)
     await db.flush()  # flush deletes before inserts to avoid duplicate keys
-    ordered = sorted(images, key=lambda i: i.sort_order)
     for img in ordered:
         db.add(SAProductImage(product_id=product_id, image_url=img.url, sort_order=img.sort_order))
     return ordered[0].url if ordered else None

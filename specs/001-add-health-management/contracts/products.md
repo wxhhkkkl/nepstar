@@ -49,7 +49,7 @@ Body:
 ```
 
 - `images` required, ≥ 1 entry (spec FR-204); cover_url = image with min `sort_order`.
-- Error `product.image_required` (400) if empty.
+- Errors (400): `product.image_required` if empty; `product.too_many_images` if the count exceeds the configured max (`settings.PRODUCT_MAX_IMAGE_COUNT`, default 10) — enforced **server-side**, not only by the FE uploader.
 - Response data = created product (list-shape + images).
 
 ## PUT /api/v1/products/{id} — update
