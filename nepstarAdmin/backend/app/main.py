@@ -13,6 +13,7 @@ from .api import (
     indicators,
     menus,
     organizations,
+    plans,
     products,
     reports,
     roles,
@@ -67,6 +68,7 @@ app.include_router(customers.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(indicators.router, prefix="/api/v1")
 app.include_router(products.router, prefix="/api/v1")
+app.include_router(plans.router, prefix="/api/v1")
 
 
 # Error handler middleware

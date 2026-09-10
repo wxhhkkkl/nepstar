@@ -8,15 +8,15 @@
 所有查询受全局 dept_id 过滤。inspect_base 和 customer 表严格只读。
 """
 
-from sqlalchemy import func, select, and_
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
-from ..models.old.inspect_base import inspect_base_table
-from ..models.old.customer import customer_table
 from ..models.new.sa_device_org import SADeviceOrg
-from ..security.org_filter import get_user_authorized_orgs, get_org_descendants
-from ..utils.pii import mask_phone, mask_name
+from ..models.old.customer import customer_table
+from ..models.old.inspect_base import inspect_base_table
+from ..security.org_filter import get_org_descendants, get_user_authorized_orgs
+from ..utils.pii import mask_name, mask_phone
 
 
 def _row_to_dict(row) -> dict:

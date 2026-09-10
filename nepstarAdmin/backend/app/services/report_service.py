@@ -9,17 +9,15 @@
 inspect_base 表严格只读，仅执行 SELECT 查询。
 """
 
-from sqlalchemy import func, select, and_
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select
 
 from ..config import settings
+from ..models.new.sa_device_org import SADeviceOrg
 from ..models.old.inspect_base import inspect_base_table
 from ..models.old.ne import ne_table
-from ..models.new.sa_device_org import SADeviceOrg
-from ..models.new.sa_organization import SAOrganization
-from ..security.org_filter import get_user_authorized_orgs, get_org_descendants
-from ..utils.pii import mask_phone, mask_name
+from ..security.org_filter import get_org_descendants, get_user_authorized_orgs
+from ..utils.pii import mask_name, mask_phone
 
 
 def _build_report_url(report_code: str | None, customer_id: int | None) -> str | None:

@@ -10,9 +10,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
+from ..models.new.sa_device_org import SADeviceOrg
 from ..models.old.inspect_base import inspect_base_table
 from ..models.old.ne import ne_table
-from ..models.new.sa_device_org import SADeviceOrg
 from ..security.org_filter import get_user_authorized_orgs
 
 

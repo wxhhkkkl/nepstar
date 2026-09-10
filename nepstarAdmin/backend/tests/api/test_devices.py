@@ -1,6 +1,7 @@
 """Integration tests for device API endpoints."""
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import AsyncMock, patch
 
 
 class TestListDevicesEndpoint:

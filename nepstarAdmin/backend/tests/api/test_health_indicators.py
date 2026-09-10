@@ -69,10 +69,14 @@ async def test_create_level1_and_duplicate_code_rejected(client, admin_headers):
 @pytest.mark.asyncio
 async def test_level1_with_children_cannot_delete(client, admin_headers):
     code1, code2 = _code(), _code()
-    l1 = (await client.post(BASE, json={"code": code1, "name": "父指标"}, headers=admin_headers)).json()["data"]
+    l1 = (
+        await client.post(BASE, json={"code": code1, "name": "父指标"}, headers=admin_headers)
+    ).json()["data"]
     l2 = (
         await client.post(
-            BASE, json={"code": code2, "name": "子指标", "parent_id": l1["id"]}, headers=admin_headers
+            BASE,
+            json={"code": code2, "name": "子指标", "parent_id": l1["id"]},
+            headers=admin_headers,
         )
     ).json()["data"]
 
@@ -89,7 +93,9 @@ async def test_level1_with_children_cannot_delete(client, admin_headers):
 @pytest.mark.asyncio
 async def test_keyword_search(client, admin_headers):
     code = _code()
-    created = (await client.post(BASE, json={"code": code, "name": "体脂专项指标"}, headers=admin_headers)).json()["data"]
+    created = (
+        await client.post(BASE, json={"code": code, "name": "体脂专项指标"}, headers=admin_headers)
+    ).json()["data"]
     r = await client.get(f"{BASE}/tree", params={"keyword": "体脂专项"}, headers=admin_headers)
     names = [n["name"] for n in r.json()["data"]]
     assert "体脂专项指标" in names

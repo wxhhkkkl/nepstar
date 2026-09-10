@@ -132,6 +132,7 @@ watch(
       loaded.value = false
     }
   },
+  { immediate: true },
 )
 
 async function submit() {

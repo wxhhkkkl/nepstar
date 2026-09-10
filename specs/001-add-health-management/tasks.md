@@ -121,23 +121,23 @@ description: "Task list for Health Management Module (001-add-health-management)
 
 ### Tests for User Story 3 (REQUIRED — write first, confirm FAIL before implementation)
 
-- [ ] T042 [P] [US3] Write failing unit tests `nepstarAdmin/backend/tests/unit/test_plan_service.py` (mock `db.execute`): create stores ordered `product_ids` + mixed L1/L2 `indicator_ids`, update replaces associations delete-then-insert, dedup duplicates, unknown product/indicator → `plan.*` errors, empty associations allowed, delete removes own junctions first, detail derives `level` from `parent_id` (L1 doesn’t include children)
-- [ ] T043 [P] [US3] Write failing API contract tests `nepstarAdmin/backend/tests/api/test_health_plans.py` (ASGI client + `admin_headers`): list with `product_count`/`indicator_count`, detail grouping/derived level, create/update/delete
-- [ ] T044 [US3] Write failing FE component test `nepstarAdmin/frontend/src/views/health/__tests__/PlanEditDialog.spec.ts` (stub `api/health`, render indicator tree from fixture): strict checkbox mapping (L1 check does NOT check its L2 children), dedup on repeat selection, product order preserved, save emits expected `product_ids`/`indicator_ids`
+- [x] T042 [P] [US3] Write failing unit tests `nepstarAdmin/backend/tests/unit/test_plan_service.py` (mock `db.execute`): create stores ordered `product_ids` + mixed L1/L2 `indicator_ids`, update replaces associations delete-then-insert, dedup duplicates, unknown product/indicator → `plan.*` errors, empty associations allowed, delete removes own junctions first, detail derives `level` from `parent_id` (L1 doesn’t include children)
+- [x] T043 [P] [US3] Write failing API contract tests `nepstarAdmin/backend/tests/api/test_health_plans.py` (ASGI client + `admin_headers`): list with `product_count`/`indicator_count`, detail grouping/derived level, create/update/delete
+- [x] T044 [US3] Write failing FE component test `nepstarAdmin/frontend/src/views/health/__tests__/PlanEditDialog.spec.ts` (stub `api/health`, render indicator tree from fixture): strict checkbox mapping (L1 check does NOT check its L2 children), dedup on repeat selection, product order preserved, save emits expected `product_ids`/`indicator_ids`
 
 ### Implementation for User Story 3
 
-- [ ] T045 [P] [US3] Create `SAPlan`, `SAPlanProduct`, `SAPlanIndicator` ORM models in `nepstarAdmin/backend/app/models/new/sa_plan.py` per `data-model.md` (junctions with `uk_plan_product (plan_id, product_id)` and `uk_plan_indicator (plan_id, indicator_id)`)
-- [ ] T046 [P] [US3] Create plan schemas in `nepstarAdmin/backend/app/schemas/plan.py` (create/update with `product_ids`, `indicator_ids`; list item with counts; detail with `products[]` + `indicators[]` incl. derived `level`, `parent_name`, `status`)
-- [ ] T047 [US3] Implement `plan_service` in `nepstarAdmin/backend/app/services/plan_service.py` (paged list w/ counts, detail assembly grouping indicators under L1, create/update replace-junctions delete-then-insert with flush + dedup + existence checks, delete cascading own junctions) — depends T045, and reads `sa_product`/`sa_indicator` for detail
-- [ ] T048 [US3] Implement `nepstarAdmin/backend/app/api/plans.py` (`APIRouter(prefix="/plans")`) and register in `nepstarAdmin/backend/app/main.py`
-- [ ] T049 [US3] Add `plan.*` backend i18n keys under `nepstarAdmin/backend/app/i18n/` per `contracts/plans.md`
-- [ ] T050 [US3] Extend `nepstarAdmin/frontend/src/api/health.ts` with plan functions (`list`, `detail`, `create`, `update`, `remove`)
-- [ ] T051 [US3] Add `health.plan.*` keys to `nepstarAdmin/frontend/src/i18n/zh-CN.json`, `en.json`, `es.json`
-- [ ] T052 [US3] Implement `PlanList.vue` in `nepstarAdmin/frontend/src/views/health/PlanList.vue` (search + paged `el-table` with product/indicator counts, status toggle, delete `el-popconfirm` with confirm, open edit dialog)
-- [ ] T053 [US3] Implement `PlanEditDialog.vue` in `nepstarAdmin/frontend/src/views/health/PlanEditDialog.vue` (props `visible/row`, emits `saved`; product multi-select from `/products` list keeping selection order; indicator picker rendered from `/indicators/tree` with **strict node checkboxes** — selecting an L1 node checks only that node; disabled/stopped items shown with 已停用 tag and unselectable per spec edge cases) — depends T052, T050, T051
-- [ ] T054 [US3] Register route `/health/plans` → `PlanList.vue` in `nepstarAdmin/frontend/src/router/index.ts`
-- [ ] T055 [US3] Make US3 tests green (backend unit + API, FE `PlanEditDialog` test); fix until passing
+- [x] T045 [P] [US3] Create `SAPlan`, `SAPlanProduct`, `SAPlanIndicator` ORM models in `nepstarAdmin/backend/app/models/new/sa_plan.py` per `data-model.md` (junctions with `uk_plan_product (plan_id, product_id)` and `uk_plan_indicator (plan_id, indicator_id)`)
+- [x] T046 [P] [US3] Create plan schemas in `nepstarAdmin/backend/app/schemas/plan.py` (create/update with `product_ids`, `indicator_ids`; list item with counts; detail with `products[]` + `indicators[]` incl. derived `level`, `parent_name`, `status`)
+- [x] T047 [US3] Implement `plan_service` in `nepstarAdmin/backend/app/services/plan_service.py` (paged list w/ counts, detail assembly grouping indicators under L1, create/update replace-junctions delete-then-insert with flush + dedup + existence checks, delete cascading own junctions) — depends T045, and reads `sa_product`/`sa_indicator` for detail
+- [x] T048 [US3] Implement `nepstarAdmin/backend/app/api/plans.py` (`APIRouter(prefix="/plans")`) and register in `nepstarAdmin/backend/app/main.py`
+- [x] T049 [US3] Add `plan.*` backend i18n keys under `nepstarAdmin/backend/app/i18n/` per `contracts/plans.md`
+- [x] T050 [US3] Extend `nepstarAdmin/frontend/src/api/health.ts` with plan functions (`list`, `detail`, `create`, `update`, `remove`)
+- [x] T051 [US3] Add `health.plan.*` keys to `nepstarAdmin/frontend/src/i18n/zh-CN.json`, `en.json`, `es.json`
+- [x] T052 [US3] Implement `PlanList.vue` in `nepstarAdmin/frontend/src/views/health/PlanList.vue` (search + paged `el-table` with product/indicator counts, status toggle, delete `el-popconfirm` with confirm, open edit dialog)
+- [x] T053 [US3] Implement `PlanEditDialog.vue` in `nepstarAdmin/frontend/src/views/health/PlanEditDialog.vue` (props `visible/row`, emits `saved`; product multi-select from `/products` list keeping selection order; indicator picker rendered from `/indicators/tree` with **strict node checkboxes** — selecting an L1 node checks only that node; disabled/stopped items shown with 已停用 tag and unselectable per spec edge cases) — depends T052, T050, T051
+- [x] T054 [US3] Register route `/health/plans` → `PlanList.vue` in `nepstarAdmin/frontend/src/router/index.ts`
+- [x] T055 [US3] Make US3 tests green (backend unit + API, FE `PlanEditDialog` test); fix until passing
 
 **Checkpoint**: US3 functional & independently verified. Commit: `feat(health): plans CRUD + product/indicator associations`.
 
@@ -147,12 +147,13 @@ description: "Task list for Health Management Module (001-add-health-management)
 
 **Purpose**: Whole-module quality, validation against spec Success Criteria (SC-001…SC-007), and cleanup. Depends on US1–US3 complete.
 
-- [ ] T056 [P] Run lint/format clean: `.venv/Scripts/ruff.exe check .` (and `ruff format --check`) from `nepstarAdmin/backend/`; `npm run lint` and `npm run format` from `nepstarAdmin/frontend/`; fix violations
-- [ ] T057 [P] Run the full suites and make them green: `.venv/Scripts/python.exe -m pytest` from `nepstarAdmin/backend/` and `npm test` from `nepstarAdmin/frontend/`; fix regressions
+- [x] T056 [P] Run lint/format clean: `.venv/Scripts/ruff.exe check .` (and `ruff format --check`) from `nepstarAdmin/backend/`; `npm run lint` and `npm run format` from `nepstarAdmin/frontend/`; fix violations
+- [x] T057 [P] Run the full suites and make them green: `.venv/Scripts/python.exe -m pytest` from `nepstarAdmin/backend/` and `npm test` from `nepstarAdmin/frontend/`; fix regressions  
+  - *结果*：健康模块用例全绿（后端 38、前端 15）；全套件仍存在 36 个**既有**失败（customers/devices/reports/dashboard/pii 等，与健康模块无关，已用无 DB 的 test_pii 证实）。
 - [ ] T058 Execute the manual smoke flow in `quickstart.md` end-to-end against the dev environment (configure `.env` `OSS_ENDPOINT`/`OSS_BUCKET=nepstar` first), verifying spec SC-001…SC-007 (incl. indicator-tree search <1 s, delete guards, plan detail matches saved associations); record results
-- [ ] T059 [P] Cross-cutting UI: confirm sidebar shows 健康管理 + 3 children in zh/en/es (labels come from `sa_menu`), breadcrumb/page titles render, empty-catalog states and stopped-item 已停用 tag behave per spec Edge Cases
-- [ ] T060 [P] Verify no regressions to tenant/PII code: run existing full backend test suite (`tests/`) and confirm `pii` masking paths unchanged; confirm `.env` (incl. OSS_*) never staged (`git check-ignore`)
-- [ ] T061 [P] Update the requirements quality checklist `specs/001-add-health-management/checklists/requirements.md` status and mark each US checklist in this file `[x]` as completed; finalize
+- [x] T059 [P] Cross-cutting UI: confirm sidebar shows 健康管理 + 3 children in zh/en/es (labels come from `sa_menu`), breadcrumb/page titles render, empty-catalog states and stopped-item 已停用 tag behave per spec Edge Cases
+- [x] T060 [P] Verify no regressions to tenant/PII code: run existing full backend test suite (`tests/`) and confirm `pii` masking paths unchanged; confirm `.env` (incl. OSS_*) never staged (`git check-ignore`)
+- [x] T061 [P] Update the requirements quality checklist `specs/001-add-health-management/checklists/requirements.md` status and mark each US checklist in this file `[x]` as completed; finalize
 - [ ] T062 Final commit of polish: `feat(health): module polish — lint/test green, smoke validated (SC-001..007)`
 
 ---

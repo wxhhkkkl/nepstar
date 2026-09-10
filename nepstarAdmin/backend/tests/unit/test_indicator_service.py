@@ -1,7 +1,8 @@
 """Unit tests for indicator_service — AsyncMock against db, no DB required."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from app.models.new.sa_indicator import SAIndicator
 from app.schemas.indicator import IndicatorCreate, IndicatorUpdate
@@ -66,10 +67,12 @@ async def test_create_level2_under_level2_rejected():
 async def test_create_level2_under_level1_success():
     level1 = mock_row(1, parent_id=None)
     db = AsyncMock()
-    db.execute = AsyncMock(side_effect=[
-        db_result(scalar_one_or_none=level1),  # parent lookup
-        db_result(first=None),                  # code not exists
-    ])
+    db.execute = AsyncMock(
+        side_effect=[
+            db_result(scalar_one_or_none=level1),  # parent lookup
+            db_result(first=None),  # code not exists
+        ]
+    )
     from app.services.indicator_service import create_indicator
 
     out = await create_indicator(db, IndicatorCreate(parent_id=1, code="HT0011", name="体脂率"))
@@ -82,10 +85,12 @@ async def test_create_level2_under_level1_success():
 async def test_delete_level1_with_children_rejected():
     row = mock_row(1, parent_id=None)
     db = AsyncMock()
-    db.execute = AsyncMock(side_effect=[
-        db_result(scalar_one_or_none=row),
-        db_result(first=(1,)),  # has children
-    ])
+    db.execute = AsyncMock(
+        side_effect=[
+            db_result(scalar_one_or_none=row),
+            db_result(first=(1,)),  # has children
+        ]
+    )
     from app.services.indicator_service import delete_indicator
 
     with pytest.raises(ValueError, match="indicator.has_children"):
@@ -96,11 +101,13 @@ async def test_delete_level1_with_children_rejected():
 async def test_delete_indicator_in_use_rejected():
     row = mock_row(4, parent_id=1)
     db = AsyncMock()
-    db.execute = AsyncMock(side_effect=[
-        db_result(scalar_one_or_none=row),
-        db_result(first=None),   # no children
-        db_result(first=(1,)),   # referenced by a plan
-    ])
+    db.execute = AsyncMock(
+        side_effect=[
+            db_result(scalar_one_or_none=row),
+            db_result(first=None),  # no children
+            db_result(first=(1,)),  # referenced by a plan
+        ]
+    )
     from app.services.indicator_service import delete_indicator
 
     with pytest.raises(ValueError, match="indicator.in_use"):
@@ -111,11 +118,13 @@ async def test_delete_indicator_in_use_rejected():
 async def test_delete_indicator_success():
     row = mock_row(4, parent_id=1)
     db = AsyncMock()
-    db.execute = AsyncMock(side_effect=[
-        db_result(scalar_one_or_none=row),
-        db_result(first=None),  # no children
-        db_result(first=None),  # not referenced
-    ])
+    db.execute = AsyncMock(
+        side_effect=[
+            db_result(scalar_one_or_none=row),
+            db_result(first=None),  # no children
+            db_result(first=None),  # not referenced
+        ]
+    )
     from app.services.indicator_service import delete_indicator
 
     await delete_indicator(db, 4)
@@ -127,10 +136,12 @@ async def test_delete_indicator_success():
 async def test_update_reject_duplicate_code():
     row = mock_row(1, parent_id=None, code="HT001")
     db = AsyncMock()
-    db.execute = AsyncMock(side_effect=[
-        db_result(scalar_one_or_none=row),
-        db_result(first=(2,)),  # another row already uses HT003
-    ])
+    db.execute = AsyncMock(
+        side_effect=[
+            db_result(scalar_one_or_none=row),
+            db_result(first=(2,)),  # another row already uses HT003
+        ]
+    )
     from app.services.indicator_service import update_indicator
 
     with pytest.raises(ValueError, match="indicator.code_exists"):

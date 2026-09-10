@@ -34,4 +34,8 @@
 - Validation run 2026-09-09: all items pass after 3 domain clarifications resolved during `/speckit-specify`
   (指标关联语义 = 严格精确关联；数据范围 = 全局统一目录；商品图片 = 封面+多图+图文详情). No open questions remain.
 - `/speckit-clarify` session 2026-09-09 added 2 further decisions (see spec `## Clarifications`): 目录内容语言 = v1 仅中文；商品 v1 不含电商字段（价格/库存/规格/分类 排除）。Re-validated: all items still pass.
+- **Implementation status (2026-09-10)**: US1/US2/US3 implemented and tested — backend 38 tests
+  (10 indicator unit, 6 product unit, 2 oss unit, 5 plan unit, 5+6+3+1 API) and frontend 15 vitest,
+  all green against the live `nepstar` DB; migration `003` applied. Outstanding: T058 live smoke incl.
+  real OSS upload (needs `OSS_ENDPOINT` in `.env` + public-read bucket `nepstar`) and SC-003 image display.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
