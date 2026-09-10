@@ -49,6 +49,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import '@wangeditor/editor/dist/css/style.css'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { createProduct, fetchProduct, updateProduct, type ProductImage } from '@/api/health'
+import { customUploadImage } from './richTextImageUpload'
 import ProductImageUploader from './ProductImageUploader.vue'
 
 const props = defineProps<{ visible: boolean; product: any }>()
@@ -61,8 +62,18 @@ const submitting = ref(false)
 const loaded = ref(false)
 
 const editorRef = shallowRef<any>()
-const toolbarConfig = {}
-const editorConfig = { placeholder: '请输入图文详情…' }
+// 视频不在编辑区内嵌（避免大文件 base64 撑爆 detail_html）
+const toolbarConfig = { excludeKeys: ['group-video'] }
+const editorConfig = {
+  placeholder: '请输入图文详情…',
+  MENU_CONF: {
+    uploadImage: {
+      base64LimitSize: 0, // 一律走后端上传，禁止 base64 内嵌
+      customUpload: (file: File, insertFn: any) =>
+        customUploadImage(file, insertFn, (key) => ElMessage.error(errText(key))),
+    },
+  },
+} as any
 
 function handleCreated(editor: any) {
   editorRef.value = editor

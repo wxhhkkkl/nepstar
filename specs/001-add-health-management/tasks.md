@@ -254,3 +254,9 @@ Task: "api/health.ts → ProductList.vue → ProductImageUploader.vue → Produc
 - Commit after each story/logical group (see checkpoints); do not commit `.env`
 - Stop at any checkpoint to validate the story independently
 - Avoid: vague tasks, same-file parallel conflicts (see Within Each User Story), cross-story hidden dependencies
+
+---
+
+## Post-Implementation Fixes
+
+- [x] T063 [US2] **Fix**: wangEditor 图文详情插入的图片改为经后端上传 OSS（原先默认 base64 内嵌，`detail_html` 会膨胀且不入 `nepstar`。新增 `nepstarAdmin/frontend/src/views/health/richTextImageUpload.ts`（`customUploadImage` → `uploadProductImage` → `insertFn(url)`），在 `nepstarAdmin/frontend/src/views/health/ProductEditDialog.vue` 配置 `MENU_CONF.uploadImage.customUpload` 且 `base64LimitSize: 0`、工具栏 `excludeKeys: ['group-video']`；测试 `nepstarAdmin/frontend/src/views/health/__tests__/richTextImageUpload.spec.ts`（3 例）。
