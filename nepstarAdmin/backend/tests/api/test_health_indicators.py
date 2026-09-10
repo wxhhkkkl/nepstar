@@ -9,7 +9,15 @@ import uuid
 
 import pytest
 
+from tests.api.health_helpers import make_client
+
 BASE = "/api/v1/indicators"
+
+
+@pytest.fixture
+async def client():
+    async with make_client() as ac:
+        yield ac
 
 
 def _code() -> str:

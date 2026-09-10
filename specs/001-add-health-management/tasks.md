@@ -41,11 +41,11 @@ description: "Task list for Health Management Module (001-add-health-management)
 
 - [x] T005 Add CREATE TABLE statements for `sa_indicator`, `sa_product`, `sa_product_image`, `sa_plan`, `sa_plan_product`, `sa_plan_indicator` (columns, indexes, unique keys exactly per `data-model.md`) appended to `nepstarAdmin/backend/sql/schema-sa.sql`, matching existing MySQL 5.6+ style (`ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, `BIGINT` AI PK, `DATETIME`, `status TINYINT`, `COMMENT`)
 - [x] T006 Create alembic migration `nepstarAdmin/backend/alembic/versions/003_add_health_module.py` creating the same 6 tables (mirror `001_add_sa_device_config.py` style: `sa.BigInteger()`, `sa.Table` in schema `nepstar`, `mysql_engine="InnoDB"`, `mysql_charset="utf8mb4"`, `comment=`)
-- [ ] T007 Apply the migration: from `nepstarAdmin/backend/` run `alembic upgrade head`, then confirm the 6 tables exist in the `nepstar` schema (report any DDL/migration errors and fix)
+- [x] T007 Apply the migration: from `nepstarAdmin/backend/` run `alembic upgrade head`, then confirm the 6 tables exist in the `nepstar` schema (report any DDL/migration errors and fix)
 - [x] T008 Append idempotent menu INSERTs (`INSERT … SELECT … WHERE NOT EXISTS` by `route_path`) for the 4 health menus (top-level 健康管理 `/health` + children 指标管理 `/health/indicators`, 商品管理 `/health/products`, 方案管理 `/health/plans`, with `name_zh/name_en/name_es`, `icon`, `sort_order`; ids that don't collide with existing seed ids) to `nepstarAdmin/backend/sql/seed-sa.sql`
 - [x] T009 [P] Create `nepstarAdmin/backend/app/services/health_seed.py` with `async def seed_health_menus(db: AsyncSession)` that idempotently inserts the 4 menus (guard by `route_path`)
 - [x] T010 Wire startup: import `seed_health_menus` and call it in the `@app.on_event("startup")` block of `nepstarAdmin/backend/app/main.py` **immediately before** `seed_admin_role(db)` so the existing admin re-grant picks the new menus up
-- [ ] T011 Verify foundation: run `.venv/Scripts/python.exe -m pytest --collect-only -q` from `nepstarAdmin/backend/` (no errors), confirm the app boots and `GET /api/v1/auth/me` (admin) returns the 4 new menus under a 健康管理 parent
+- [x] T011 Verify foundation: run `.venv/Scripts/python.exe -m pytest --collect-only -q` from `nepstarAdmin/backend/` (no errors), confirm the app boots and `GET /api/v1/auth/me` (admin) returns the 4 new menus under a 健康管理 parent
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -60,7 +60,7 @@ description: "Task list for Health Management Module (001-add-health-management)
 ### Tests for User Story 1 (REQUIRED — write first, confirm FAIL before implementation)
 
 - [x] T012 [P] [US1] Write failing unit tests `nepstarAdmin/backend/tests/unit/test_indicator_service.py` (mock `db.execute` with `AsyncMock`, mirror `tests/unit/test_user_service.py`): create L1/L2, reject parent-not-found / parent-is-L2 (depth ≤2), duplicate `ind_code`, delete guard for L1-with-children and node-in-plan, tree ordering
-- [ ] T013 [P] [US1] Write failing API contract tests `nepstarAdmin/backend/tests/api/test_health_indicators.py` (reuse `tests/conftest.py` ASGI client + `admin_headers`): tree shape, create L1/L2, duplicate code → error envelope, delete guards → `code=409`, auth required
+- [x] T013 [P] [US1] Write failing API contract tests `nepstarAdmin/backend/tests/api/test_health_indicators.py` (reuse `tests/conftest.py` ASGI client + `admin_headers`): tree shape, create L1/L2, duplicate code → error envelope, delete guards → `code=409`, auth required
 
 ### Implementation for User Story 1
 
@@ -74,7 +74,7 @@ description: "Task list for Health Management Module (001-add-health-management)
 - [x] T021 [P] [US1] Write failing frontend component test `nepstarAdmin/frontend/src/views/health/__tests__/IndicatorList.spec.ts` (mount `IndicatorList.vue` with Element Plus, stub `api/health`; verify tree rows render, L1-with-children cannot be deleted, create dialog emits expected payload)
 - [x] T022 [US1] Implement `IndicatorList.vue` in `nepstarAdmin/frontend/src/views/health/IndicatorList.vue` (L1/L2 `el-table`/tree rows, code+name search, inline add/edit `el-dialog` for L1 & L2, enable/disable toggle, delete `el-popconfirm`, error copy via i18n) — depends T019, T020
 - [x] T023 [US1] Register the route `{ path: '/health/indicators', name: 'HealthIndicators', component: () => import('@/views/health/IndicatorList.vue'), meta: { requiresAuth: true } }` in `nepstarAdmin/frontend/src/router/index.ts`
-- [ ] T024 [US1] Make US1 tests green: run the new backend unit + API tests and the FE `IndicatorList` test from the correct dirs; fix until passing
+- [x] T024 [US1] Make US1 tests green: run the new backend unit + API tests and the FE `IndicatorList` test from the correct dirs; fix until passing
 
 **Checkpoint**: US1 functional & independently verified. Commit: `feat(health): indicators CRUD + 2-level tree (backend + FE)`.
 
