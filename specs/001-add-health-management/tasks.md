@@ -150,9 +150,10 @@ description: "Task list for Health Management Module (001-add-health-management)
 - [x] T056 [P] Run lint/format clean: `.venv/Scripts/ruff.exe check .` (and `ruff format --check`) from `nepstarAdmin/backend/`; `npm run lint` and `npm run format` from `nepstarAdmin/frontend/`; fix violations
 - [x] T057 [P] Run the full suites and make them green: `.venv/Scripts/python.exe -m pytest` from `nepstarAdmin/backend/` and `npm test` from `nepstarAdmin/frontend/`; fix regressions  
   - *结果*：健康模块用例全绿（后端 38、前端 15）；全套件仍存在 36 个**既有**失败（customers/devices/reports/dashboard/pii 等，与健康模块无关，已用无 DB 的 test_pii 证实）。
-- [ ] T058 Execute the manual smoke flow in `quickstart.md` end-to-end against the dev environment (configure `.env` `OSS_ENDPOINT`/`OSS_BUCKET=nepstar` first), verifying spec SC-001…SC-007 (incl. indicator-tree search <1 s, delete guards, plan detail matches saved associations); record results
+- [x] T058 Execute the manual smoke flow in `quickstart.md` end-to-end against the dev environment (configure `.env` `OSS_ENDPOINT`/`OSS_BUCKET=nepstar` first), verifying spec SC-001…SC-007 (incl. indicator-tree search <1 s, delete guards, plan detail matches saved associations); record results
   - *运行期冒烟（uvicorn + 真实 HTTP + 线上 nepstar，2026-09-10）*：13/13 PASS —— 菜单(/auth/me)、编码去重、树检索 16ms(<1s)、L1 含子删除拦截、封面=首图、无图拒绝、**严格关联**(勾 L1+其 L2 精确 2 条)、方案计数、被引用商品/指标删除拦截、方案删除级联；数据已清理。
-  - *未覆盖*：真实 OSS 上传与 SC-003 图片显示 —— 需 `.env` 配置 `OSS_ENDPOINT` 且 bucket `nepstar` 公读。
+  - *OSS 实测（2026-09-10，bucket `nepstar`，北京区）*：服务层上传 PASS、`POST /products/upload-image` PASS、上传结果公网可读 **SC-003 PASS**（200/内容一致）、非图片被拒 PASS；测试对象已从 bucket 删除（0 残留）。
+  - ⚠️ *配置注意*：`.env` 的 `OSS_ENDPOINT` 应写 **不含 bucket 前缀**的 `oss-cn-beijing.aliyuncs.com`；写入 `nepstar.oss-cn-beijing.aliyuncs.com` 会被 oss2 拼成 `nepstar.nepstar....` 导致 `InvalidBucketName`。
 - [x] T059 [P] Cross-cutting UI: confirm sidebar shows 健康管理 + 3 children in zh/en/es (labels come from `sa_menu`), breadcrumb/page titles render, empty-catalog states and stopped-item 已停用 tag behave per spec Edge Cases
 - [x] T060 [P] Verify no regressions to tenant/PII code: run existing full backend test suite (`tests/`) and confirm `pii` masking paths unchanged; confirm `.env` (incl. OSS_*) never staged (`git check-ignore`)
 - [x] T061 [P] Update the requirements quality checklist `specs/001-add-health-management/checklists/requirements.md` status and mark each US checklist in this file `[x]` as completed; finalize

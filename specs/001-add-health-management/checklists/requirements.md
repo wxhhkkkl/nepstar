@@ -36,6 +36,6 @@
 - `/speckit-clarify` session 2026-09-09 added 2 further decisions (see spec `## Clarifications`): 目录内容语言 = v1 仅中文；商品 v1 不含电商字段（价格/库存/规格/分类 排除）。Re-validated: all items still pass.
 - **Implementation status (2026-09-10)**: US1/US2/US3 implemented and tested — backend 38 tests
   (10 indicator unit, 6 product unit, 2 oss unit, 5 plan unit, 5+6+3+1 API) and frontend 15 vitest,
-  all green against the live `nepstar` DB; migration `003` applied. Outstanding: T058 live smoke incl.
-  real OSS upload (needs `OSS_ENDPOINT` in `.env` + public-read bucket `nepstar`) and SC-003 image display.
+  all green against the live `nepstar` DB; migration `003` applied. T058 runtime smoke 13/13 PASS; live OSS upload + SC-003 image display verified 2026-09-10
+  (bucket `nepstar` public-read). Only caveat: `.env` `OSS_ENDPOINT` must NOT include the bucket prefix.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
