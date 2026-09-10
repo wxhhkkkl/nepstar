@@ -38,4 +38,8 @@
   (10 indicator unit, 6 product unit, 2 oss unit, 5 plan unit, 5+6+3+1 API) and frontend 15 vitest,
   all green against the live `nepstar` DB; migration `003` applied. T058 runtime smoke 13/13 PASS; live OSS upload + SC-003 image display verified 2026-09-10
   (bucket `nepstar` public-read). Only caveat: `.env` `OSS_ENDPOINT` must NOT include the bucket prefix.
+- **Post-analysis fixes (2026-09-10)**: analyze findings closed — C1 (server-side image-count limit),
+  C2 (read-only plan detail view), U1 (deterministic grouped indicator ordering), DOC (quickstart OSS
+  prefix warning, contracts gaps, SC-005 premise). Test totals now backend **42** / frontend **21**.
+  Remaining non-code action: correct `OSS_ENDPOINT` in `backend/.env` (no bucket prefix) for live uploads.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
