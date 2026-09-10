@@ -13,6 +13,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/system/menus', name: 'MenuList', component: () => import('@/views/system/MenuList.vue'), meta: { requiresAuth: true } },
   { path: '/system/organizations', name: 'OrganizationList', component: () => import('@/views/system/OrganizationList.vue'), meta: { requiresAuth: true } },
   { path: '/health/indicators', name: 'HealthIndicators', component: () => import('@/views/health/IndicatorList.vue'), meta: { requiresAuth: true } },
+  { path: '/health/products', name: 'HealthProducts', component: () => import('@/views/health/ProductList.vue'), meta: { requiresAuth: true } },
   { path: '/report/:id', name: 'ReportDetail', component: () => import('@/views/report/ReportDetail.vue'), meta: { requiresAuth: true } },
   { path: '/', redirect: '/dashboard' },
 ];

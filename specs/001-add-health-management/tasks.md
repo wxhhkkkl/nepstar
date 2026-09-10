@@ -88,26 +88,26 @@ description: "Task list for Health Management Module (001-add-health-management)
 
 ### Tests for User Story 2 (REQUIRED — write first, confirm FAIL before implementation)
 
-- [ ] T025 [P] [US2] Write failing unit tests `nepstarAdmin/backend/tests/unit/test_product_service.py` (mock `db.execute`): create requires ≥1 image, cover = min `sort_order`, image-set replace on update, delete guard `product.in_use`, detail_html passthrough, upload size/type validation logic
-- [ ] T026 [P] [US2] Write failing unit tests `nepstarAdmin/backend/tests/unit/test_oss_service.py` (mock `oss2`): `put_object` builds `health/products/{uuid}.{ext}` key on bucket `nepstar`, returns public URL, propagates failures
-- [ ] T027 [P] [US2] Write failing API contract tests `nepstarAdmin/backend/tests/api/test_health_products.py` (ASGI client; **monkeypatch/override the OSS upload dependency** so tests need no live OSS): list/detail/create/update/delete guards + upload endpoint success and invalid-type error envelopes
-- [ ] T028 [P] [US2] Write failing FE component test `nepstarAdmin/frontend/src/views/health/__tests__/ProductImageUploader.spec.ts` (stub upload API): preview order, remove, sort_order emission, invalid type/size rejected
+- [x] T025 [P] [US2] Write failing unit tests `nepstarAdmin/backend/tests/unit/test_product_service.py` (mock `db.execute`): create requires ≥1 image, cover = min `sort_order`, image-set replace on update, delete guard `product.in_use`, detail_html passthrough, upload size/type validation logic
+- [x] T026 [P] [US2] Write failing unit tests `nepstarAdmin/backend/tests/unit/test_oss_service.py` (mock `oss2`): `put_object` builds `health/products/{uuid}.{ext}` key on bucket `nepstar`, returns public URL, propagates failures
+- [x] T027 [P] [US2] Write failing API contract tests `nepstarAdmin/backend/tests/api/test_health_products.py` (ASGI client; **monkeypatch/override the OSS upload dependency** so tests need no live OSS): list/detail/create/update/delete guards + upload endpoint success and invalid-type error envelopes
+- [x] T028 [P] [US2] Write failing FE component test `nepstarAdmin/frontend/src/views/health/__tests__/ProductImageUploader.spec.ts` (stub upload API): preview order, remove, sort_order emission, invalid type/size rejected
 
 ### Implementation for User Story 2
 
-- [ ] T029 [P] [US2] Create `SAProduct` + `SAProductImage` ORM models in `nepstarAdmin/backend/app/models/new/sa_product.py` per `data-model.md` (product holds `cover_url`, `detail_html` LONGTEXT; image holds `image_url`, `sort_order`, index `idx_product`)
-- [ ] T030 [P] [US2] Create product schemas in `nepstarAdmin/backend/app/schemas/product.py` (create/update with `images: list[{url, sort_order}]`, detail response)
-- [ ] T031 [P] [US2] Implement `oss_service` in `nepstarAdmin/backend/app/services/oss_service.py` (`oss2` client from `Settings` OSS_* fields; `upload_image(file_bytes, ext) -> public url`; key namespace `health/products/`; never log credentials)
-- [ ] T032 [US2] Implement `product_service` in `nepstarAdmin/backend/app/services/product_service.py` (paged list w/ keyword, create/update requiring ≥1 image and replacing the image set delete-then-insert with cover recompute, delete guard) — depends T029, T031
-- [ ] T033 [US2] Implement `nepstarAdmin/backend/app/api/products.py` (`APIRouter(prefix="/products")`: list/detail/create/update/delete + `POST /upload-image` reading `UploadFile`, validating MIME/size, calling `oss_service`) and register in `nepstarAdmin/backend/app/main.py`
-- [ ] T034 [US2] Add `product.*` backend i18n keys under `nepstarAdmin/backend/app/i18n/` per `contracts/products.md`
-- [ ] T035 [US2] Extend `nepstarAdmin/frontend/src/api/health.ts` with product functions incl. `uploadImage(file)` (multipart `FormData` to `/products/upload-image`)
-- [ ] T036 [US2] Add `health.product.*` keys to `nepstarAdmin/frontend/src/i18n/zh-CN.json`, `en.json`, `es.json`
-- [ ] T037 [US2] Implement `ProductList.vue` in `nepstarAdmin/frontend/src/views/health/ProductList.vue` (search + paged `el-table` with cover thumbnail + name + status, delete `el-popconfirm`, open edit dialog)
-- [ ] T038 [US2] Implement `ProductImageUploader.vue` in `nepstarAdmin/frontend/src/views/health/ProductImageUploader.vue` (`el-upload` to `uploadImage` with `accept=image/*`, per-file/per-count limits, thumbnails preview, reorder + remove emitting ordered `images`)
-- [ ] T039 [US2] Implement `ProductEditDialog.vue` in `nepstarAdmin/frontend/src/views/health/ProductEditDialog.vue` (props `visible/row`, emits `saved`; form = name/description + `ProductImageUploader` + wangEditor `detail_html`; validation ≥1 image; save create/update) — depends T037, T038, T035
-- [ ] T040 [US2] Register route `/health/products` → `ProductList.vue` in `nepstarAdmin/frontend/src/router/index.ts`
-- [ ] T041 [US2] Make US2 tests green (backend unit + API with OSS stubbed, FE uploader test); run FE lint; fix until passing
+- [x] T029 [P] [US2] Create `SAProduct` + `SAProductImage` ORM models in `nepstarAdmin/backend/app/models/new/sa_product.py` per `data-model.md` (product holds `cover_url`, `detail_html` LONGTEXT; image holds `image_url`, `sort_order`, index `idx_product`)
+- [x] T030 [P] [US2] Create product schemas in `nepstarAdmin/backend/app/schemas/product.py` (create/update with `images: list[{url, sort_order}]`, detail response)
+- [x] T031 [P] [US2] Implement `oss_service` in `nepstarAdmin/backend/app/services/oss_service.py` (`oss2` client from `Settings` OSS_* fields; `upload_image(file_bytes, ext) -> public url`; key namespace `health/products/`; never log credentials)
+- [x] T032 [US2] Implement `product_service` in `nepstarAdmin/backend/app/services/product_service.py` (paged list w/ keyword, create/update requiring ≥1 image and replacing the image set delete-then-insert with cover recompute, delete guard) — depends T029, T031
+- [x] T033 [US2] Implement `nepstarAdmin/backend/app/api/products.py` (`APIRouter(prefix="/products")`: list/detail/create/update/delete + `POST /upload-image` reading `UploadFile`, validating MIME/size, calling `oss_service`) and register in `nepstarAdmin/backend/app/main.py`
+- [x] T034 [US2] Add `product.*` backend i18n keys under `nepstarAdmin/backend/app/i18n/` per `contracts/products.md`
+- [x] T035 [US2] Extend `nepstarAdmin/frontend/src/api/health.ts` with product functions incl. `uploadImage(file)` (multipart `FormData` to `/products/upload-image`)
+- [x] T036 [US2] Add `health.product.*` keys to `nepstarAdmin/frontend/src/i18n/zh-CN.json`, `en.json`, `es.json`
+- [x] T037 [US2] Implement `ProductList.vue` in `nepstarAdmin/frontend/src/views/health/ProductList.vue` (search + paged `el-table` with cover thumbnail + name + status, delete `el-popconfirm`, open edit dialog)
+- [x] T038 [US2] Implement `ProductImageUploader.vue` in `nepstarAdmin/frontend/src/views/health/ProductImageUploader.vue` (`el-upload` to `uploadImage` with `accept=image/*`, per-file/per-count limits, thumbnails preview, reorder + remove emitting ordered `images`)
+- [x] T039 [US2] Implement `ProductEditDialog.vue` in `nepstarAdmin/frontend/src/views/health/ProductEditDialog.vue` (props `visible/row`, emits `saved`; form = name/description + `ProductImageUploader` + wangEditor `detail_html`; validation ≥1 image; save create/update) — depends T037, T038, T035
+- [x] T040 [US2] Register route `/health/products` → `ProductList.vue` in `nepstarAdmin/frontend/src/router/index.ts`
+- [x] T041 [US2] Make US2 tests green (backend unit + API with OSS stubbed, FE uploader test); run FE lint; fix until passing
 
 **Checkpoint**: US2 functional & independently verified. Commit: `feat(health): products CRUD + OSS image upload + rich detail`.
 

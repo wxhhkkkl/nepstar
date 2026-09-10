@@ -35,3 +35,67 @@ export async function updateIndicator(id: number, payload: IndicatorPayload) {
 export async function deleteIndicator(id: number) {
   return api.delete(`/indicators/${id}`);
 }
+
+// ---- products (商品) ----
+
+export const PRODUCT_MAX_IMAGE_COUNT = 10;
+export const PRODUCT_MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+export interface ProductImage {
+  id?: number;
+  url: string;
+  sort_order: number;
+}
+
+export interface ProductListItem {
+  id: number;
+  name: string;
+  description?: string | null;
+  cover_url?: string | null;
+  status: number;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string | null;
+}
+
+export interface ProductDetail extends ProductListItem {
+  detail_html?: string | null;
+  images: ProductImage[];
+}
+
+export interface ProductPayload {
+  name?: string;
+  description?: string | null;
+  detail_html?: string | null;
+  status?: number;
+  sort_order?: number;
+  images?: { url: string; sort_order: number }[];
+}
+
+export async function fetchProducts(params: { page?: number; page_size?: number; keyword?: string } = {}) {
+  return api.get('/products', { params });
+}
+
+export async function fetchProduct(id: number) {
+  return api.get(`/products/${id}`);
+}
+
+export async function createProduct(payload: ProductPayload) {
+  return api.post('/products', payload);
+}
+
+export async function updateProduct(id: number, payload: ProductPayload) {
+  return api.put(`/products/${id}`, payload);
+}
+
+export async function deleteProduct(id: number) {
+  return api.delete(`/products/${id}`);
+}
+
+export async function uploadProductImage(file: File) {
+  const form = new FormData();
+  form.append('file', file);
+  return api.post('/products/upload-image', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+}

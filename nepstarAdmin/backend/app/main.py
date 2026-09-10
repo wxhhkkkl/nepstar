@@ -5,7 +5,19 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .api import auth, customers, dashboard, devices, indicators, menus, organizations, reports, roles, users
+from .api import (
+    auth,
+    customers,
+    dashboard,
+    devices,
+    indicators,
+    menus,
+    organizations,
+    products,
+    reports,
+    roles,
+    users,
+)
 from .database import async_session
 from .i18n import get_message
 from .services.health_seed import seed_health_menus
@@ -54,6 +66,7 @@ app.include_router(reports.router, prefix="/api/v1")
 app.include_router(customers.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(indicators.router, prefix="/api/v1")
+app.include_router(products.router, prefix="/api/v1")
 
 
 # Error handler middleware
