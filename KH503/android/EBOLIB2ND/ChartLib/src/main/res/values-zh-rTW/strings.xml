@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="loading">加載中</string>
+
+
+    <string name="price">價格</string>
+    <string name="change_rate">漲跌幅</string>
+    <string name="volume">成交量</string>
+
+    <string name="open_price">開盤價</string>
+    <string name="close_price">收盤價</string>
+    <string name="high_price">最高價</string>
+    <string name="low_price">最低價</string>
+
+    <string name="chart_no_data">暫無數據</string>
+
+</resources>

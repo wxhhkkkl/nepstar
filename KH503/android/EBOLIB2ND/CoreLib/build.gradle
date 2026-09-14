@@ -1,0 +1,71 @@
+apply plugin: 'com.android.library'
+apply plugin: 'org.greenrobot.greendao'
+android {
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        ndk {
+            // 设置支持的SO库架构
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a',
+'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
+        }
+    }
+    //greendao配置
+    greendao {
+        //版本号，升级时可配置
+        schemaVersion 1
+        daoPackage 'bassproject.ebo.com.ebobass.gen'
+        targetGenDir 'src/main/java'
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:support-compat:26.1.0'
+    compile 'com.android.support:recyclerview-v7:26.1.+'
+    compile 'com.android.support:design:26.1.0'
+
+
+    compile 'com.alibaba:fastjson:1.2.12'
+
+    compile 'com.tencent.bugly:crashreport:latest.release'
+    compile 'com.tencent.bugly:nativecrashreport:latest.release'
+//    implementation project(':MediaLib')
+    implementation project(':CommonLib')
+    compile 'org.greenrobot:greendao:3.2.0'
+
+    //NetLib
+    //Retrofit2+RxJava2套餐
+    compile 'io.reactivex.rxjava2:rxjava:2.1.12'
+    compile group: 'io.reactivex.rxjava2', name: 'rxandroid', version: '2.0.2'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.4.0'
+    compile 'com.squareup.retrofit2:converter-scalars:2.4.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.10.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+
+    //TabConroller
+
+//    compile 'com.squareup.picasso:picasso:2.71828'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+
+}

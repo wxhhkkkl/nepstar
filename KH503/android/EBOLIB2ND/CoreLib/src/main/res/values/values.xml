@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="broadcast_upload">com.ebo.action.upload</string>
+    <string name="broadcast_upload_state">state</string>
+    <integer name="broadcast_upload_success">1</integer>
+    <integer name="broadcast_upload_faile">2</integer>
+    <integer name="broadcast_upload_onProgress">3</integer>
+    <integer name="broadcast_upload_onPause">4</integer>
+    <string name="broadcast_upload_progressNumber">progress_number</string>
+
+
+
+
+</resources>

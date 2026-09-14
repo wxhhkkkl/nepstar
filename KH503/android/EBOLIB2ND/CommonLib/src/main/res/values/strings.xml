@@ -1,0 +1,43 @@
+<resources>
+    <string name="permission_title">授权提示</string>
+    <string name="permission_1">获取相关权限失败:</string>
+    <string name="permission_2">将导致部分功能无法正常使用，需要到设置页面手动授权</string>
+    <string name="permission_3">您好，需要如下权限：</string>
+    <string name="permission_4">请允许，否则将影响部分功能的正常使用。</string>
+    <string name="permission_btn">去授权</string>
+    <!--2018-4-16-->
+    <string name="permission_camera">允许应用程序访问摄像头</string>
+    <string name="permission_read_external_storage">允许应用程序读取扩展存储器</string>
+    <string name="permission_read_phone_state">允许应用程序读取电话状态</string>
+    <string name="permission_write_external_storage">允许应用程序写入外部存储，如SD卡上写文件</string>
+    <string name="permission_vibrate">允许访问振动设备</string>
+    <string name="label_cancel">取消</string>
+    <string name="label_ok">确定</string>
+
+    <string name="no_sim">请确认sim卡是否可用</string>
+    <string name="no_sd_card">设备没有SD卡!</string>
+    <string name="permission_failed">部分权限获取失败，正常功能受到影响</string>
+
+    <string name="doubleclick2exit">再点击一次退出应用程序</string>
+
+
+    <!--###############################-->
+
+    <!--语言类型-->
+    <string name="language_zh_cn">/zh</string>
+    <string name="language_zh_tw">/tw</string>
+    <string name="language_en_us">/en</string>
+    <string name="language_ja_jp">/ja</string>
+
+    <string name="language_zh_cn2">zh/</string>
+    <string name="language_zh_tw2">tw/</string>
+    <string name="language_en_us2">en/</string>
+    <string name="language_ja_jp2">ja/</string>
+
+    <string name="app_language_pref_key" translatable="false">app_language_pref_key</string>
+
+    <string name="lan_zh_cn">简体中文(zh-cn)</string>
+    <string name="lan_zh_tw">繁體中文(zh-tw)</string>
+    <string name="lan_en_us">English(en-us)</string>
+    <string name="lan_ja_jp">にほんご(ja-jp)</string>
+</resources>

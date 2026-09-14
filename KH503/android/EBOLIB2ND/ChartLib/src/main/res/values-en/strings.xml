@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="loading">loading</string>
+
+
+    <string name="price">price</string>
+    <string name="change_rate">change rate</string>
+    <string name="volume">volume</string>
+    <string name="open_price">open_price price</string>
+    <string name="close_price">close_price price</string>
+    <string name="high_price">high price</string>
+    <string name="low_price">low price</string>
+
+
+    <string name="chart_no_data">no data</string>
+
+
+</resources>

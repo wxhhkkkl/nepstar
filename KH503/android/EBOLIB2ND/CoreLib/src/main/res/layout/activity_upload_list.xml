@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <!--actionbar-->
+    <RelativeLayout
+        android:id="@+id/actionbar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/actionbar_H"
+        android:background="@color/actionbar_bg">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="文件上传"
+            android:textColor="@color/white"
+            android:textSize="@dimen/actionbar_TitleSize"
+            />
+
+        <include
+            android:id="@+id/actionbar_back"
+            layout="@layout/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/iv_SelectFile"
+            android:layout_width="@dimen/actionbar_Button_loginW"
+            android:layout_height="@dimen/actionbar_Button_loginH"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/select_file" />
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/lv_upload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/actionbar"
+        android:layout_marginTop="0dp"></ListView>
+
+</RelativeLayout>

@@ -1,0 +1,1 @@
+include ':app', ':CoreLib', ':IMLib', ':IMKit', ':ChartLib', ':PayLib', ':MediaLib', ':NetLib', ':CommonLib', ':SysLib', ':DBLib', ':WidgetLib'

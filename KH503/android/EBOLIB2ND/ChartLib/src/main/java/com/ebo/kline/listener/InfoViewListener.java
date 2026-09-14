@@ -1,0 +1,74 @@
+package com.ebo.kline.listener;
+
+import android.content.Context;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.FrameLayout;
+
+import com.ebo.kline.model.HisData;
+import com.ebo.kline.util.KUtils;
+import com.ebo.kline.view.ChartInfoView;
+import com.github.mikephil.charting.charts.Chart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+
+import java.util.List;
+
+/**
+ * Created by dell on 2017/9/28.
+ */
+
+public class InfoViewListener implements OnChartValueSelectedListener {
+
+    private List<HisData> mList;
+    private double mLastClose;
+    private ChartInfoView mInfoView;
+    private int mWidth;
+    /**
+     * if otherChart not empty, highlight will disappear after 3 second
+     */
+    private Chart mOtherChart;
+
+    public InfoViewListener(Context context, double lastClose, List<HisData> list, ChartInfoView infoView) {
+        mWidth = KUtils.getWidthHeight(context)[0];
+        mLastClose = lastClose;
+        mList = list;
+        mInfoView = infoView;
+    }
+
+    public InfoViewListener(Context context, double lastClose, List<HisData> list, ChartInfoView infoView, Chart otherChart) {
+        mWidth = KUtils.getWidthHeight(context)[0];
+        mLastClose = lastClose;
+        mList = list;
+        mInfoView = infoView;
+        mOtherChart = otherChart;
+    }
+
+    @Override
+    public void onValueSelected(Entry e, Highlight h) {
+        int x = (int) e.getX();
+        if (x < mList.size()) {
+            mInfoView.setVisibility(View.VISIBLE);
+            mInfoView.setData(mLastClose, mList.get(x));
+        }
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) mInfoView.getLayoutParams();
+        if (h.getXPx() < mWidth / 2) {
+            lp.gravity = Gravity.RIGHT;
+        } else {
+            lp.gravity = Gravity.LEFT;
+        }
+        mInfoView.setLayoutParams(lp);
+        if (mOtherChart != null) {
+            mOtherChart.highlightValues(new Highlight[]{new Highlight(h.getX(), Float.NaN, 0)});
+        }
+    }
+
+    @Override
+    public void onNothingSelected() {
+        mInfoView.setVisibility(View.GONE);
+        if (mOtherChart != null) {
+            mOtherChart.highlightValues(null);
+        }
+    }
+}

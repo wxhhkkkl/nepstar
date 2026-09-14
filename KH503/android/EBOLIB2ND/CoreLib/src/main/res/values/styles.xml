@@ -1,0 +1,60 @@
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowBackground">@color/actionbar_bg</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:fitsSystemWindows">false</item>
+        <item name="android:clipToPadding">false</item>
+    </style>
+
+    <style name="dialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:layout_margin">2dp</item>
+    </style>
+
+    <style name="dialog_intercept" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:layout_height">150dp</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
+    <declare-styleable name="CircleImageView">
+        <attr name="border_width" format="dimension" />
+        <attr name="border_color" format="color" />
+    </declare-styleable>
+    <!--加载进度对话框样式-->
+    <style name="Dialog_Fullscreen">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
+        <item name="android:windowIsTranslucent">false</item><!--半透明-->
+        <item name="android:windowBackground">@android:color/transparent</item><!--背景透明-->
+        <item name="android:backgroundDimEnabled">true</item><!--模糊-->
+    </style>
+
+    <!--<declare-styleable name="FloatButton">-->
+        <!--&lt;!&ndash; 子按钮数量，3-6之间，小于3默认为3，大于6默认为6 &ndash;&gt;-->
+        <!--<attr name="number" format="integer" />-->
+        <!--&lt;!&ndash; 上下方留出的空间，默认分别小于宽高中较小者的一半 &ndash;&gt;-->
+        <!--<attr name="marginY" format="dimension" />-->
+        <!--&lt;!&ndash; 主按钮与子按钮间距，默认小于等于marginY &ndash;&gt;-->
+        <!--<attr name="distance" format="dimension" />-->
+        <!--&lt;!&ndash; 按钮的大小，默认小于distance &ndash;&gt;-->
+        <!--<attr name="imageSize" format="dimension" />-->
+        <!--&lt;!&ndash; 按钮图片 &ndash;&gt;-->
+        <!--<attr name="imageMainOpen" format="reference" />-->
+        <!--<attr name="imageMainClose" format="reference" />-->
+        <!--<attr name="image1" format="reference" />-->
+        <!--<attr name="image2" format="reference" />-->
+        <!--<attr name="image3" format="reference" />-->
+        <!--<attr name="image4" format="reference" />-->
+        <!--<attr name="image5" format="reference" />-->
+        <!--<attr name="image6" format="reference" />-->
+        <!--<attr name="src" format="reference" />-->
+    <!--</declare-styleable>-->
+</resources>

@@ -1,0 +1,81 @@
+<resources>
+    <string name="xrefreshview_header_hint_normal">下拉刷新</string>
+    <string name="xrefreshview_header_hint_ready">松开刷新数据</string>
+    <string name="xrefreshview_header_hint_refreshing">正在刷新...</string>
+    <string name="xrefreshview_header_hint_loading">正在加载...</string>
+    <string name="xrefreshview_header_hint_loaded">加载完成</string>
+    <string name="xrefreshview_header_hint_loaded_fail">加载失败</string>
+    <string name="xrefreshview_header_last_time">上次更新时间：</string>
+    <string name="xrefreshview_footer_hint_normal">加载完成</string>
+    <string name="xrefreshview_footer_hint_fail">加载失败，请重试</string>
+    <string name="xrefreshview_footer_hint_complete">已无更多数据</string>
+    <string name="xrefreshview_footer_hint_click">点击加载更多</string>
+    <string name="xrefreshview_footer_hint_release">松开加载更多</string>
+    <string name="xrefreshview_footer_hint_ready">松开载入更多</string>
+    <string name="xrefreshview_never_refresh">从未刷新</string>
+    <string name="xrefreshview_refresh_justnow">刚刚刷新</string>
+    <string name="xrefreshview_refresh_minutes_ago">%1s分钟之前刷新</string>
+    <string name="xrefreshview_refresh_hours_ago">%1s小时之前刷新</string>
+    <string name="xrefreshview_refresh_days_ago">%1s天之前刷新</string>
+
+
+    //zxing-----------------------------------------------------------
+    <!--扫一扫-->
+    <string name="title_activity_scan_qr_code">扫一扫</string>
+    <string name="qc_code_close">关闭</string>
+    <string name="qr_code_select_picture">照片</string>
+    <string name="qr_code_open_flash_light">打开闪光灯</string>
+    <string name="qr_code_close_flash_light">关闭闪光灯</string>
+    <string name="qr_code_auto_scan_notification">将二维码放入框内，即可自动扫描</string>
+    <string name="qr_code_notification">提示</string>
+    <string name="qr_code_camera_not_open">您的相机功能好像没有打开哦~去\"设置>隐私>相机\"设置一下吧</string>
+    <string name="qr_code_positive_button_know">知道了</string>
+    <string name="qr_code_positive_button_confirm">确认</string>
+    <string name="qr_code_could_not_read_qr_code_from_picture">没有读出图片中的链接，换张图片试试吧~</string>
+    <string name="qr_code_could_not_read_qr_code_from_scanner">对不起，无法打开扫出的内容</string>
+    <string name="qr_code_camera_not_found">未检测到相机</string>
+
+    <string name="label_cancel">取消</string>
+    <string name="label_ok">确定</string>
+    <string name="permission_title_rationale">权限需求</string>
+    <string name="permission_read_storage_rationale">选择图片时需要读取权限</string>
+    <string name="permission_write_storage_rationale">拍照时需要存储权限</string>
+
+    //图片裁剪--------------------------------------------------------------------------
+    <string name="pic_btn">获取图片</string>
+    <string name="dialog_title">设置头像</string>
+    <string name="dialog_p_btn">相册</string>
+    <string name="dialog_n_btn">拍照</string>
+
+
+    <string name="doubleclick2exit">再点击一次退出应用程序</string>
+    <string name="no_sd_card">设备没有SD卡!</string>
+    <string name="permission_failed">部分权限获取失败，正常功能受到影响</string>
+    <string name="success_saved">保存成功</string>
+    <string name="no_net">网络不可用!</string>
+    <string name="timeout">网络超时!</string>
+    <string name="loading">加载中……</string>
+    <string name="tip_open_permission">请至权限中心打开本应用的相机访问权限</string>
+    <string name="scanning">正在扫描...</string>
+    <string name="no_sim">请确认sim卡是否可用</string>
+
+
+    <string name="photo">拍照</string>
+    <string name="select_photo">从手机相册选择</string>
+    <string name="cancel">取消</string>
+
+    <string name="permission_title">授权提示</string>
+    <string name="permission_1">获取相关权限失败:</string>
+    <string name="permission_2">将导致部分功能无法正常使用，需要到设置页面手动授权</string>
+    <string name="permission_3">您好，需要如下权限：</string>
+    <string name="permission_4">请允许，否则将影响部分功能的正常使用。</string>
+    <string name="permission_btn">去授权</string>
+    <!--2018-4-16-->
+    <string name="permission_camera">允许应用程序访问摄像头</string>
+    <string name="permission_read_external_storage">允许应用程序读取扩展存储器</string>
+    <string name="permission_read_phone_state">允许应用程序读取电话状态</string>
+    <string name="permission_write_external_storage">允许应用程序写入外部存储，如SD卡上写文件</string>
+    <string name="permission_vibrate">允许访问振动设备</string>
+
+    <string name="get_phone_code">获取验证码</string>
+</resources>

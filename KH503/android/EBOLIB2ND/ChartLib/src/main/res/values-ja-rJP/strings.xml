@@ -1,0 +1,14 @@
+<resources>
+    <string name="loading">ローディング中</string>
+    <string name="price">価格</string>
+    <string name="change_rate">上昇幅</string>
+    <string name="volume">成約の数</string>
+
+    <string name="open_price">始め値</string>
+    <string name="close_price">ひけね</string>
+    <string name="high_price">さいこうかかく</string>
+    <string name="low_price">やすね</string>
+
+    <string name="chart_no_data">データなし</string>
+
+</resources>

@@ -1,0 +1,81 @@
+﻿<resources>
+    <string name="xrefreshview_header_hint_normal">Pull to refresh</string>
+    <string name="xrefreshview_header_hint_ready">Release to update the data</string>
+    <string name="xrefreshview_header_hint_refreshing">Updating...</string>
+    <string name="xrefreshview_header_hint_loading">loading...</string>
+    <string name="xrefreshview_header_hint_loaded">Loading completed</string>
+    <string name="xrefreshview_header_hint_loaded_fail">Failed to load</string>
+    <string name="xrefreshview_header_last_time">Last update time：</string>
+    <string name="xrefreshview_footer_hint_normal">Loading completed</string>
+    <string name="xrefreshview_footer_hint_fail">Failed to load the data, please try again</string>
+    <string name="xrefreshview_footer_hint_complete">No more data</string>
+    <string name="xrefreshview_footer_hint_click">Click to load more information</string>
+    <string name="xrefreshview_footer_hint_release">Release to load more information</string>
+    <string name="xrefreshview_footer_hint_ready">Release to load more information</string>
+    <string name="xrefreshview_never_refresh">Never refreshed</string>
+    <string name="xrefreshview_refresh_justnow">Just refreshed</string>
+    <string name="xrefreshview_refresh_minutes_ago">Refresh in %min</string>
+    <string name="xrefreshview_refresh_hours_ago">Refresh % hours ago</string>
+    <string name="xrefreshview_refresh_days_ago">Refresh % day ago</string>
+
+
+    //zxing-----------------------------------------------------------
+    <!--扫一扫-->
+    <string name="title_activity_scan_qr_code">Scan it</string>
+    <string name="qc_code_close">Shut down</string>
+    <string name="qr_code_select_picture">Photo</string>
+    <string name="qr_code_open_flash_light">Flash on</string>
+    <string name="qr_code_close_flash_light">Flash off</string>
+    <string name="qr_code_auto_scan_notification">The QR code can be automatically scanned by putting it into the frame</string>
+    <string name="qr_code_notification">Tips</string>
+    <string name="qr_code_camera_not_open">Your camera function doesn\'t seem to have been opened.Click Setting - Privacy - Camera to set it"</string>
+    <string name="qr_code_positive_button_know">Got it</string>
+    <string name="qr_code_positive_button_confirm">Confirm</string>
+    <string name="qr_code_could_not_read_qr_code_from_picture">Did not read the link in the picture, try another picture</string>
+    <string name="qr_code_could_not_read_qr_code_from_scanner">Sorry, unable to open_price the swept content</string>
+    <string name="qr_code_camera_not_found">Undetected camera</string>
+
+    <string name="label_cancel">Cancel</string>
+    <string name="label_ok">Confirm</string>
+    <string name="permission_title_rationale">Permissions demand</string>
+    <string name="permission_read_storage_rationale">You need open_price reading permissions when you choose a picture</string>
+    <string name="permission_write_storage_rationale">You need open_price storaging permissions when you choose a picture</string>
+
+    //图片裁剪--------------------------------------------------------------------------
+    <string name="pic_btn">Get a picture</string>
+    <string name="dialog_title">Set up an avatar</string>
+    <string name="dialog_p_btn">Album</string>
+    <string name="dialog_n_btn">Photograph</string>
+
+
+    <string name="doubleclick2exit">Click once again to exit the application</string>
+    <string name="no_sd_card">There is no SD card for the device!</string>
+    <string name="permission_failed">Partial access failed, normal functionality was affected</string>
+    <string name="success_saved">Save success</string>
+    <string name="no_net">No network connected!</string>
+    <string name="timeout">Network timeout!</string>
+    <string name="loading">Loading……</string>
+    <string name="tip_open_permission">Please go to the permission center to open_price the camera access right of this application.</string>
+    <string name="scanning">Scaning...</string>
+    <string name="no_sim">Please confirm whether the SIM card is available</string>
+
+
+    <string name="photo">Photograph</string>
+    <string name="select_photo">Select from phone album</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="permission_title">Authorization tips</string>
+    <string name="permission_1">Failed to get related permission:</string>
+    <string name="permission_2">Result in some functions not working properly, you need to manually authorize the settings page</string>
+    <string name="permission_3">Hello, the following permissions are needed：</string>
+    <string name="permission_4">Please authorize, otherwise it will affect the normal use of some functions.</string>
+    <string name="permission_btn">To authorize</string>
+    <!--2018-4-16-->
+    <string name="permission_camera">Allows the application to access the camera.</string>
+    <string name="permission_read_external_storage">Allows the application to read the extended memory.</string>
+    <string name="permission_read_phone_state">Allows the application to read the phone status.</string>
+    <string name="permission_write_external_storage">Allows the application to write to external storage, such as an SD card.</string>
+    <string name="permission_vibrate">Allow access to vibration devices.</string>
+
+    <string name="get_phone_code">Get verification code</string>
+</resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <!--actionbar-->
+    <RelativeLayout
+        android:id="@+id/actionbar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/actionbar_H"
+        android:background="@color/actionbar_bg">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="扫码"
+            android:textColor="@color/white"
+            android:textSize="@dimen/actionbar_TitleSize"
+            />
+
+        <include
+            android:id="@+id/actionbar_back"
+            layout="@layout/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            />
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_qrcode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="开始扫码"
+        android:layout_below="@id/actionbar"
+        />
+
+    <TextView
+        android:id="@+id/txt_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="扫描结果"
+        android:layout_below="@id/btn_qrcode"
+        />
+</RelativeLayout>

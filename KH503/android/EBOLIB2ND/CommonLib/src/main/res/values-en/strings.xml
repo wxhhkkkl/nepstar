@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="permission_title">Authorization tips</string>
+    <string name="permission_1">Failed to get related permission:</string>
+    <string name="permission_2">Result in some functions not working properly, you need to manually authorize the settings page</string>
+    <string name="permission_3">Hello, the following permissions are needed：</string>
+    <string name="permission_4">Please authorize, otherwise it will affect the normal use of some functions.</string>
+    <string name="permission_btn">To authorize</string>
+    <!--2018-4-16-->
+    <string name="permission_camera">Allows the application to access the camera.</string>
+    <string name="permission_read_external_storage">Allows the application to read the extended memory.</string>
+    <string name="permission_read_phone_state">Allows the application to read the phone status.</string>
+    <string name="permission_write_external_storage">Allows the application to write to external storage, such as an SD card.</string>
+    <string name="permission_vibrate">Allow access to vibration devices.</string>
+    <string name="label_cancel">Cancel</string>
+    <string name="label_ok">Confirm</string>
+
+    <string name="no_sim">Please confirm whether the SIM card is available</string>
+    <string name="no_sd_card">There is no SD card for the device!</string>
+    <string name="permission_failed">Partial access failed, normal functionality was affected</string>
+    <string name="doubleclick2exit">Click once again to exit the application</string>
+</resources>

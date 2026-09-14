@@ -1,0 +1,106 @@
+package com.ebo.kline;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.util.AttributeSet;
+
+import com.ebo.kline.render.KCombinedChartRenderer;
+import com.ebo.kline.view.LineChartXMarkerView;
+import com.ebo.kline.view.LineChartYMarkerView;
+import com.github.mikephil.charting.charts.CombinedChart;
+import com.github.mikephil.charting.components.IMarker;
+import com.github.mikephil.charting.data.CombinedData;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.IDataSet;
+
+/**
+ * Created by dell on 2017/6/22.
+ */
+
+public class KCombinedChart extends CombinedChart {
+
+    private IMarker mXMarker;
+
+    public KCombinedChart(Context context) {
+        this(context, null);
+    }
+
+    public KCombinedChart(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public KCombinedChart(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
+
+
+    @Override
+    protected void init() {
+        super.init();
+        mRenderer = new KCombinedChartRenderer(getContext(),this, mAnimator, mViewPortHandler);
+    }
+
+    public void setXMarker(IMarker marker) {
+        mXMarker = marker;
+    }
+
+    @Override
+    public void setData(CombinedData data) {
+        try {
+            super.setData(data);
+        }catch (ClassCastException e) {
+            // ignore
+        }
+        ((KCombinedChartRenderer) mRenderer).createRenderers(getContext());
+        mRenderer.initBuffers();
+    }
+
+    @Override
+    protected void drawMarkers(Canvas canvas) {
+        if (mMarker == null || mXMarker == null || !isDrawMarkersEnabled() || !valuesToHighlight())
+            return;
+
+        for (int i = 0; i < mIndicesToHighlight.length; i++) {
+
+            Highlight highlight = mIndicesToHighlight[i];
+
+            IDataSet set = mData.getDataSetByIndex(highlight.getDataSetIndex());
+
+            Entry e = mData.getEntryForHighlight(mIndicesToHighlight[i]);
+            int entryIndex = set.getEntryIndex(e);
+
+            // make sure entry not null
+            if (e == null || entryIndex > set.getEntryCount() * mAnimator.getPhaseX())
+                continue;
+
+            float[] pos = getMarkerPosition(highlight);
+
+            // check bounds
+            if (!mViewPortHandler.isInBounds(pos[0], pos[1]))
+                continue;
+
+            // callbacks to update the content
+            mMarker.refreshContent(e, highlight);
+            mXMarker.refreshContent(e, highlight);
+
+            // draw the marker
+//            if (mMarker instanceof LineChartYMarkerView) {
+            LineChartYMarkerView yMarker = (LineChartYMarkerView) mMarker;
+            LineChartXMarkerView xMarker = (LineChartXMarkerView) mXMarker;
+            int width = yMarker.getMeasuredWidth();
+            mMarker.draw(canvas, getMeasuredWidth() - width * 1.05f, pos[1] - yMarker.getMeasuredHeight() / 2);
+
+            mXMarker.draw(canvas, pos[0] - (xMarker.getMeasuredWidth() / 2), getMeasuredHeight());
+//            } else {
+//                mMarker.draw(canvas, pos[0], pos[1]);
+//            }
+        }
+    }
+
+    @Override
+    public void highlightValue(Highlight highlight) {
+        super.highlightValue(highlight);
+    }
+
+}

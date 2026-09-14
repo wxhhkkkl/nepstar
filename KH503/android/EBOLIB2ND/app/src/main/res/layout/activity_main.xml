@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="5dp">
+
+
+    <com.ebo.corelib.ui.widget.ProgressButton
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_margin="5dp"
+        android:gravity="center"
+        android:text="我是进度条按钮"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        app:showProgressNum="true" />
+
+    <Button
+        android:id="@+id/btn_download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="下载文件"
+
+        />
+
+    <Button
+        android:id="@+id/zxing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="扫码" />
+
+    <Button
+        android:id="@+id/btn_head"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="头像设置" />
+
+    <Button
+        android:id="@+id/btn_oss_upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="oss上传" />
+
+    <Button
+        android:id="@+id/btn_test_http"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="http接口测试" />
+
+    <TextView
+        android:id="@+id/tv_double"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/blue_btn"
+        android:padding="5dp"
+        android:text="双击此处"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/btn_check_updata"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="检查更新"
+        />
+
+    <com.ebo.kline.KLineView
+        android:id="@+id/kline"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+
+</LinearLayout>

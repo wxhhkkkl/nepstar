@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:descendantFocusability="blocksDescendants"
+    android:padding="6dp"
+
+    >
+
+    <TextView
+        android:id="@+id/tv_file_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="mp4.png"
+        android:textColor="@color/black"
+        android:textSize="@dimen/textsize_upload" />
+
+    <TextView
+        android:id="@+id/tv_file_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/tv_file_name"
+        android:text="(102k)"
+        android:textColor="@color/black"
+        android:textSize="@dimen/textsize_upload" />
+
+    <Button
+        android:id="@+id/btn_right"
+        android:layout_width="@dimen/btnW_upload"
+        android:layout_height="@dimen/btnW_upload"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/upload_delete"
+        android:focusable="false" />
+
+    <Button
+        android:id="@+id/btn_left"
+        android:layout_width="@dimen/btnW_upload"
+        android:layout_height="@dimen/btnW_upload"
+        android:layout_marginRight="10dp"
+        android:layout_toLeftOf="@id/btn_right"
+        android:background="@drawable/upload_pause"
+        android:focusable="false" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_file_name"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:max="100"
+            android:paddingTop="2dp"
+            android:progress="0" />
+
+        <TextView
+            android:id="@+id/tv_progress_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:layout_toRightOf="@id/progress_bar"
+            android:paddingLeft="2dp"
+            android:text="0%"
+            android:textColor="@color/black"
+            android:textSize="@dimen/textsize_upload" />
+    </RelativeLayout>
+
+
+</RelativeLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--是否为debug版本-->
+    <bool name="debug">true</bool>
+    <!--是否显示邮箱登录-->
+    <bool name="show_email_login">false</bool>
+    <!--用户名和密码的最大/最小长度-->
+    <integer name="password_length_min">6</integer>
+    <integer name="password_length_max">12</integer>
+    <integer name="deal_password_length_max">6</integer>
+    <integer name="phone_code_length">4</integer>
+    <!--重发验证码间隔多少秒-->
+    <integer name="resend_smscode">60</integer>
+    <!--接口返回code值========================================================-->
+
+    <!--语言类型-->
+    <integer name="language_simple">0</integer>
+    <integer name="language_traditional">1</integer>
+    <integer name="language_english">2</integer>
+    <integer name="language_japanese">3</integer>
+
+    <!--行情刷新频率-->
+
+    <!--最多输入错误3次，出图形验证码-->
+    <integer name="max_count_input_error">3</integer>
+
+    <integer name="type_status_gesture">0</integer>
+    <integer name="type_status_finger">1</integer>
+    <integer name="type_status_phone">2</integer>
+    <integer name="type_status_email">3</integer>
+    <integer name="type_status_google">4</integer>
+
+    <!--token过期-->
+    <integer name="token_past_due">2</integer>
+
+</resources>
