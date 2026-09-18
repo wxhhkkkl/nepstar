@@ -10,7 +10,7 @@ def mask_phone(phone: str | None) -> str | None:
 
     Examples:
         mask_phone("13812345678") → "138****5678"
-        mask_phone("1381234") → "1****"  (短号码保留首字符)
+        mask_phone("13812") → "1****"  (短号码保留首字符)
         mask_phone(None) → None
         mask_phone("") → ""
     """
@@ -26,7 +26,7 @@ def mask_name(name: str | None) -> str | None:
 
     Examples:
         mask_name("张三") → "张*"
-        mask_name("Li Xiaoming") → "L*********"
+        mask_name("Li Xiaoming") → "L**********"
         mask_name("A") → "A"
         mask_name(None) → None
         mask_name("") → ""

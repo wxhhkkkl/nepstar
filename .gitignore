@@ -3,6 +3,10 @@
 .env.*
 !.env.example
 
+# 旧报告后端（Java 快照）—— 只作取值口径参考，不参与构建
+# 内含明文数据库凭据（kj-web-controller/src/main/resources/mongodb.properties），禁止入库
+oldbackend/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,7 +1,8 @@
 """Unit tests for customer_service — list_customers() with dedup and RBAC."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from app.services.customer_service import list_customers
 
@@ -10,13 +11,16 @@ class TestListCustomers:
     """Test list_customers() service function."""
 
     @pytest.mark.asyncio
-    async def test_returns_empty_when_customer_table_not_found(self):
-        """customer 表不存在时返回空列表。"""
+    async def test_raises_when_customer_table_not_found(self):
+        """customer 表是必需依赖，缺失时显式报错，不静默返回空列表。
+
+        与 inspect_base 缺失时的降级不同：客户表缺失意味着部署不完整，
+        静默返回“看起来没客户”会误导排查。
+        """
         with patch("app.services.customer_service.customer_table", None):
             db = AsyncMock()
-            result = await list_customers(db, user_id=1, page=1, page_size=20)
-            assert result["records"] == []
-            assert result["total"] == 0
+            with pytest.raises(ValueError, match="customer.table_not_found"):
+                await list_customers(db, user_id=1, page=1, page_size=20)
 
     @pytest.mark.asyncio
     async def test_admin_sees_all_within_dept_id(self):
@@ -62,6 +66,7 @@ class TestListCustomers:
         db = AsyncMock()
         mock_data = MagicMock()
         mock_data.all.return_value = []
+        mock_data.scalar.return_value = 0
         db.execute = AsyncMock(return_value=mock_data)
 
         result = await list_customers(

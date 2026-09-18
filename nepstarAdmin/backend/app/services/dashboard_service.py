@@ -103,7 +103,7 @@ async def get_dashboard_trend(
 ) -> dict:
     """获取报告数和客户数的趋势数据。
 
-    粒度自动选择：≤30天 → 按日，≤365天 → 按周，>365天 → 按月。
+    统一按日聚合——不做按周/按月切换。
     返回 [{label, report_count, customer_count}] 列表。
     """
     if inspect_base_table is None:
@@ -115,11 +115,6 @@ async def get_dashboard_trend(
     if not start_date:
         start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 
-    # 统一按日聚合，90天以内的图表日粒度足够清晰
-    try:
-        days = (datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")).days
-    except ValueError:
-        days = 30
     granularity = "daily"
     date_expr = func.date(inspect_base_table.c.inspect_date)
 

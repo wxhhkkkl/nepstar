@@ -1,7 +1,6 @@
 """Unit tests for PII masking utilities."""
 
-import pytest
-from app.utils.pii import mask_phone, mask_name
+from app.utils.pii import mask_name, mask_phone
 
 
 class TestMaskPhone:
@@ -13,7 +12,7 @@ class TestMaskPhone:
 
     def test_short_phone(self):
         """短号码（<7位）：保留首字符，其余****。"""
-        assert mask_phone("1381234") == "1****"
+        assert mask_phone("13812") == "1****"
 
     def test_exactly_7_digits(self):
         """恰好7位：前3后4，中间****（0个真实数字被替换）。"""
@@ -45,7 +44,7 @@ class TestMaskName:
 
     def test_english_name(self):
         """英文名：首字母保留，其余*。"""
-        assert mask_name("Li Xiaoming") == "L*********"
+        assert mask_name("Li Xiaoming") == "L**********"
 
     def test_single_char(self):
         """单字名：保留原字。"""

@@ -1,9 +1,10 @@
 """Unit tests for report_service — list_reports() with RBAC filtering."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.services.report_service import list_reports, get_report_detail
+import pytest
+
+from app.services.report_service import get_report_detail, list_reports
 
 
 class TestListReports:
@@ -30,7 +31,11 @@ class TestListReports:
 
         db.execute = AsyncMock(side_effect=[mock_count_result, mock_data_result])
 
-        result = await list_reports(db, user_id=1, page=1, page_size=20)
+        with patch("app.services.report_service.get_user_authorized_orgs",
+                   new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = ([], [])  # admin：无组织过滤
+
+            result = await list_reports(db, user_id=1, page=1, page_size=20)
         # Admin 应该能获取到数据（不被 RBAC 过滤）
         assert result["total"] == 42
         assert result["page"] == 1
@@ -70,7 +75,11 @@ class TestListReports:
         db.execute = AsyncMock(side_effect=[mock_count_result, mock_data_result])
 
         # 即使 admin 也要受 dept_id 限制
-        result = await list_reports(db, user_id=1, page=1, page_size=20)
+        with patch("app.services.report_service.get_user_authorized_orgs",
+                   new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = ([], [])  # admin：无组织过滤
+
+            result = await list_reports(db, user_id=1, page=1, page_size=20)
         assert result["total"] == 0
 
     @pytest.mark.asyncio
@@ -84,7 +93,11 @@ class TestListReports:
 
         db.execute = AsyncMock(side_effect=[mock_count_result, mock_data_result])
 
-        result = await list_reports(db, user_id=1, page=3, page_size=10)
+        with patch("app.services.report_service.get_user_authorized_orgs",
+                   new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = ([], [])  # admin：无组织过滤
+
+            result = await list_reports(db, user_id=1, page=3, page_size=10)
         assert result["page"] == 3
         assert result["page_size"] == 10
 
@@ -147,10 +160,14 @@ class TestListReportsFilters:
         mock_data.all.return_value = []
 
         db.execute = AsyncMock(side_effect=[mock_count, mock_data])
-        result = await list_reports(
-            db, user_id=1, page=1, page_size=20,
-            start_date="2025-01-01", end_date="2025-12-31"
-        )
+        with patch("app.services.report_service.get_user_authorized_orgs",
+                   new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = ([], [])  # admin：无组织过滤
+
+            result = await list_reports(
+                db, user_id=1, page=1, page_size=20,
+                start_date="2025-01-01", end_date="2025-12-31"
+            )
         assert result["total"] == 3
 
     @pytest.mark.asyncio
@@ -163,7 +180,11 @@ class TestListReportsFilters:
         mock_data.all.return_value = []
 
         db.execute = AsyncMock(side_effect=[mock_count, mock_data])
-        result = await list_reports(db, user_id=1, page=1, page_size=20, sn="SN-001")
+        with patch("app.services.report_service.get_user_authorized_orgs",
+                   new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = ([], [])  # admin：无组织过滤
+
+            result = await list_reports(db, user_id=1, page=1, page_size=20, sn="SN-001")
         assert result["total"] == 1
 
     @pytest.mark.asyncio
@@ -176,10 +197,17 @@ class TestListReportsFilters:
         mock_data.all.return_value = []
 
         db.execute = AsyncMock(side_effect=[mock_count, mock_data])
-        result = await list_reports(
-            db, user_id=1, page=1, page_size=20,
-            org_id=3, start_date="2025-06-01", sn="ABC"
-        )
+        with patch("app.services.report_service.get_user_authorized_orgs",
+                   new_callable=AsyncMock) as mock_auth, \
+             patch("app.services.report_service.get_org_descendants",
+                   new_callable=AsyncMock) as mock_desc:
+            mock_auth.return_value = ([], [])  # admin：无组织过滤
+            mock_desc.return_value = [3]  # org_id=3 及子孙
+
+            result = await list_reports(
+                db, user_id=1, page=1, page_size=20,
+                org_id=3, start_date="2025-06-01", sn="ABC"
+            )
         assert result["total"] == 1
 
     @pytest.mark.asyncio
@@ -192,5 +220,9 @@ class TestListReportsFilters:
         mock_data.all.return_value = []
 
         db.execute = AsyncMock(side_effect=[mock_count, mock_data])
-        result = await list_reports(db, user_id=1, page=1, page_size=20, sn="")
+        with patch("app.services.report_service.get_user_authorized_orgs",
+                   new_callable=AsyncMock) as mock_auth:
+            mock_auth.return_value = ([], [])  # admin：无组织过滤
+
+            result = await list_reports(db, user_id=1, page=1, page_size=20, sn="")
         assert result["total"] == 50
