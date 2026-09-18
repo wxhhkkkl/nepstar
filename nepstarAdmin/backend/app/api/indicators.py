@@ -12,6 +12,11 @@ from ..services import indicator_service
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 
 
+def _error_code(exc: ValueError) -> int:
+    """冲突类错误返回 409，其余参数类错误返回 400（见 contracts/indicator-target-id.md）。"""
+    return 409 if str(exc).endswith("_conflict") else 400
+
+
 @router.get("/tree")
 async def get_indicator_tree(keyword: str = "", status: int | None = None,
                              db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
@@ -25,7 +30,7 @@ async def create_indicator(req: IndicatorCreate, db: AsyncSession = Depends(get_
     try:
         row = await indicator_service.create_indicator(db, req)
     except ValueError as e:
-        return ApiResponse(code=400, message=str(e))
+        return ApiResponse(code=_error_code(e), message=str(e))
     return ApiResponse(data=row)
 
 
@@ -35,7 +40,7 @@ async def update_indicator(indicator_id: int, req: IndicatorUpdate,
     try:
         row = await indicator_service.update_indicator(db, indicator_id, req)
     except ValueError as e:
-        return ApiResponse(code=400, message=str(e))
+        return ApiResponse(code=_error_code(e), message=str(e))
     return ApiResponse(data=row)
 
 

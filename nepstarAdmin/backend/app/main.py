@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from . import mongo
 from .api import (
     auth,
     customers,
@@ -15,6 +16,7 @@ from .api import (
     organizations,
     plans,
     products,
+    report_view,
     reports,
     roles,
     users,
@@ -69,6 +71,8 @@ app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(indicators.router, prefix="/api/v1")
 app.include_router(products.router, prefix="/api/v1")
 app.include_router(plans.router, prefix="/api/v1")
+# 报告展示接口：无 JWT，凭报告编号 + 客户标识访问
+app.include_router(report_view.router, prefix="/api/v1")
 
 
 # Error handler middleware
@@ -113,6 +117,13 @@ async def startup_event():
         await seed_root_org(db)
         await seed_health_menus(db)  # 健康管理菜单，须在 seed_admin_role 之前执行以便自动授权
         await seed_admin_role(db)
+    # 报告数据源（MongoDB，只读）。未配置 MONGODB_URL 时跳过，不影响其余功能
+    await mongo.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await mongo.close()
 
 
 @app.get("/api/v1/health")

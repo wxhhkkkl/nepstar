@@ -3,6 +3,8 @@ uvicorn[standard]
 sqlalchemy[asyncio]
 alembic
 aiomysql
+# 报告库为 MongoDB 4.2；motor 3.6+ 依赖 pymongo>=4.9，需 MongoDB 4.4+，故锁在 3.5.x
+motor>=3.5.2,<3.6
 pydantic
 pydantic-settings
 pyjwt

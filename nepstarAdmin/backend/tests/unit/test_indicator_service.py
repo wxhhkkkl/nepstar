@@ -17,6 +17,11 @@ def mock_row(id, parent_id, code="HT001", name="体重管理", status=1, sort_or
     r.description = None
     r.status = status
     r.sort_order = sort_order
+    r.target_id = None
+    r.report_status_text = None
+    r.report_summary = None
+    r.report_interpretation = None
+    r.report_actions = None
     return r
 
 
@@ -174,3 +179,128 @@ async def test_get_tree_keyword_filters_to_matching_child():
     tree = await get_tree(db, keyword="代谢")
     assert len(tree) == 1
     assert [c["code"] for c in tree[0]["children"]] == ["HT0012"]
+
+
+# --- 报告展示相关：target_id 登记与报告文案（US4） ---
+
+
+def row_with(**over):
+    r = mock_row(1, None)
+    for k, v in over.items():
+        setattr(r, k, v)
+    return r
+
+
+class TestTargetIdRegistration:
+    @pytest.mark.asyncio
+    async def test_create_stores_target_id(self):
+        db = AsyncMock()
+        db.execute = AsyncMock(side_effect=[db_result(first=None), db_result(first=None)])
+        from app.services.indicator_service import create_indicator
+
+        out = await create_indicator(db, IndicatorCreate(code="SYS_X", name="X", target_id=3115))
+        assert out["target_id"] == 3115
+
+    @pytest.mark.asyncio
+    async def test_duplicate_target_id_rejected(self):
+        """同一 targetId 不得登记到两个指标（FR-032、SC-012）。"""
+        db = AsyncMock()
+        db.execute = AsyncMock(side_effect=[db_result(first=None), db_result(first=(1,))])
+        from app.services.indicator_service import create_indicator
+
+        with pytest.raises(ValueError, match="indicator.target_id_conflict"):
+            await create_indicator(db, IndicatorCreate(code="SYS_X", name="X", target_id=3115))
+        db.commit.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_non_positive_target_id_rejected(self):
+        db = AsyncMock()
+        db.execute = AsyncMock(return_value=db_result(first=None))
+        from app.services.indicator_service import create_indicator
+
+        with pytest.raises(ValueError, match="indicator.target_id_required"):
+            await create_indicator(db, IndicatorCreate(code="SYS_X", name="X", target_id=0))
+
+    @pytest.mark.asyncio
+    async def test_update_can_clear_registration_with_explicit_null(self):
+        """显式传 null 表示清除登记——否则运营没法取消登记（US4 独立测试）。"""
+        db = AsyncMock()
+        db.execute = AsyncMock(return_value=db_result(scalar_one_or_none=row_with(target_id=3115)))
+        from app.services.indicator_service import update_indicator
+
+        out = await update_indicator(db, 1, IndicatorUpdate(target_id=None))
+        assert out["target_id"] is None
+
+    @pytest.mark.asyncio
+    async def test_update_without_target_id_keeps_existing(self):
+        db = AsyncMock()
+        db.execute = AsyncMock(return_value=db_result(scalar_one_or_none=row_with(target_id=3115)))
+        from app.services.indicator_service import update_indicator
+
+        out = await update_indicator(db, 1, IndicatorUpdate(name="改名"))
+        assert out["target_id"] == 3115
+
+    @pytest.mark.asyncio
+    async def test_update_to_a_taken_target_id_rejected(self):
+        db = AsyncMock()
+        db.execute = AsyncMock(
+            side_effect=[db_result(scalar_one_or_none=row_with(target_id=3115)), db_result(first=(9,))]
+        )
+        from app.services.indicator_service import update_indicator
+
+        with pytest.raises(ValueError, match="indicator.target_id_conflict"):
+            await update_indicator(db, 1, IndicatorUpdate(target_id=3116))
+
+    @pytest.mark.asyncio
+    async def test_keeping_own_target_id_is_not_a_conflict(self):
+        db = AsyncMock()
+        db.execute = AsyncMock(
+            side_effect=[db_result(scalar_one_or_none=row_with(target_id=3115)), db_result(first=None)]
+        )
+        from app.services.indicator_service import update_indicator
+
+        out = await update_indicator(db, 1, IndicatorUpdate(target_id=3115))
+        assert out["target_id"] == 3115
+
+
+class TestReportCopy:
+    @pytest.mark.asyncio
+    async def test_copy_fields_round_trip(self):
+        db = AsyncMock()
+        db.execute = AsyncMock(side_effect=[db_result(first=None), db_result(first=None)])
+        from app.services.indicator_service import create_indicator
+
+        out = await create_indicator(
+            db,
+            IndicatorCreate(
+                code="SYS_X",
+                name="X",
+                report_status_text="重点关注",
+                report_summary="摘要",
+                report_interpretation="解读",
+                report_actions=["建议一", "建议二"],
+            ),
+        )
+        assert out["report_status_text"] == "重点关注"
+        assert out["report_interpretation"] == "解读"
+        assert out["report_actions"] == ["建议一", "建议二"]
+
+    @pytest.mark.asyncio
+    async def test_actions_are_stored_as_json_text(self):
+        db = AsyncMock()
+        db.execute = AsyncMock(side_effect=[db_result(first=None), db_result(first=None)])
+        added = []
+        db.add = MagicMock(side_effect=added.append)
+        from app.services.indicator_service import create_indicator
+
+        await create_indicator(
+            db, IndicatorCreate(code="SYS_X", name="X", report_actions=["a", "b"])
+        )
+        assert added and added[0].report_actions == '["a", "b"]'
+
+    @pytest.mark.asyncio
+    async def test_invalid_actions_json_degrades_to_empty(self):
+        from app.services.indicator_service import _node
+
+        assert _node(row_with(report_actions="{not json"))["report_actions"] == []
+        assert _node(row_with(report_actions=None))["report_actions"] == []

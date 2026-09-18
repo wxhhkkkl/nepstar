@@ -1,5 +1,7 @@
 """Health indicator business logic (两级指标：一级分类 + 二级指标项)."""
 
+import json
+
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +20,27 @@ def _node(row) -> dict:
         "description": row.description,
         "sort_order": row.sort_order,
         "status": row.status,
+        "target_id": row.target_id,
+        "report_status_text": row.report_status_text,
+        "report_summary": row.report_summary,
+        "report_interpretation": row.report_interpretation,
+        "report_actions": _parse_actions(row.report_actions),
     }
+
+
+def _parse_actions(raw) -> list[str]:
+    """report_actions 以 JSON 文本存储；非法或为空时按空数组处理。"""
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, ValueError):
+        return []
+    return [str(x) for x in parsed] if isinstance(parsed, list) else []
+
+
+def _serialize_actions(actions: list[str] | None) -> str | None:
+    return json.dumps(actions, ensure_ascii=False) if actions else None
 
 
 def _table_ref(table: str) -> str:
@@ -30,6 +52,24 @@ async def _code_exists(db: AsyncSession, code: str, exclude_id: int | None = Non
     if exclude_id is not None:
         stmt = stmt.where(SAIndicator.id != exclude_id)
     return (await db.execute(stmt.limit(1))).first() is not None
+
+
+async def _validate_target_id(
+    db: AsyncSession, target_id: int | None, exclude_id: int | None = None
+) -> None:
+    """校验 target_id 合法且未被其他指标占用（FR-032、SC-012）。
+
+    不做存在性校验——报告数据源是外部系统，后台不应因外部系统不可达而阻塞配置维护。
+    """
+    if target_id is None:
+        return
+    if target_id <= 0:
+        raise ValueError("indicator.target_id_required")
+    stmt = select(SAIndicator.id).where(SAIndicator.target_id == target_id)
+    if exclude_id is not None:
+        stmt = stmt.where(SAIndicator.id != exclude_id)
+    if (await db.execute(stmt.limit(1))).first() is not None:
+        raise ValueError("indicator.target_id_conflict")
 
 
 async def _referenced_in_plan(db: AsyncSession, indicator_id: int) -> bool:
@@ -103,6 +143,7 @@ async def create_indicator(db: AsyncSession, data: IndicatorCreate) -> dict:
     await _validate_parent(db, data.parent_id)
     if await _code_exists(db, data.code):
         raise ValueError("indicator.code_exists")
+    await _validate_target_id(db, data.target_id)
     row = SAIndicator(
         parent_id=data.parent_id,
         ind_code=data.code,
@@ -110,6 +151,11 @@ async def create_indicator(db: AsyncSession, data: IndicatorCreate) -> dict:
         description=data.description,
         sort_order=data.sort_order,
         status=data.status,
+        target_id=data.target_id,
+        report_status_text=data.report_status_text,
+        report_summary=data.report_summary,
+        report_interpretation=data.report_interpretation,
+        report_actions=_serialize_actions(data.report_actions),
     )
     db.add(row)
     await db.flush()
@@ -145,6 +191,16 @@ async def update_indicator(db: AsyncSession, indicator_id: int, data: IndicatorU
         row.sort_order = data.sort_order
     if data.status is not None:
         row.status = data.status
+    # 用 model_fields_set 区分"未传"与"显式传 null"：后者表示清除登记
+    if "target_id" in data.model_fields_set:
+        await _validate_target_id(db, data.target_id, exclude_id=indicator_id)
+        row.target_id = data.target_id
+    # 同理：显式传 null 表示清空该段文案
+    for field in ("report_status_text", "report_summary", "report_interpretation"):
+        if field in data.model_fields_set:
+            setattr(row, field, getattr(data, field))
+    if "report_actions" in data.model_fields_set:
+        row.report_actions = _serialize_actions(data.report_actions)
     await db.commit()
     await db.refresh(row)
     return _node(row)
