@@ -5,7 +5,8 @@ import { isWarningScore } from '@/utils/report.js'
 import SaveReportButton from './SaveReportButton.vue'
 
 const props = defineProps({ report: { type: Object, required: true } })
-const showSaveReport = false
+// 由接口的功能开关控制，前端不内置（FR-020）
+const showSaveReport = computed(() => props.report.features?.save_report_enabled === true)
 const warning = computed(() => isWarningScore(props.report))
 const ageDifference = computed(() => (props.report.biologicalAge - props.report.actualAge).toFixed(1))
 const { displayScore, run } = useScoreAnimation(props.report.score)

@@ -14,7 +14,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: '/Users/leelee/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node node_modules/vite/bin/vite.js --host 127.0.0.1',
+    // 用当前环境的 node 启动，避免写死某一台机器的路径
+    command: 'node node_modules/vite/bin/vite.js --host 127.0.0.1',
     port: 5173,
     reuseExistingServer: true,
     timeout: 120000,
