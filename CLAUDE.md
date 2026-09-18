@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Current feature plan: specs/001-add-health-management/plan.md
+Current feature plan: specs/002-migrate-v2-vue/plan.md
 (research.md, data-model.md, quickstart.md, and contracts/ live alongside it)
 <!-- SPECKIT END -->
 

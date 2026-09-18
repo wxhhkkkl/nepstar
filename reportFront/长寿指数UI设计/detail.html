@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>长寿指标详情</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="phone-page detail-page">
+    <div class="status-bar" aria-hidden="true"><span>9:41</span><span class="status-icons">● ◒ ▰</span></div>
+    <header class="top-bar sticky-bar">
+      <a class="icon-button" href="index.html" aria-label="返回长寿指数报告">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <h1 id="detail-title">心血管详情</h1>
+      <button class="icon-button" aria-label="查看说明">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+      </button>
+    </header>
+
+    <section class="detail-hero">
+      <div class="detail-score-ring"><strong id="detail-score">88</strong><span>活力值</span></div>
+      <div class="detail-hero-copy"><span id="detail-status" class="score-badge">表现良好</span><h2 id="detail-name">心血管</h2><p id="detail-summary">血管弹性表现突出，整体风险较低。</p></div>
+    </section>
+
+    <section class="detail-section trend-card">
+      <div class="detail-section-head"><div><span class="section-kicker">趋势</span><h2>近 6 次变化</h2></div><span class="trend-up">较上次 +2</span></div>
+      <svg class="trend-chart" viewBox="0 0 330 150" role="img" aria-label="近六次活力值从80上升到88">
+        <defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8B5CF6" stop-opacity=".22"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/></linearGradient></defs>
+        <path class="grid" d="M16 28H314M16 72H314M16 116H314"/>
+        <path class="area" d="M16 104 C55 92,68 98,86 82 S126 70,144 76 S185 62,202 65 S242 51,260 57 S294 39,314 36 L314 132 L16 132Z"/>
+        <path class="line" d="M16 104 C55 92,68 98,86 82 S126 70,144 76 S185 62,202 65 S242 51,260 57 S294 39,314 36"/>
+        <g class="dots"><circle cx="16" cy="104" r="4"/><circle cx="86" cy="82" r="4"/><circle cx="144" cy="76" r="4"/><circle cx="202" cy="65" r="4"/><circle cx="260" cy="57" r="4"/><circle cx="314" cy="36" r="5"/></g>
+      </svg>
+      <div class="trend-labels"><span>3月</span><span>4月</span><span>5月</span><span>6月</span><span>7月</span><span>本次</span></div>
+    </section>
+
+    <section class="detail-section">
+      <div class="detail-section-head"><div><span class="section-kicker">评分构成</span><h2>详细指标</h2></div><span class="tap-hint">满分 100</span></div>
+      <div id="detail-indicators" class="indicator-list"></div>
+    </section>
+
+    <section id="direct-section" class="detail-section">
+      <div class="detail-section-head"><div><span class="section-kicker">采集结果</span><h2>实时数据</h2></div><span class="tap-hint">不参与加权</span></div>
+      <div id="direct-metrics" class="direct-grid"></div>
+    </section>
+
+    <section class="detail-section interpretation-card">
+      <div class="detail-section-head"><div><span class="section-kicker">指标解读</span><h2>本次结论</h2></div></div>
+      <div class="interpretation-highlight"><span></span><p id="detail-interpretation">血管弹性是当前优势项；血脂处于良好区间，建议继续保持有氧运动与清淡饮食。</p></div>
+      <ul id="detail-actions"></ul>
+    </section>
+
+    <a class="bottom-button" href="index.html">返回长寿指数报告</a>
+    <footer class="report-footer"><p>指标结果仅用于健康趋势管理，不构成临床诊断。</p></footer>
+  </main>
+  <script src="data.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>
