@@ -40,6 +40,12 @@
           </template>
         </el-table-column>
         <el-table-column :label="$t('health.code')" prop="code" width="140" />
+        <el-table-column :label="$t('health.targetId')" width="110" align="center">
+          <template #default="{ row }">
+            <span v-if="row.target_id">{{ row.target_id }}</span>
+            <span v-else class="muted">—</span>
+          </template>
+        </el-table-column>
         <el-table-column :label="$t('health.description')" min-width="160">
           <template #default="{ row }">{{ row.description || '-' }}</template>
         </el-table-column>
@@ -76,6 +82,25 @@
         <el-form-item :label="$t('health.description')">
           <el-input v-model="form.description" type="textarea" :rows="2" maxlength="500" />
         </el-form-item>
+        <el-form-item :label="$t('health.targetId')">
+          <el-input-number v-model="form.target_id" :min="1" :controls="false" placeholder="" style="width: 100%" />
+          <div class="form-hint">{{ $t('health.targetIdHint') }}</div>
+        </el-form-item>
+        <template v-if="!level2">
+          <el-divider content-position="left">{{ $t('health.reportCopy') }}</el-divider>
+          <el-form-item :label="$t('health.reportStatusText')">
+            <el-input v-model="form.report_status_text" maxlength="50" />
+          </el-form-item>
+          <el-form-item :label="$t('health.reportSummary')">
+            <el-input v-model="form.report_summary" maxlength="255" />
+          </el-form-item>
+          <el-form-item :label="$t('health.reportInterpretation')">
+            <el-input v-model="form.report_interpretation" type="textarea" :rows="2" maxlength="500" />
+          </el-form-item>
+          <el-form-item :label="$t('health.reportActions')">
+            <el-input v-model="form.report_actions_text" type="textarea" :rows="3" :placeholder="$t('health.reportActionsHint')" />
+          </el-form-item>
+        </template>
         <el-form-item :label="$t('health.sort')">
           <el-input-number v-model="form.sort_order" :min="0" :max="9999" />
         </el-form-item>
@@ -112,7 +137,38 @@ const parentName = ref('')
 const submitting = ref(false)
 const formRef = ref<FormInstance>()
 
-const form = ref({ name: '', code: '', description: '', sort_order: 0, status: 1 })
+/** 空表单。report_actions 在表单里按"每行一条"的文本编辑，提交时再转数组。 */
+function emptyForm() {
+  return {
+    name: '',
+    code: '',
+    description: '',
+    sort_order: 0,
+    status: 1,
+    target_id: null as number | null,
+    report_status_text: '',
+    report_summary: '',
+    report_interpretation: '',
+    report_actions_text: '',
+  }
+}
+
+function toForm(node: IndicatorNode) {
+  return {
+    name: node.name,
+    code: node.code,
+    description: node.description || '',
+    sort_order: node.sort_order,
+    status: node.status,
+    target_id: node.target_id ?? null,
+    report_status_text: node.report_status_text || '',
+    report_summary: node.report_summary || '',
+    report_interpretation: node.report_interpretation || '',
+    report_actions_text: (node.report_actions || []).join('\n'),
+  }
+}
+
+const form = ref(emptyForm())
 
 const rules: FormRules = {
   name: [{ required: true, message: t('health.nameRequired'), trigger: 'blur' }],
@@ -140,7 +196,7 @@ function openCreate(parent: IndicatorNode | null) {
   editingId.value = null
   parentId.value = parent ? parent.id : null
   parentName.value = parent ? parent.name : ''
-  form.value = { name: '', code: '', description: '', sort_order: 0, status: 1 }
+  form.value = emptyForm()
   dialogVisible.value = true
 }
 
@@ -148,7 +204,7 @@ function openEditChild(child: IndicatorNode) {
   editingId.value = child.id
   parentId.value = child.parent_id
   parentName.value = findParentName(child.parent_id)
-  form.value = { name: child.name, code: child.code, description: child.description || '', sort_order: child.sort_order, status: child.status }
+  form.value = toForm(child)
   dialogVisible.value = true
 }
 
@@ -156,7 +212,7 @@ function openEditRow(row: IndicatorNode) {
   editingId.value = row.id
   parentId.value = null
   parentName.value = ''
-  form.value = { name: row.name, code: row.code, description: row.description || '', sort_order: row.sort_order, status: row.status }
+  form.value = toForm(row)
   dialogVisible.value = true
 }
 
@@ -177,7 +233,15 @@ async function submitForm() {
   if (!valid) return
   submitting.value = true
   try {
-    const payload = { ...form.value, parent_id: parentId.value }
+    const { report_actions_text, ...rest } = form.value
+    const payload = {
+      ...rest,
+      parent_id: parentId.value,
+      report_actions: report_actions_text
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean),
+    }
     if (editingId.value) {
       await updateIndicator(editingId.value, payload)
       ElMessage.success(t('health.updateSuccess'))
@@ -235,4 +299,6 @@ onMounted(fetchList)
 .lvl-tag.l1 { background: #eff6ff; color: #3b82f6; }
 .lvl-tag.l2 { background: #f0fdf4; color: #16a34a; }
 .row-name { font-weight: 500; }
+.form-hint { margin-top: 4px; color: #909399; font-size: 12px; line-height: 1.3; }
+.muted { color: #c0c4cc; }
 </style>

@@ -8,6 +8,12 @@ export interface IndicatorNode {
   description?: string | null;
   status: number;
   sort_order: number;
+  /** 报告数据中的数字标识；只有登记了它的指标才会出现在报告里 */
+  target_id?: number | null;
+  report_status_text?: string | null;
+  report_summary?: string | null;
+  report_interpretation?: string | null;
+  report_actions?: string[];
   children: IndicatorNode[];
 }
 
@@ -18,6 +24,11 @@ export interface IndicatorPayload {
   description?: string | null;
   sort_order?: number;
   status?: number;
+  target_id?: number | null;
+  report_status_text?: string | null;
+  report_summary?: string | null;
+  report_interpretation?: string | null;
+  report_actions?: string[] | null;
 }
 
 export async function fetchIndicatorTree(params: { keyword?: string; status?: number } = {}) {
