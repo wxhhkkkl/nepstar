@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Current feature plan: specs/002-migrate-v2-vue/plan.md
+Current feature plan: specs/003-report-v2-data-api/plan.md
 (research.md, data-model.md, quickstart.md, and contracts/ live alongside it)
 <!-- SPECKIT END -->
 
