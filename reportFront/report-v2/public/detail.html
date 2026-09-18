@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>正在进入系统详情｜长寿指数</title></head>
+<body>
+  <p>正在进入对应系统详情……</p>
+  <script>
+    const id = new URLSearchParams(location.search).get('id')
+    const destination = id ? `./#/system/${encodeURIComponent(id)}` : './#/'
+    location.replace(destination)
+  </script>
+</body>
+</html>

@@ -1,0 +1,3264 @@
+/* V2.1 — 低饱和统一色调 */
+:root {
+    --ink: #17233a;
+    --muted: #69758a;
+    --paper: #f3f6f9;
+    --blue: #4269d8;
+    --cyan: #78bfe3;
+    --violet: #6d72cc;
+    --mint: #5a9e9a;
+    --peach: #8297b5;
+    --line: #dfe6ee;
+    --shadow: 0 16px 42px rgba(44, 67, 103, .08)
+}
+
+html,
+body {
+    background: #e9eef3
+}
+
+.app-shell {
+    background: var(--paper)
+}
+
+.score-panel {
+    color: #172a50;
+    background: radial-gradient(circle at 50% 40%, #f8fbff 0, #e7f2fb 38%, #d6e5f4 72%, #c8d8eb 100%);
+    box-shadow: 0 22px 55px rgba(57, 83, 126, .17)
+}
+
+.score-panel:before {
+    background: linear-gradient(118deg, rgba(255, 255, 255, .76), transparent 38%, rgba(81, 137, 211, .08) 70%, transparent)
+}
+
+/* V2.16 — 低于 70 分时切换为琥珀红警示状态。 */
+.score-panel.is-warning-score {
+    color: #5e241d;
+    background: radial-gradient(circle at 50% 40%, #fffaf1 0, #fff0dc 40%, #f9d7bf 73%, #efb995 100%);
+    box-shadow: 0 22px 55px rgba(151, 66, 35, .23)
+}
+
+.score-panel.is-warning-score:before {
+    background: linear-gradient(118deg, rgba(255, 255, 255, .82), transparent 38%, rgba(225, 93, 44, .13) 70%, transparent)
+}
+
+.score-panel.is-warning-score .score-noise {
+    opacity: .42
+}
+
+.score-panel.is-warning-score .ring-track {
+    stroke: rgba(145, 61, 34, .14)
+}
+
+.score-panel.is-warning-score .ring-progress {
+    stroke: #df5b32
+}
+
+.score-panel.is-warning-score .ring-fine {
+    stroke: rgba(194, 85, 40, .24)
+}
+
+.score-panel.is-warning-score .ring-dash {
+    stroke: #c97038
+}
+
+.score-panel.is-warning-score .score-core>span {
+    color: #9a542e
+}
+
+.score-panel.is-warning-score .score-core strong,
+.score-panel.is-warning-score .score-core small {
+    color: #c84927
+}
+
+.score-panel.is-warning-score .score-core em {
+    color: #a74426;
+    border-color: rgba(187, 76, 37, .2);
+    background: rgba(255, 251, 247, .68)
+}
+
+.score-panel.is-warning-score .score-foot strong {
+    color: #b94b2a
+}
+
+.score-panel.is-warning-score .score-foot span,
+.score-panel.is-warning-score .score-meta {
+    color: #80573f
+}
+
+.score-panel.is-warning-score .orbit {
+    border-color: rgba(191, 82, 40, .28)
+}
+
+.score-panel.is-warning-score .orbit i,
+.score-panel.is-warning-score .scan-beam {
+    background: linear-gradient(90deg, transparent, #ee8750, transparent);
+    box-shadow: 0 0 16px rgba(218, 87, 39, .58)
+}
+
+.score-noise {
+    opacity: .2;
+    background-image: radial-gradient(#7796bc .55px, transparent .55px)
+}
+
+.score-meta {
+    color: #617897
+}
+
+.live-mark i {
+    background: #5a9e9a;
+    box-shadow: 0 0 0 4px rgba(90, 158, 154, .13)
+}
+
+.ring-track {
+    stroke: rgba(64, 92, 134, .1)
+}
+
+.ring-fine {
+    stroke: rgba(60, 88, 130, .2)
+}
+
+.ring-dash {
+    stroke: #6fa8cf
+}
+
+.score-core>span {
+    color: #5e80ad
+}
+
+.score-core em {
+    color: #385a86;
+    border-color: rgba(62, 92, 136, .18);
+    background: rgba(255, 255, 255, .48)
+}
+
+.orbit {
+    border-color: rgba(77, 123, 174, .25)
+}
+
+.orbit i {
+    background: #5ca9d2;
+    box-shadow: 0 0 12px rgba(92, 169, 210, .55)
+}
+
+.orbit-b i {
+    background: #777bc9;
+    box-shadow: 0 0 12px rgba(119, 123, 201, .5)
+}
+
+.scan-beam {
+    background: linear-gradient(90deg, transparent, #5aa5d1, transparent);
+    box-shadow: 0 0 14px rgba(65, 139, 190, .55)
+}
+
+.score-foot {
+    border-color: rgba(52, 80, 119, .14)
+}
+
+.score-foot>div {
+    border-color: #6d9ec4
+}
+
+.score-foot span {
+    color: #6d7f98
+}
+
+.replay-button {
+    color: #405d84;
+    border-color: rgba(58, 84, 121, .16);
+    background: rgba(255, 255, 255, .44)
+}
+
+.age-card {
+    background: #e8f2f8
+}
+
+.focus-card {
+    background: #edf1f6
+}
+
+.focus-card i {
+    color: #58739a
+}
+
+.lifespan-card svg {
+    color: #608fa8
+}
+
+.cardio-card {
+    color: var(--ink);
+    background: #eaf2fa
+}
+
+.cardio-card .card-index {
+    color: #557aa8
+}
+
+.cardio-card .card-head strong {
+    color: #4269d8
+}
+
+.cardio-card p {
+    color: #64738a
+}
+
+.chart-grid {
+    stroke: rgba(42, 71, 111, .1)
+}
+
+.chart-line {
+    stroke: #4776c8
+}
+
+.cardio-chart circle {
+    fill: #eaf2fa;
+    stroke: #4776c8
+}
+
+.stat-row small {
+    color: #7a8799
+}
+
+.arrow-pill {
+    color: #4269d8;
+    background: rgba(255, 255, 255, .72)
+}
+
+.lung-card {
+    background: #eaf3f8
+}
+
+.lung-gauge .lung-progress {
+    stroke: #4b80c8
+}
+
+.oxygen {
+    background: rgba(255, 255, 255, .72)
+}
+
+.oxygen i {
+    background: linear-gradient(90deg, #5a91cc 98%, rgba(45, 67, 97, .1) 98%)
+}
+
+.endocrine-card {
+    background: #edf0f7
+}
+
+.card-mini-head strong {
+    color: #5f6db7
+}
+
+.endo-matrix i {
+    background: linear-gradient(0deg, rgba(85, 111, 169, .28), transparent)
+}
+
+.endo-note i {
+    background: #6676b8
+}
+
+.digest-card {
+    background: #f0f3f6
+}
+
+.digest-copy>strong {
+    color: #526e99
+}
+
+.digest-copy>strong small {
+    color: #748198
+}
+
+.digest-flow span {
+    background: #4b6285
+}
+
+.digest-flow i {
+    background: linear-gradient(90deg, #7696bd var(--w), rgba(51, 74, 105, .08) var(--w))
+}
+
+.gender-grid {
+    display: block
+}
+
+.female-card {
+    min-height: 273px;
+    background: #eef2f8
+}
+
+.female-card .card-mini-head strong {
+    color: #5d70b5
+}
+
+.cycle-orbit {
+    border-color: rgba(76, 105, 161, .24)
+}
+
+.cycle-orbit:before,
+.cycle-orbit:after {
+    border-color: rgba(76, 105, 161, .18)
+}
+
+.cycle-center span,
+.cycle-labels {
+    color: #6f7e94
+}
+
+.cycle-orbit>i {
+    background: #6682b7
+}
+
+.immune-card {
+    color: var(--ink);
+    background: #e8f2f5
+}
+
+.immune-card .card-index {
+    color: #4f8389
+}
+
+.immune-copy>strong {
+    color: #3f7f85
+}
+
+.immune-copy>span {
+    color: #3f777c;
+    background: rgba(74, 137, 143, .1)
+}
+
+.immune-copy p {
+    color: #657a84
+}
+
+.immune-map .network {
+    stroke: rgba(61, 123, 130, .28)
+}
+
+.immune-map circle {
+    fill: #e8f2f5;
+    stroke: #4c8f94
+}
+
+.immune-map circle:nth-of-type(n+2) {
+    fill: #6aa7a9
+}
+
+.map-center {
+    color: #3f7f85
+}
+
+.bone-card {
+    background: #eef2f6
+}
+
+.bone-head strong {
+    color: #58739a
+}
+
+.scale-axis {
+    color: #738096
+}
+
+.bone-bars>span {
+    background: linear-gradient(#92abc6, #58799d)
+}
+
+.bone-tip {
+    background: rgba(255, 255, 255, .7)
+}
+
+.bone-tip span {
+    color: #58739a
+}
+
+.ending-editorial button {
+    background: #4269d8
+}
+
+.detail-score-block {
+    color: #172a50;
+    background: linear-gradient(135deg, #e9f2fa, #cddff1)
+}
+
+.detail-score-block span {
+    border-color: rgba(45, 73, 112, .18)
+}
+
+.detail-score-block p {
+    color: #627996
+}
+
+.detail-conclusion {
+    color: var(--ink);
+    background: #e8eff7
+}
+
+.detail-conclusion p {
+    color: #63738b
+}
+
+.detail-conclusion li {
+    border-color: rgba(54, 77, 111, .12)
+}
+
+.detail-conclusion li span {
+    color: #4c8388
+}
+
+/* V2.1 — 进入视口后播放一次 */
+.motion-ready .systems-section .data-card {
+    opacity: 0;
+    transform: translateY(22px) scale(.985);
+    transition: opacity .42s ease-out, transform .48s cubic-bezier(.2, .75, .25, 1), box-shadow .2s ease;
+    transition-delay: calc(var(--reveal-order, 0)*60ms)
+}
+
+.motion-ready .systems-section .data-card.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1)
+}
+
+.motion-ready .cardio-card .chart-line {
+    stroke-dasharray: 430;
+    stroke-dashoffset: 430;
+    transition: stroke-dashoffset .9s .16s cubic-bezier(.2, .8, .2, 1)
+}
+
+.motion-ready .cardio-card.is-visible .chart-line {
+    stroke-dashoffset: 0
+}
+
+.motion-ready .cardio-card .chart-area {
+    opacity: 0;
+    transition: opacity .55s .38s ease
+}
+
+.motion-ready .cardio-card.is-visible .chart-area {
+    opacity: 1
+}
+
+.motion-ready .lung-card .lung-progress {
+    stroke-dashoffset: 295;
+    transition: stroke-dashoffset .85s .18s cubic-bezier(.2, .8, .2, 1)
+}
+
+.motion-ready .lung-card.is-visible .lung-progress {
+    stroke-dashoffset: 50
+}
+
+.motion-ready .endocrine-card .endo-matrix i {
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform .55s cubic-bezier(.2, .8, .2, 1)
+}
+
+.motion-ready .endocrine-card.is-visible .endo-matrix i {
+    transform: scaleY(1)
+}
+
+.motion-ready .endocrine-card.is-visible .endo-matrix span:nth-child(2) i {
+    transition-delay: .08s
+}
+
+.motion-ready .endocrine-card.is-visible .endo-matrix span:nth-child(3) i {
+    transition-delay: .16s
+}
+
+.motion-ready .endocrine-card.is-visible .endo-matrix span:nth-child(4) i {
+    transition-delay: .24s
+}
+
+.motion-ready .digest-card .digest-flow i {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .48s cubic-bezier(.2, .8, .2, 1)
+}
+
+.motion-ready .digest-card.is-visible .digest-flow i {
+    transform: scaleX(1)
+}
+
+.motion-ready .digest-card.is-visible .digest-flow div:nth-child(2) i {
+    transition-delay: .08s
+}
+
+.motion-ready .digest-card.is-visible .digest-flow div:nth-child(3) i {
+    transition-delay: .16s
+}
+
+.motion-ready .digest-card.is-visible .digest-flow div:nth-child(4) i {
+    transition-delay: .24s
+}
+
+.motion-ready .digest-card.is-visible .digest-flow div:nth-child(5) i {
+    transition-delay: .32s
+}
+
+.motion-ready .female-card .cycle-orbit>i {
+    opacity: 0;
+    scale: 0;
+    transition: opacity .35s ease, scale .42s cubic-bezier(.2, .8, .2, 1)
+}
+
+.motion-ready .female-card.is-visible .cycle-orbit>i {
+    opacity: 1;
+    scale: 1
+}
+
+.motion-ready .female-card.is-visible .cycle-orbit>i:nth-of-type(2) {
+    transition-delay: .08s
+}
+
+.motion-ready .female-card.is-visible .cycle-orbit>i:nth-of-type(3) {
+    transition-delay: .16s
+}
+
+.motion-ready .female-card.is-visible .cycle-orbit>i:nth-of-type(4) {
+    transition-delay: .24s
+}
+
+.motion-ready .female-card.is-visible .cycle-orbit>i:nth-of-type(5) {
+    transition-delay: .32s
+}
+
+.motion-ready .immune-card .network {
+    stroke-dasharray: 560;
+    stroke-dashoffset: 560;
+    transition: stroke-dashoffset .9s .15s ease-out
+}
+
+.motion-ready .immune-card.is-visible .network {
+    stroke-dashoffset: 0
+}
+
+.motion-ready .immune-card .immune-map circle {
+    opacity: 0;
+    transform: scale(.25);
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: opacity .3s ease, transform .4s cubic-bezier(.2, .8, .2, 1)
+}
+
+.motion-ready .immune-card.is-visible .immune-map circle {
+    opacity: 1;
+    transform: scale(1)
+}
+
+.motion-ready .bone-card .bone-bars>span {
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform .58s cubic-bezier(.2, .8, .2, 1)
+}
+
+.motion-ready .bone-card.is-visible .bone-bars>span {
+    transform: scaleY(1)
+}
+
+.motion-ready .bone-card.is-visible .bone-bars>span:nth-child(2) {
+    transition-delay: .08s
+}
+
+.motion-ready .bone-card.is-visible .bone-bars>span:nth-child(3) {
+    transition-delay: .16s
+}
+
+.motion-ready .bone-card.is-visible .bone-bars>span:nth-child(4) {
+    transition-delay: .24s
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .motion-ready .systems-section .data-card {
+        opacity: 1 !important;
+        transform: none !important
+    }
+
+    .motion-ready .cardio-card .chart-line {
+        stroke-dashoffset: 0 !important
+    }
+
+    .motion-ready .lung-card .lung-progress {
+        stroke-dashoffset: 50 !important
+    }
+
+    .motion-ready .endo-matrix i,
+    .motion-ready .digest-flow i,
+    .motion-ready .bone-bars>span {
+        transform: none !important
+    }
+
+    .motion-ready .cycle-orbit>i,
+    .motion-ready .immune-map circle {
+        opacity: 1 !important;
+        scale: 1 !important;
+        transform: none !important
+    }
+
+    .motion-ready .immune-card .network {
+        stroke-dashoffset: 0 !important
+    }
+}
+
+/* V2.2 — 首页无导航与报告保存 */
+.report-v2>.status-bar {
+    background: var(--paper)
+}
+
+.report-v2>.score-panel {
+    margin-top: 8px
+}
+
+/* 带方案的低分系统优先置顶，随后展示其对应管理方案。 */
+.systems-section {
+    display: flex;
+    flex-direction: column
+}
+
+.systems-section>.section-heading {
+    order: 0
+}
+
+.systems-section>.two-grid {
+    order: 1
+}
+
+.systems-section>.issue-plan-sleep {
+    order: 2
+}
+
+.systems-section>.bone-card {
+    order: 3
+}
+
+.systems-section>.issue-plan-bone {
+    order: 4
+}
+
+.systems-section>.cardio-card {
+    order: 5
+}
+
+.systems-section>.digest-card {
+    order: 6
+}
+
+.systems-section>.gender-grid {
+    order: 7
+}
+
+.systems-section>.immune-card {
+    order: 8
+}
+
+.systems-section>.two-grid .endocrine-card {
+    order: -1
+}
+
+.score-meta {
+    min-height: 44px;
+    align-items: center
+}
+
+.save-report-button {
+    position: relative;
+    z-index: 5;
+    min-width: 104px;
+    min-height: 44px;
+    padding: 0 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid rgba(62, 92, 136, .15);
+    border-radius: 15px;
+    color: #385a86;
+    background: rgba(255, 255, 255, .55);
+    box-shadow: 0 8px 24px rgba(57, 83, 126, .08);
+    font: 700 10px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    letter-spacing: .03em;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .18s ease
+}
+
+.save-report-button svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.8
+}
+
+.save-report-button:active {
+    transform: scale(.97);
+    background: rgba(255, 255, 255, .78);
+    box-shadow: 0 4px 14px rgba(57, 83, 126, .08)
+}
+
+.save-report-button:focus-visible {
+    outline: 2px solid #4269d8;
+    outline-offset: 3px
+}
+
+.save-report-button.is-saved {
+    color: #397b76;
+    background: rgba(235, 248, 246, .82)
+}
+
+.save-toast {
+    position: fixed;
+    z-index: 50;
+    left: 50%;
+    bottom: 24px;
+    min-height: 44px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    border: 1px solid rgba(62, 92, 136, .12);
+    border-radius: 99px;
+    color: #334e72;
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 12px 34px rgba(44, 67, 103, .16);
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 14px);
+    backdrop-filter: blur(14px);
+    transition: opacity .22s ease, transform .28s cubic-bezier(.2, .8, .2, 1)
+}
+
+.save-toast i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #5a9e9a;
+    box-shadow: 0 0 0 4px rgba(90, 158, 154, .13)
+}
+
+.save-toast.is-showing {
+    opacity: 1;
+    transform: translate(-50%, 0)
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .save-report-button,
+    .save-toast {
+        transition: none !important
+    }
+}
+
+/* V2.4 — 首页图表数据实际承接到详情页 */
+.detail-score-identity {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px
+}
+
+.detail-module-icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(58, 88, 128, .14);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, .52);
+    box-shadow: 0 8px 22px rgba(52, 76, 111, .08)
+}
+
+.detail-module-icon svg {
+    width: 27px;
+    height: 27px;
+    color: #466b9c;
+    stroke-width: 1.6
+}
+
+.detail-score-identity>div:last-child {
+    min-width: 0
+}
+
+.detail-score-block>strong {
+    flex: 0 0 auto
+}
+
+.detail-visualization {
+    margin: 12px;
+    padding: 24px;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: var(--shadow)
+}
+
+.detail-viz-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 20px
+}
+
+.detail-viz-head h2 {
+    margin: 9px 0 0;
+    font-size: 25px;
+    letter-spacing: -.04em
+}
+
+.detail-viz-head>span {
+    color: var(--muted);
+    font-size: 8px
+}
+
+.detail-chart {
+    min-height: 220px;
+    padding: 17px;
+    border-radius: 19px;
+    background: linear-gradient(145deg, #edf4fa, #f7f9fb);
+    overflow: hidden
+}
+
+.detail-chart svg {
+    display: block
+}
+
+.detail-chart-values {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px
+}
+
+.detail-chart-values span {
+    min-height: 52px;
+    padding: 10px;
+    border: 1px solid rgba(62, 92, 136, .08);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .72)
+}
+
+.detail-chart-values small {
+    display: block;
+    color: #718096;
+    font-size: 7px
+}
+
+.detail-chart-values strong {
+    display: block;
+    margin-top: 6px;
+    font: 700 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #486e9e
+}
+
+.detail-line-chart {
+    width: 100%;
+    height: auto;
+    overflow: visible
+}
+
+.detail-chart-grid {
+    stroke: rgba(73, 108, 150, .12);
+    stroke-width: 1
+}
+
+.detail-chart-area {
+    fill: rgba(88, 142, 203, .13);
+    stroke: none
+}
+
+.detail-chart-stroke {
+    stroke: #507fc2;
+    stroke-width: 3
+}
+
+.detail-line-chart circle {
+    fill: #f6f9fc;
+    stroke: #507fc2;
+    stroke-width: 3
+}
+
+.detail-line-chart text {
+    fill: #3e618c;
+    stroke: none;
+    text-anchor: middle;
+    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+}
+
+.detail-line-chart .axis-label {
+    fill: #8591a2;
+    font-size: 7px;
+    font-weight: 500
+}
+
+.detail-axis-caption {
+    display: flex;
+    justify-content: space-between;
+    color: #7c8999;
+    font-size: 7px
+}
+
+.detail-radial-layout {
+    min-height: 220px;
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 18px;
+    align-items: center
+}
+
+.detail-radial {
+    position: relative;
+    width: 148px;
+    height: 148px;
+    display: grid;
+    place-items: center
+}
+
+.detail-radial svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg)
+}
+
+.detail-radial circle {
+    stroke: rgba(66, 105, 158, .12);
+    stroke-width: 9
+}
+
+.detail-radial .progress {
+    stroke: #4e7fc2;
+    stroke-dasharray: 302;
+    stroke-linecap: round
+}
+
+.detail-radial strong {
+    font: 700 42px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+}
+
+.detail-radial>span {
+    position: absolute;
+    bottom: 41px;
+    color: #748198;
+    font-size: 7px
+}
+
+.detail-secondary-stat {
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .76)
+}
+
+.detail-secondary-stat>span,
+.detail-secondary-stat p {
+    color: #748198;
+    font-size: 8px
+}
+
+.detail-secondary-stat strong {
+    display: block;
+    margin-top: 8px;
+    font: 700 28px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+}
+
+.detail-secondary-stat strong small {
+    font-size: 9px
+}
+
+.detail-secondary-stat i {
+    display: block;
+    height: 5px;
+    margin-top: 15px;
+    border-radius: 9px;
+    background: #dfe7ef
+}
+
+.detail-secondary-stat i b {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #5b8bc6
+}
+
+.detail-secondary-stat p {
+    margin: 10px 0 0
+}
+
+.detail-horizontal-bars article {
+    min-height: 49px;
+    display: grid;
+    grid-template-columns: 24px 1fr 32px;
+    gap: 9px;
+    align-items: center;
+    border-bottom: 1px solid rgba(58, 84, 121, .08)
+}
+
+.detail-horizontal-bars article:last-child {
+    border: 0
+}
+
+.detail-horizontal-bars article>span {
+    font: 600 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #8b96a5
+}
+
+.detail-horizontal-bars label {
+    font-size: 9px;
+    font-weight: 600
+}
+
+.detail-horizontal-bars i {
+    display: block;
+    height: 5px;
+    margin-top: 7px;
+    border-radius: 9px;
+    background: #dfe7ef
+}
+
+.detail-horizontal-bars i b {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #7299c4, #496f9f)
+}
+
+.detail-horizontal-bars strong {
+    font: 700 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #496f9f
+}
+
+.detail-matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px
+}
+
+.detail-matrix article {
+    position: relative;
+    min-height: 93px;
+    padding: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(62, 92, 136, .08);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, .68)
+}
+
+.detail-matrix span {
+    font-size: 9px
+}
+
+.detail-matrix strong {
+    display: block;
+    margin-top: 12px;
+    font: 700 26px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #536fa3
+}
+
+.detail-matrix i {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--level)*38px);
+    background: linear-gradient(0deg, rgba(93, 120, 176, .24), transparent)
+}
+
+.detail-radar-wrap,
+.detail-network-wrap {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 13px;
+    align-items: center
+}
+
+.detail-radar,
+.detail-network {
+    width: 190px;
+    height: 190px
+}
+
+.detail-radar .web {
+    stroke: rgba(70, 105, 149, .2);
+    fill: none
+}
+
+.detail-radar .shape {
+    fill: rgba(82, 126, 182, .18);
+    stroke: #527eb6;
+    stroke-width: 2
+}
+
+.detail-radar circle {
+    fill: #527eb6;
+    stroke: #edf4fa;
+    stroke-width: 2
+}
+
+.detail-radar text,
+.detail-network text {
+    fill: #3f648f;
+    stroke: none;
+    text-anchor: middle;
+    font: 700 22px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+}
+
+.detail-radar .radar-unit {
+    fill: #7b8798;
+    font-size: 7px;
+    font-weight: 500
+}
+
+.detail-radar-wrap .detail-chart-values,
+.detail-network-wrap .detail-chart-values {
+    grid-template-columns: 1fr 1fr;
+    margin: 0
+}
+
+.detail-network .links {
+    fill: none;
+    stroke: rgba(62, 122, 129, .28);
+    stroke-width: 1.2
+}
+
+.detail-network circle {
+    fill: #6ca5aa;
+    stroke: #edf4fa;
+    stroke-width: 3
+}
+
+.detail-network .center {
+    fill: #edf4fa;
+    stroke: #518c92
+}
+
+.detail-network text {
+    fill: #fff;
+    font-size: 7px
+}
+
+.detail-network .network-score {
+    fill: #447d82;
+    font-size: 18px
+}
+
+.detail-vertical-bars {
+    height: 230px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    align-items: end;
+    padding-top: 10px
+}
+
+.detail-vertical-bars article {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 20px 1fr 36px;
+    gap: 6px;
+    text-align: center
+}
+
+.detail-vertical-bars strong {
+    font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #4e7098
+}
+
+.detail-vertical-bars i {
+    display: flex;
+    align-items: flex-end;
+    border-bottom: 1px solid rgba(49, 76, 110, .16);
+    border-radius: 9px 9px 0 0;
+    background: repeating-linear-gradient(0deg, transparent 0 27px, rgba(60, 88, 123, .07) 27px 28px)
+}
+
+.detail-vertical-bars i b {
+    width: 100%;
+    border-radius: 9px 9px 0 0;
+    background: linear-gradient(#91abc8, #55799f);
+    transform-origin: bottom;
+    animation: detailBarIn .65s cubic-bezier(.2, .8, .2, 1) both
+}
+
+.detail-vertical-bars span {
+    font-size: 7px;
+    line-height: 1.4;
+    color: #68778b
+}
+
+@keyframes detailBarIn {
+    from {
+        transform: scaleY(0)
+    }
+
+    to {
+        transform: scaleY(1)
+    }
+}
+
+@media(max-width:374px) {
+
+    .detail-radar-wrap,
+    .detail-network-wrap {
+        grid-template-columns: 1fr
+    }
+
+    .detail-radar,
+    .detail-network {
+        margin: auto
+    }
+
+    .detail-chart-values {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .detail-radial-layout {
+        grid-template-columns: 135px 1fr;
+        gap: 10px
+    }
+
+    .detail-radial {
+        width: 135px;
+        height: 135px
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .detail-vertical-bars i b {
+        animation: none !important
+    }
+}
+
+/* V2.5 — AI 长寿咨询首页入口 */
+.ai-consult-entry {
+    position: relative;
+    overflow: hidden;
+    margin: 18px 12px 0;
+    padding: 20px;
+    display: block;
+    border: 1px solid rgba(62, 92, 136, .1);
+    border-radius: 24px;
+    background: linear-gradient(145deg, #eef5fb 0, #e8eff8 54%, #f5f7fb 100%);
+    box-shadow: var(--shadow);
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease
+}
+
+.ai-consult-entry::before {
+    content: "";
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    right: -76px;
+    top: -105px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(111, 154, 211, .2), transparent 68%);
+    pointer-events: none
+}
+
+.ai-consult-entry:active {
+    transform: scale(.988);
+    box-shadow: 0 8px 25px rgba(44, 67, 103, .08)
+}
+
+.ai-consult-entry:focus-visible {
+    outline: 2px solid #4269d8;
+    outline-offset: 3px
+}
+
+.ai-entry-head {
+    position: relative;
+    display: grid;
+    grid-template-columns: 54px 1fr;
+    gap: 13px;
+    align-items: center
+}
+
+.ai-entry-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border-radius: 17px;
+    color: #4c70a8;
+    background: rgba(255, 255, 255, .76);
+    box-shadow: 0 8px 20px rgba(55, 80, 116, .08)
+}
+
+.ai-entry-icon svg {
+    width: 39px;
+    height: 39px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ai-entry-icon svg circle:not(:first-child) {
+    fill: #5c80b6;
+    stroke: #fff
+}
+
+.ai-entry-head h2 {
+    margin: 7px 0 5px;
+    font-size: 23px;
+    line-height: 1;
+    letter-spacing: -.04em
+}
+
+.ai-entry-head p {
+    margin: 0;
+    color: #65748a;
+    font-size: 9px;
+    line-height: 1.55
+}
+
+.ai-entry-status {
+    grid-column: 1 / 3;
+    width: max-content;
+    margin-top: 4px;
+    padding: 6px 9px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 99px;
+    color: #4e7480;
+    background: rgba(255, 255, 255, .58);
+    font-size: 7px
+}
+
+.ai-entry-status i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #5a9e9a;
+    box-shadow: 0 0 0 4px rgba(90, 158, 154, .12)
+}
+
+.ai-entry-prompts {
+    position: relative;
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px
+}
+
+.ai-entry-prompts span {
+    min-height: 38px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(65, 91, 129, .07);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .62);
+    color: #52647d;
+    font-size: 8px;
+    line-height: 1.35
+}
+
+.ai-entry-action {
+    position: relative;
+    min-height: 48px;
+    margin-top: 9px;
+    padding: 0 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 14px;
+    color: #fff;
+    background: #4269d8;
+    font-size: 10px;
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgba(66, 105, 216, .18)
+}
+
+.ai-entry-action b {
+    font-size: 19px;
+    font-weight: 500
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .ai-consult-entry {
+        transition: none
+    }
+}
+
+/* V2.6 — 全程可见的 AI 长寿咨询悬浮入口 */
+.report-v2 .ai-consult-entry {
+    position: fixed;
+    z-index: 60;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(18px, calc(env(safe-area-inset-bottom) + 18px));
+    width: min(174px, calc(100vw - 28px));
+    min-height: 60px;
+    margin: 0;
+    padding: 8px 10px 8px 8px;
+    display: grid;
+    grid-template-columns: 44px 1fr 20px;
+    gap: 9px;
+    align-items: center;
+    overflow: visible;
+    border: 1px solid rgba(79, 111, 157, .16);
+    border-radius: 21px;
+    background: rgba(244, 249, 253, .92);
+    box-shadow: 0 14px 38px rgba(39, 62, 96, .2), 0 2px 8px rgba(39, 62, 96, .08);
+    backdrop-filter: blur(18px) saturate(1.08);
+    -webkit-backdrop-filter: blur(18px) saturate(1.08);
+    touch-action: manipulation;
+    animation: aiEntryIn .42s cubic-bezier(.2, .8, .2, 1) both
+}
+
+.report-v2 .ai-consult-entry::before {
+    width: 76px;
+    height: 76px;
+    right: -24px;
+    top: -31px;
+    background: radial-gradient(circle, rgba(113, 164, 219, .18), transparent 70%)
+}
+
+.report-v2 .ai-entry-icon {
+    position: relative;
+    z-index: 1;
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border: 1px solid rgba(70, 105, 153, .1);
+    border-radius: 15px;
+    background: linear-gradient(145deg, #fff, #e4eff7);
+    box-shadow: 0 5px 14px rgba(54, 82, 122, .1)
+}
+
+.report-v2 .ai-entry-icon img {
+    width: 48px;
+    height: 48px;
+    max-width: none;
+    display: block;
+    object-fit: cover;
+    object-position: center top;
+    transform: translateY(2px)
+}
+
+.ai-entry-copy {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    display: block
+}
+
+.ai-entry-copy small,
+.ai-entry-copy strong {
+    display: block;
+    white-space: nowrap
+}
+
+.ai-entry-copy small {
+    margin-bottom: 5px;
+    color: #6680a1;
+    font: 700 6px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .12em
+}
+
+.ai-entry-copy strong {
+    color: #263c5d;
+    font-size: 12px;
+    line-height: 1
+}
+
+.ai-entry-arrow {
+    position: relative;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    color: #5f7595;
+    stroke-width: 2
+}
+
+.report-v2 .ai-consult-entry:hover {
+    box-shadow: 0 18px 44px rgba(39, 62, 96, .24), 0 3px 10px rgba(39, 62, 96, .09)
+}
+
+.report-v2 .ai-consult-entry:active {
+    transform: scale(.965)
+}
+
+.report-v2 footer {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom))
+}
+
+@keyframes aiEntryIn {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(.94)
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1)
+    }
+}
+
+@media(max-width:374px) {
+    .report-v2 .ai-consult-entry {
+        right: max(10px, env(safe-area-inset-right));
+        bottom: max(14px, calc(env(safe-area-inset-bottom) + 14px));
+        width: 166px
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .report-v2 .ai-consult-entry {
+        animation: none;
+        transition: none
+    }
+}
+
+/* V2.7 — 老年友好字号与企业营养支持推荐 */
+.product-recommendation {
+    position: relative;
+    overflow: hidden;
+    margin: 28px 12px 0;
+    padding: 20px;
+    border: 1px solid rgba(74, 105, 143, .12);
+    border-radius: 26px;
+    background: linear-gradient(145deg, #edf4f8 0, #e5eef4 58%, #f6f4ec 100%);
+    box-shadow: var(--shadow)
+}
+
+.product-recommendation::before {
+    content: "";
+    position: absolute;
+    width: 210px;
+    height: 210px;
+    left: -92px;
+    top: 42px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(77, 127, 119, .14), transparent 68%);
+    pointer-events: none
+}
+
+.product-rec-head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #5c708b;
+    font: 700 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .08em
+}
+
+.product-rec-head strong {
+    min-height: 32px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 99px;
+    color: #3d6e67;
+    background: rgba(255, 255, 255, .68);
+    font: 700 11px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    letter-spacing: 0
+}
+
+.product-rec-head i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #5a9e9a;
+    box-shadow: 0 0 0 4px rgba(90, 158, 154, .12)
+}
+
+.product-rec-main {
+    position: relative;
+    z-index: 1;
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1.02fr .98fr;
+    gap: 12px;
+    align-items: center
+}
+
+.product-rec-visual {
+    position: relative;
+    min-height: 180px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(67, 103, 112, .1);
+    border-radius: 21px;
+    background: radial-gradient(circle at 45% 40%, rgba(255, 255, 255, .96), rgba(224, 237, 237, .78) 58%, rgba(190, 212, 210, .52))
+}
+
+.product-rec-visual::after {
+    content: "";
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(22, 58, 51, .14);
+    filter: blur(9px)
+}
+
+.product-rec-visual img {
+    position: relative;
+    z-index: 1;
+    width: 172px;
+    height: auto;
+    max-width: none;
+    display: block;
+    transform: translate(-3px, -2px) rotate(-1deg)
+}
+
+.product-rec-visual span {
+    position: absolute;
+    z-index: 2;
+    left: 12px;
+    bottom: 10px;
+    color: #5c746f;
+    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .1em
+}
+
+.product-rec-copy .eyebrow {
+    font-size: 9px;
+    line-height: 1.3;
+    letter-spacing: .12em
+}
+
+.product-rec-copy h2 {
+    margin: 11px 0 10px;
+    font-size: 27px;
+    line-height: 1.12;
+    letter-spacing: -.04em
+}
+
+.product-rec-copy p {
+    margin: 0;
+    color: #596a7d;
+    font-size: 13px;
+    line-height: 1.65
+}
+
+.product-rec-tags {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px
+}
+
+.product-rec-tags span {
+    min-height: 28px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(74, 112, 105, .1);
+    border-radius: 99px;
+    color: #4f746e;
+    background: rgba(255, 255, 255, .65);
+    font-size: 10px;
+    font-weight: 700
+}
+
+.product-rec-action {
+    position: relative;
+    z-index: 1;
+    min-height: 58px;
+    margin-top: 14px;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 17px;
+    color: #fff;
+    background: linear-gradient(100deg, #3e668b, #4f7f83);
+    box-shadow: 0 10px 24px rgba(49, 84, 102, .18)
+}
+
+.product-rec-action span,
+.product-rec-action b,
+.product-rec-action small {
+    display: block
+}
+
+.product-rec-action b {
+    font-size: 14px
+}
+
+.product-rec-action small {
+    margin-top: 5px;
+    color: rgba(255, 255, 255, .78);
+    font-size: 10px
+}
+
+.product-rec-action svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2
+}
+
+.product-rec-action:active {
+    transform: scale(.985)
+}
+
+.product-rec-disclaimer {
+    position: relative;
+    z-index: 1;
+    margin: 13px 2px 0;
+    color: #66717e;
+    font-size: 11px;
+    line-height: 1.7
+}
+
+/* 主要说明文字不低于 12px，图表辅助标签不低于 10px。 */
+.report-v2 .status-bar {
+    font-size: 12px
+}
+
+.report-v2 .score-meta>span,
+.report-v2 .score-core>span,
+.report-v2 .eyebrow,
+.report-v2 .card-index {
+    font-size: 10px
+}
+
+.report-v2 .save-report-button {
+    font-size: 12px
+}
+
+.report-v2 .score-core em {
+    min-height: 30px;
+    padding: 0 11px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px
+}
+
+.report-v2 .score-foot span,
+.report-v2 .replay-button span {
+    font-size: 11px
+}
+
+.report-v2 .score-foot small {
+    font-size: 10px
+}
+
+.report-v2 .editorial-intro p {
+    font-size: 14px;
+    line-height: 1.65
+}
+
+.report-v2 .index-no {
+    font-size: 12px
+}
+
+.report-v2 .quick-card>span {
+    font-size: 12px;
+    font-weight: 700
+}
+
+.report-v2 .quick-card>small {
+    font-size: 11px;
+    line-height: 1.5
+}
+
+.report-v2 .age-card {
+    min-height: 198px
+}
+
+.report-v2 .lifespan-card,
+.report-v2 .focus-card {
+    min-height: 94px
+}
+
+.report-v2 .section-heading>span {
+    font-size: 11px
+}
+
+.report-v2 .data-card p {
+    font-size: 12px;
+    line-height: 1.6
+}
+
+.report-v2 .stat-row small,
+.report-v2 .lung-gauge span,
+.report-v2 .oxygen span,
+.report-v2 .endo-matrix span,
+.report-v2 .endo-note,
+.report-v2 .digest-copy>strong small,
+.report-v2 .cycle-center span,
+.report-v2 .cycle-labels,
+.report-v2 .immune-copy>span,
+.report-v2 .scale-axis,
+.report-v2 .bone-bars i,
+.report-v2 .bone-tip span {
+    font-size: 10px
+}
+
+.report-v2 .stat-row span,
+.report-v2 .oxygen strong {
+    font-size: 14px
+}
+
+.report-v2 .arrow-pill {
+    min-height: 44px;
+    font-size: 11px !important
+}
+
+.report-v2 .lung-card,
+.report-v2 .endocrine-card {
+    min-height: 314px
+}
+
+.report-v2 .endo-matrix span {
+    height: 78px;
+    padding: 11px
+}
+
+.report-v2 .digest-card {
+    min-height: 326px;
+    grid-template-columns: 122px 1fr
+}
+
+.report-v2 .digest-flow span {
+    width: 24px;
+    height: 24px;
+    font-size: 9px
+}
+
+.report-v2 .digest-flow b {
+    font-size: 10px;
+    line-height: 1.3
+}
+
+.report-v2 .female-card {
+    min-height: 304px
+}
+
+.report-v2 .immune-card {
+    min-height: 316px
+}
+
+.report-v2 .immune-copy>span {
+    min-height: 28px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center
+}
+
+.report-v2 .bone-card {
+    min-height: 340px
+}
+
+.report-v2 .bone-bars b {
+    bottom: -34px;
+    width: 62px;
+    font-size: 9px;
+    line-height: 1.25
+}
+
+.report-v2 .bone-tip {
+    margin-top: 43px;
+    padding: 12px;
+    font-size: 11px;
+    line-height: 1.45
+}
+
+.report-v2 .ending-editorial p {
+    font-size: 13px;
+    line-height: 1.6
+}
+
+.report-v2 footer,
+.report-v2 footer p {
+    font-size: 10px;
+    line-height: 1.6
+}
+
+.report-v2 .ai-entry-copy small {
+    font-size: 8px
+}
+
+.report-v2 .ai-entry-copy strong {
+    font-size: 13px
+}
+
+@media(max-width:374px) {
+    .product-rec-main {
+        grid-template-columns: .95fr 1.05fr;
+        gap: 9px
+    }
+
+    .product-rec-copy h2 {
+        font-size: 25px
+    }
+
+    .product-rec-copy p {
+        font-size: 12px
+    }
+}
+
+/* 老年友好二次校准：重要辅助信息保持 11–14px。 */
+.report-v2 .quick-card>small {
+    font-size: 12px
+}
+
+.report-v2 .data-card p {
+    font-size: 13px
+}
+
+.report-v2 .stat-row small,
+.report-v2 .lung-gauge span,
+.report-v2 .oxygen span,
+.report-v2 .endo-matrix span,
+.report-v2 .endo-note,
+.report-v2 .digest-copy>strong small,
+.report-v2 .cycle-center span,
+.report-v2 .cycle-labels,
+.report-v2 .immune-copy>span,
+.report-v2 .bone-bars i,
+.report-v2 .bone-tip span {
+    font-size: 11px
+}
+
+.report-v2 .digest-flow b {
+    font-size: 11px
+}
+
+.report-v2 .bone-bars b {
+    font-size: 10px
+}
+
+.report-v2 .bone-tip,
+.product-rec-disclaimer {
+    font-size: 12px
+}
+
+.report-v2 .ending-editorial p {
+    font-size: 14px
+}
+
+.report-v2 footer,
+.report-v2 footer p {
+    font-size: 11px
+}
+
+/* V2.8 — 老年友好字号三级校准：小字整体再提升一级，不改变核心标题层级。 */
+.report-v2 .status-bar {
+    font-size: 13px
+}
+
+.report-v2 .score-meta>span,
+.report-v2 .score-core>span,
+.report-v2 .eyebrow,
+.report-v2 .card-index {
+    font-size: 12px;
+    line-height: 1.35
+}
+
+.report-v2 .save-report-button {
+    min-width: 112px;
+    font-size: 14px
+}
+
+.report-v2 .save-toast {
+    font-size: 14px
+}
+
+.report-v2 .score-core em {
+    min-height: 34px;
+    font-size: 14px
+}
+
+.report-v2 .score-foot span,
+.report-v2 .replay-button span {
+    font-size: 13px
+}
+
+.report-v2 .score-foot small {
+    font-size: 12px
+}
+
+.report-v2 .editorial-intro p {
+    font-size: 16px;
+    line-height: 1.7
+}
+
+.report-v2 .index-no {
+    font-size: 14px
+}
+
+.report-v2 .quick-card>span {
+    font-size: 14px
+}
+
+.report-v2 .quick-card>small {
+    font-size: 14px;
+    line-height: 1.55
+}
+
+.report-v2 .section-heading>span {
+    font-size: 13px;
+    line-height: 1.45
+}
+
+.report-v2 .data-card p {
+    font-size: 15px;
+    line-height: 1.65
+}
+
+.report-v2 .stat-row small,
+.report-v2 .lung-gauge span,
+.report-v2 .oxygen span,
+.report-v2 .endo-matrix span,
+.report-v2 .endo-note,
+.report-v2 .digest-copy>strong small,
+.report-v2 .cycle-center span,
+.report-v2 .cycle-labels,
+.report-v2 .immune-copy>span,
+.report-v2 .scale-axis,
+.report-v2 .bone-bars i,
+.report-v2 .bone-tip span {
+    font-size: 12px;
+    line-height: 1.45
+}
+
+.report-v2 .stat-row span,
+.report-v2 .oxygen strong {
+    font-size: 15px
+}
+
+.report-v2 .arrow-pill {
+    font-size: 13px !important
+}
+
+.report-v2 .digest-flow span {
+    width: 28px;
+    height: 28px;
+    font-size: 11px
+}
+
+.report-v2 .digest-flow b,
+.report-v2 .bone-bars b {
+    font-size: 12px;
+    line-height: 1.4
+}
+
+.report-v2 .bone-tip {
+    font-size: 14px;
+    line-height: 1.55
+}
+
+.report-v2 .ending-editorial p {
+    font-size: 16px;
+    line-height: 1.65
+}
+
+.report-v2 footer,
+.report-v2 footer p {
+    font-size: 13px;
+    line-height: 1.65
+}
+
+.report-v2 .ai-entry-copy small {
+    font-size: 10px
+}
+
+.report-v2 .ai-entry-copy strong {
+    font-size: 15px
+}
+
+.product-rec-head {
+    font-size: 11px;
+    line-height: 1.35
+}
+
+.product-rec-head strong {
+    font-size: 13px
+}
+
+.product-rec-visual span,
+.product-rec-copy .eyebrow {
+    font-size: 11px
+}
+
+.product-rec-copy p {
+    font-size: 15px;
+    line-height: 1.7
+}
+
+.product-rec-tags span {
+    min-height: 32px;
+    font-size: 12px
+}
+
+.product-rec-action {
+    min-height: 64px
+}
+
+.product-rec-action b {
+    font-size: 16px
+}
+
+.product-rec-action small {
+    font-size: 13px;
+    line-height: 1.4
+}
+
+.product-rec-disclaimer {
+    font-size: 14px;
+    line-height: 1.75
+}
+
+.report-v2 .lung-card,
+.report-v2 .endocrine-card {
+    min-height: 330px
+}
+
+.report-v2 .digest-card {
+    min-height: 350px
+}
+
+.report-v2 .female-card {
+    min-height: 320px
+}
+
+.report-v2 .immune-card {
+    min-height: 334px
+}
+
+.report-v2 .bone-card {
+    min-height: 368px
+}
+
+/* 二级详情页同步放大辅助信息，避免首页与详情阅读体验断层。 */
+.detail-v2 .status-bar,
+.detail-v2 .detail-viz-head>span,
+.detail-v2 .detail-chart-values small,
+.detail-v2 .detail-axis-caption,
+.detail-v2 .detail-radial>span,
+.detail-v2 .detail-secondary-stat>span,
+.detail-v2 .detail-secondary-stat p,
+.detail-v2 .detail-horizontal-bars article>span,
+.detail-v2 .detail-horizontal-bars label,
+.detail-v2 .detail-matrix span,
+.detail-v2 .detail-radar .radar-unit,
+.detail-v2 .detail-network text,
+.detail-v2 .detail-vertical-bars span {
+    font-size: 12px;
+    line-height: 1.45
+}
+
+.detail-v2 .detail-line-chart text,
+.detail-v2 .detail-line-chart .axis-label {
+    font-size: 10px
+}
+
+.detail-v2 .detail-secondary-stat strong small,
+.detail-v2 .detail-vertical-bars strong {
+    font-size: 12px
+}
+
+.detail-v2 .detail-horizontal-bars article {
+    min-height: 58px;
+    grid-template-columns: 34px 1fr 36px
+}
+
+.detail-v2 .detail-chart-values span {
+    min-height: 62px
+}
+
+.detail-v2 .detail-vertical-bars article {
+    grid-template-rows: 22px 1fr 48px
+}
+
+/* V2.9 — 详情页字号与首页统一：正文 15–16px，辅助信息 12–14px。 */
+.detail-v2 .status-bar {
+    font-size: 13px
+}
+
+.detail-v2 .brand span,
+.detail-v2 .eyebrow {
+    font-size: 12px;
+    line-height: 1.35
+}
+
+.detail-v2 .brand strong {
+    font-size: 18px;
+    line-height: 1.25
+}
+
+.detail-v2 .detail-score-block {
+    gap: 12px
+}
+
+.detail-v2 .detail-score-block span {
+    min-height: 32px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px
+}
+
+.detail-v2 .detail-score-block p {
+    max-width: 170px;
+    font-size: 16px;
+    line-height: 1.55
+}
+
+.detail-v2 .detail-viz-head>span,
+.detail-v2 .detail-editorial .section-heading>span {
+    font-size: 13px;
+    line-height: 1.45
+}
+
+.detail-v2 .detail-chart-values span {
+    min-height: 70px;
+    padding: 12px
+}
+
+.detail-v2 .detail-chart-values small {
+    font-size: 13px;
+    line-height: 1.45
+}
+
+.detail-v2 .detail-chart-values strong {
+    margin-top: 7px;
+    font-size: 18px
+}
+
+.detail-v2 .detail-line-chart text {
+    font-size: 12px
+}
+
+.detail-v2 .detail-line-chart .axis-label {
+    font-size: 11px
+}
+
+.detail-v2 .detail-axis-caption {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.45
+}
+
+.detail-v2 .detail-radial>span,
+.detail-v2 .detail-secondary-stat>span,
+.detail-v2 .detail-secondary-stat p {
+    font-size: 13px;
+    line-height: 1.5
+}
+
+.detail-v2 .detail-secondary-stat strong small {
+    font-size: 13px
+}
+
+.detail-v2 .detail-horizontal-bars article {
+    min-height: 64px;
+    grid-template-columns: 36px 1fr 40px;
+    gap: 10px
+}
+
+.detail-v2 .detail-horizontal-bars article>span {
+    font-size: 12px
+}
+
+.detail-v2 .detail-horizontal-bars label {
+    font-size: 14px;
+    line-height: 1.4
+}
+
+.detail-v2 .detail-horizontal-bars strong {
+    font-size: 18px
+}
+
+.detail-v2 .detail-matrix article {
+    min-height: 106px;
+    padding: 16px
+}
+
+.detail-v2 .detail-matrix span {
+    font-size: 14px;
+    line-height: 1.45
+}
+
+.detail-v2 .detail-radar .radar-unit {
+    font-size: 12px
+}
+
+.detail-v2 .detail-network text {
+    font-size: 11px
+}
+
+.detail-v2 .detail-network .network-score {
+    font-size: 20px
+}
+
+.detail-v2 .detail-vertical-bars {
+    height: 248px
+}
+
+.detail-v2 .detail-vertical-bars article {
+    grid-template-rows: 24px 1fr 56px
+}
+
+.detail-v2 .detail-vertical-bars strong {
+    font-size: 14px
+}
+
+.detail-v2 .detail-vertical-bars span {
+    font-size: 13px;
+    line-height: 1.45
+}
+
+.detail-v2 .indicator-no {
+    font-size: 12px
+}
+
+.detail-v2 .detail-indicator-list article {
+    min-height: 78px;
+    grid-template-columns: 32px 1fr 44px;
+    gap: 12px;
+    padding: 17px 0
+}
+
+.detail-v2 .detail-indicator-list h3 {
+    font-size: 16px;
+    line-height: 1.4
+}
+
+.detail-v2 .detail-indicator-list small {
+    margin-top: 5px;
+    font-size: 13px;
+    line-height: 1.45
+}
+
+.detail-v2 .detail-indicator-list>article>strong {
+    font-size: 24px
+}
+
+.detail-v2 .empty-module {
+    font-size: 14px;
+    line-height: 1.65
+}
+
+.detail-v2 .detail-direct-list article {
+    min-height: 112px;
+    padding: 16px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center
+}
+
+.detail-v2 .detail-direct-list span,
+.detail-v2 .detail-direct-list small {
+    font-size: 13px;
+    line-height: 1.4
+}
+
+.detail-v2 .detail-direct-list strong {
+    margin: 8px 0 6px;
+    font-size: 16px;
+    line-height: 1.35
+}
+
+.detail-v2 .detail-conclusion p {
+    font-size: 16px;
+    line-height: 1.75
+}
+
+.detail-v2 .detail-conclusion li {
+    min-height: 56px;
+    font-size: 15px;
+    line-height: 1.55
+}
+
+.detail-v2 .detail-conclusion li span {
+    font-size: 18px
+}
+
+.detail-v2 .detail-back {
+    min-height: 58px;
+    font-size: 16px
+}
+
+.detail-v2 footer,
+.detail-v2 footer p {
+    font-size: 13px;
+    line-height: 1.65
+}
+
+@media(max-width:374px) {
+    .detail-v2 .detail-score-block {
+        padding-inline: 20px
+    }
+
+    .detail-v2 .detail-score-block>strong {
+        font-size: 82px
+    }
+
+    .detail-v2 .detail-score-block p {
+        max-width: 150px
+    }
+
+    .detail-v2 .detail-visualization,
+    .detail-v2 .detail-editorial,
+    .detail-v2 .detail-conclusion {
+        padding: 20px
+    }
+}
+
+/* V2.10 — 详情页数据图谱与评分构成之间的产品推荐卡。 */
+.detail-product-recommendation {
+    position: relative;
+    overflow: hidden;
+    margin: 12px;
+    padding: 20px;
+    border: 1px solid rgba(74, 105, 143, .12);
+    border-radius: 24px;
+    background: linear-gradient(145deg, #edf4f8 0, #e5eef4 58%, #f7f4eb 100%);
+    box-shadow: var(--shadow);
+    animation: detailProductIn .36s cubic-bezier(.2, .8, .2, 1) both
+}
+
+.detail-product-recommendation[hidden] {
+    display: none
+}
+
+/* V2.15 — 总分影响项的定向健康管理方案，紧随对应问题呈现。 */
+.issue-plan {
+    position: relative;
+    overflow: hidden;
+    margin: 16px 0 28px;
+    padding: 20px;
+    border: 1px solid rgba(64, 83, 121, .13);
+    border-radius: 26px;
+    background: linear-gradient(135deg, #eff3f7, #f8f3ea);
+    box-shadow: 0 16px 38px rgba(39, 58, 89, .09)
+}
+
+.issue-plan::before {
+    content: "";
+    position: absolute;
+    width: 235px;
+    height: 235px;
+    right: -118px;
+    top: -102px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(78, 104, 171, .16), transparent 68%);
+    pointer-events: none
+}
+
+.issue-plan-bone::before {
+    background: radial-gradient(circle, rgba(53, 108, 76, .18), transparent 68%)
+}
+
+.issue-plan-label,
+.issue-plan-main,
+.issue-plan-action,
+.issue-plan-note {
+    position: relative;
+    z-index: 1
+}
+
+.issue-plan-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #61708a;
+    font-size: 12px;
+    line-height: 1.4
+}
+
+.issue-plan-label span {
+    color: #4d628c;
+    font-weight: 800;
+    letter-spacing: .07em
+}
+
+.issue-plan-label strong {
+    color: #4d596d;
+    font-size: 13px
+}
+
+.issue-plan-main {
+    min-height: 210px;
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 148px;
+    gap: 12px;
+    align-items: center
+}
+
+.issue-plan-copy .eyebrow {
+    color: #5d7195;
+    font-size: 10px
+}
+
+.issue-plan-copy h2 {
+    margin: 8px 0 9px;
+    color: #26324b;
+    font-size: 27px;
+    line-height: 1.12;
+    letter-spacing: -.04em
+}
+
+.issue-plan-bone .issue-plan-copy h2 {
+    color: #314b3b
+}
+
+.issue-plan-copy p {
+    margin: 0;
+    color: #566375;
+    font-size: 14px;
+    line-height: 1.65
+}
+
+.issue-plan-tags {
+    margin-top: 11px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px
+}
+
+.issue-plan-tags span {
+    min-height: 26px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 99px;
+    color: #4d6388;
+    background: rgba(255, 255, 255, .72);
+    font-size: 11px;
+    font-weight: 700
+}
+
+.issue-plan-bone .issue-plan-tags span {
+    color: #477054
+}
+
+.issue-plan-visual {
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 20px;
+    background: radial-gradient(circle at 46% 38%, rgba(255, 255, 255, .95), rgba(211, 221, 232, .75) 64%, rgba(169, 184, 203, .55))
+}
+
+.issue-plan-bone .issue-plan-visual {
+    background: radial-gradient(circle at 46% 38%, rgba(255, 255, 255, .95), rgba(224, 229, 208, .78) 64%, rgba(168, 188, 166, .58))
+}
+
+.issue-plan-visual img {
+    width: 132px;
+    max-width: 88%;
+    max-height: 196px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    transform: none;
+    filter: drop-shadow(0 12px 9px rgba(25, 43, 61, .17))
+}
+
+.issue-plan-action {
+    min-height: 60px;
+    margin-top: 14px;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 16px;
+    color: #fff;
+    background: linear-gradient(105deg, #3c5b88, #607ea6);
+    box-shadow: 0 10px 20px rgba(55, 83, 127, .2)
+}
+
+.issue-plan-bone .issue-plan-action {
+    background: linear-gradient(105deg, #355e4a, #65856a);
+    box-shadow: 0 10px 20px rgba(48, 89, 67, .2)
+}
+
+.issue-plan-action span,
+.issue-plan-action b,
+.issue-plan-action small {
+    display: block
+}
+
+.issue-plan-action b {
+    font-size: 15px
+}
+
+.issue-plan-action small {
+    margin-top: 4px;
+    color: rgba(255, 255, 255, .82);
+    font-size: 12px
+}
+
+.issue-plan-action svg {
+    width: 23px;
+    height: 23px;
+    stroke-width: 2
+}
+
+.issue-plan-note {
+    margin: 11px 1px 0;
+    color: #687488;
+    font-size: 12px;
+    line-height: 1.6
+}
+
+@media (max-width: 374px) {
+    .issue-plan {
+        padding: 17px
+    }
+
+    .issue-plan-main {
+        min-height: 184px;
+        grid-template-columns: minmax(0, 1fr) 124px;
+        gap: 9px
+    }
+
+    .issue-plan-copy h2 {
+        font-size: 24px
+    }
+
+    .issue-plan-visual img {
+        width: 112px;
+        max-height: 170px
+    }
+}
+
+.detail-product-recommendation::before {
+    content: "";
+    position: absolute;
+    width: 210px;
+    height: 210px;
+    left: -96px;
+    top: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(77, 127, 119, .15), transparent 68%);
+    pointer-events: none
+}
+
+.detail-product-head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #5c708b;
+    font: 700 12px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .06em
+}
+
+.detail-product-head strong {
+    min-height: 34px;
+    padding: 0 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 99px;
+    color: #3d6e67;
+    background: rgba(255, 255, 255, .72);
+    font: 700 13px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    letter-spacing: 0
+}
+
+.detail-product-head i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #5a9e9a;
+    box-shadow: 0 0 0 4px rgba(90, 158, 154, .12)
+}
+
+.detail-product-main {
+    position: relative;
+    z-index: 1;
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 142px 1fr;
+    gap: 14px;
+    align-items: center
+}
+
+.detail-product-visual {
+    position: relative;
+    min-height: 206px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(67, 103, 112, .1);
+    border-radius: 20px;
+    background: radial-gradient(circle at 45% 40%, rgba(255, 255, 255, .96), rgba(224, 237, 237, .8) 58%, rgba(190, 212, 210, .52))
+}
+
+.detail-product-visual::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 24px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(22, 58, 51, .14);
+    filter: blur(8px)
+}
+
+.detail-product-visual img {
+    position: relative;
+    z-index: 1;
+    width: 126px;
+    height: auto;
+    max-width: 88%;
+    max-height: 190px;
+    object-fit: contain;
+    display: block;
+    transform: none
+}
+
+.detail-product-visual span {
+    position: absolute;
+    z-index: 2;
+    left: 10px;
+    bottom: 9px;
+    color: #536f69;
+    font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .08em
+}
+
+.detail-product-module {
+    color: #557873;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 700
+}
+
+.detail-product-copy h2 {
+    margin: 10px 0;
+    font-size: 26px;
+    line-height: 1.14;
+    letter-spacing: -.04em
+}
+
+.detail-product-copy p {
+    margin: 0;
+    color: #596a7d;
+    font-size: 15px;
+    line-height: 1.68
+}
+
+.detail-product-action {
+    position: relative;
+    z-index: 1;
+    min-height: 64px;
+    margin-top: 15px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 17px;
+    color: #fff;
+    background: linear-gradient(100deg, #3e668b, #4f7f83);
+    box-shadow: 0 10px 24px rgba(49, 84, 102, .18);
+    transition: transform .18s ease, box-shadow .2s ease
+}
+
+.detail-product-action span,
+.detail-product-action b,
+.detail-product-action small {
+    display: block
+}
+
+.detail-product-action b {
+    font-size: 16px
+}
+
+.detail-product-action small {
+    margin-top: 5px;
+    color: rgba(255, 255, 255, .82);
+    font-size: 13px;
+    line-height: 1.4
+}
+
+.detail-product-action svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2
+}
+
+.detail-product-action:active {
+    transform: scale(.985)
+}
+
+.detail-product-action:focus-visible {
+    outline: 3px solid #4269d8;
+    outline-offset: 3px
+}
+
+.detail-product-disclaimer {
+    position: relative;
+    z-index: 1;
+    margin: 14px 2px 0;
+    color: #606f7d;
+    font-size: 13px;
+    line-height: 1.7
+}
+
+@keyframes detailProductIn {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0)
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0)
+    }
+}
+
+@media(max-width:374px) {
+    .detail-product-recommendation {
+        padding: 18px
+    }
+
+    .detail-product-main {
+        grid-template-columns: 128px 1fr;
+        gap: 11px
+    }
+
+    .detail-product-visual {
+        min-height: 176px
+    }
+
+    .detail-product-visual img {
+        width: 110px;
+        max-height: 165px
+    }
+
+    .detail-product-copy h2 {
+        font-size: 24px
+    }
+
+    .detail-product-copy p {
+        font-size: 14px
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .detail-product-recommendation,
+    .detail-product-action {
+        animation: none;
+        transition: none
+    }
+}
+
+/* V2.11 — 消化链路放大字号后的防拥挤布局。 */
+.report-v2 .digest-flow div {
+    min-width: 0;
+    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 5px
+}
+
+.report-v2 .digest-flow span {
+    grid-column: 1;
+    grid-row: 1 / 3
+}
+
+.report-v2 .digest-flow i,
+.report-v2 .digest-flow b {
+    grid-column: 2;
+    min-width: 0
+}
+
+.report-v2 .digest-flow i {
+    grid-row: 1
+}
+
+.report-v2 .digest-flow b {
+    grid-row: 2;
+    white-space: nowrap
+}
+
+/* V2.12 — 手机端消化系统改为上下结构，指标链路获得完整横向空间。 */
+@media(max-width:430px) {
+    .report-v2 .digest-card {
+        min-height: 520px;
+        padding: 24px;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+        gap: 28px
+    }
+
+    .report-v2 .digest-copy {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "index index"
+            "title score"
+            "description score";
+        column-gap: 20px;
+        align-items: end
+    }
+
+    .report-v2 .digest-copy .card-index {
+        grid-area: index
+    }
+
+    .report-v2 .digest-copy h3 {
+        grid-area: title;
+        margin-top: 15px
+    }
+
+    .report-v2 .digest-copy p {
+        grid-area: description;
+        max-width: 220px;
+        margin-top: 8px
+    }
+
+    .report-v2 .digest-copy>strong {
+        grid-area: score;
+        margin: 0;
+        align-self: end;
+        text-align: right
+    }
+
+    .report-v2 .digest-copy>strong small {
+        text-align: right
+    }
+
+    .report-v2 .digest-flow {
+        padding: 0;
+        gap: 15px;
+        justify-content: start
+    }
+
+    .report-v2 .digest-flow div {
+        min-height: 52px;
+        grid-template-columns: 32px minmax(0, 1fr);
+        grid-template-rows: auto 6px;
+        column-gap: 14px;
+        row-gap: 8px;
+        align-items: center
+    }
+
+    .report-v2 .digest-flow span {
+        width: 32px;
+        height: 32px;
+        grid-column: 1;
+        grid-row: 1 / 3;
+        font-size: 11px
+    }
+
+    .report-v2 .digest-flow b {
+        grid-column: 2;
+        grid-row: 1;
+        font-size: 13px;
+        line-height: 1.4
+    }
+
+    .report-v2 .digest-flow i {
+        grid-column: 2;
+        grid-row: 2;
+        height: 5px
+    }
+}
+
+/* V2.13 — 首屏长寿分数区压缩：保留大分数与适老字号，减少无效留白 */
+@media (max-width: 430px) {
+    .report-v2>.score-panel {
+        margin-top: 4px;
+        padding: 16px;
+        border-radius: 28px
+    }
+
+    .report-v2 .score-meta {
+        min-height: 44px
+    }
+
+    .report-v2 .score-stage {
+        height: 285px;
+        margin-top: 0
+    }
+
+    .report-v2 .score-rings {
+        width: 260px;
+        height: 260px
+    }
+
+    .report-v2 .orbit-a {
+        width: 214px;
+        height: 116px
+    }
+
+    .report-v2 .orbit-b {
+        width: 160px;
+        height: 238px
+    }
+
+    .report-v2 .scan-beam {
+        width: 188px
+    }
+
+    .report-v2 .score-core div {
+        height: 88px
+    }
+
+    .report-v2 .score-core strong {
+        font-size: 96px
+    }
+
+    .report-v2 .score-core small {
+        padding: 0 0 12px 6px
+    }
+
+    .report-v2 .score-core em {
+        margin-top: 8px
+    }
+
+    .report-v2 .score-foot {
+        grid-template-columns: 1fr 1fr 102px;
+        padding-top: 10px
+    }
+
+    .report-v2 .score-foot>div {
+        padding-left: 10px
+    }
+}
+
+/* V2.14 — 底部产品推荐改为轻量横向导购模块，与中段产品卡形成层次差异。 */
+.bottom-product-recommendation {
+    position: relative;
+    overflow: hidden;
+    margin: 32px 12px 0;
+    padding: 20px;
+    border: 1px solid rgba(74, 105, 143, .12);
+    border-radius: 28px;
+    background: linear-gradient(142deg, #ffffff 0%, #f3f7fc 52%, #e7f0fa 100%);
+    box-shadow: 0 18px 42px rgba(44, 67, 103, .09)
+}
+
+.bottom-product-recommendation::before {
+    content: "";
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    right: -116px;
+    top: 34px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(75, 116, 208, .13), transparent 68%);
+    pointer-events: none
+}
+
+.bottom-rec-kicker {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px
+}
+
+.bottom-rec-kicker .eyebrow {
+    color: #5274bb;
+    font-size: 11px;
+    letter-spacing: .12em
+}
+
+.bottom-rec-status {
+    min-height: 30px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 99px;
+    color: #496da9;
+    background: rgba(224, 235, 250, .82);
+    font-size: 12px;
+    font-weight: 700
+}
+
+.bottom-rec-row {
+    position: relative;
+    z-index: 1;
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 148px;
+    gap: 12px;
+    align-items: center
+}
+
+.bottom-rec-label {
+    color: #6882aa;
+    font-size: 13px;
+    font-weight: 700
+}
+
+.bottom-rec-copy h2 {
+    margin: 9px 0 10px;
+    color: #172a50;
+    font-size: 27px;
+    line-height: 1.2;
+    letter-spacing: -.045em
+}
+
+.bottom-rec-copy h2 em {
+    color: #4269d8;
+    font-style: normal
+}
+
+.bottom-rec-copy p {
+    margin: 0;
+    color: #65758d;
+    font-size: 14px;
+    line-height: 1.65
+}
+
+.bottom-rec-tags {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px
+}
+
+.bottom-rec-tags span {
+    min-height: 30px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(67, 105, 170, .15);
+    border-radius: 99px;
+    color: #5271a5;
+    background: rgba(255, 255, 255, .72);
+    font-size: 12px;
+    font-weight: 700
+}
+
+.bottom-rec-product {
+    position: relative;
+    min-height: 184px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 24px;
+    background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, .98), rgba(221, 232, 247, .78) 65%, rgba(194, 211, 236, .8));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .78)
+}
+
+.bottom-rec-product img {
+    position: relative;
+    z-index: 2;
+    width: 142px;
+    height: auto;
+    display: block;
+    transform: rotate(-5deg) translate(-2px, -1px);
+    filter: drop-shadow(0 12px 10px rgba(54, 77, 111, .18))
+}
+
+.bottom-rec-product i {
+    position: absolute;
+    z-index: 3;
+    right: 9px;
+    bottom: 9px;
+    color: #5f76a4;
+    font: 700 8px/1.25 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .08em;
+    text-align: right
+}
+
+.bottom-rec-orbit {
+    position: absolute;
+    z-index: 1;
+    border: 1px solid rgba(73, 112, 188, .22);
+    border-radius: 50%;
+    transform: rotate(-18deg)
+}
+
+.bottom-rec-orbit-a {
+    width: 150px;
+    height: 78px
+}
+
+.bottom-rec-orbit-b {
+    width: 116px;
+    height: 150px
+}
+
+.bottom-rec-action {
+    position: relative;
+    z-index: 1;
+    min-height: 58px;
+    margin-top: 14px;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(67, 105, 170, .22);
+    border-radius: 17px;
+    color: #315da8;
+    background: rgba(255, 255, 255, .84);
+    box-shadow: 0 9px 22px rgba(68, 97, 146, .1)
+}
+
+.bottom-rec-action span,
+.bottom-rec-action b,
+.bottom-rec-action small {
+    display: block
+}
+
+.bottom-rec-action b {
+    font-size: 16px
+}
+
+.bottom-rec-action small {
+    margin-top: 4px;
+    color: #7890b3;
+    font-size: 13px;
+    line-height: 1.4
+}
+
+.bottom-rec-action svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2
+}
+
+.bottom-rec-action:active {
+    transform: scale(.985)
+}
+
+.bottom-rec-note {
+    position: relative;
+    z-index: 1;
+    margin: 12px 2px 0;
+    color: #718098;
+    font-size: 12px;
+    line-height: 1.65
+}
+
+@media (max-width: 380px) {
+    .bottom-product-recommendation {
+        padding: 17px
+    }
+
+    .bottom-rec-row {
+        grid-template-columns: minmax(0, 1fr) 132px;
+        gap: 9px
+    }
+
+    .bottom-rec-copy h2 {
+        font-size: 24px
+    }
+
+    .bottom-rec-copy p {
+        font-size: 13px
+    }
+
+    .bottom-rec-product {
+        min-height: 170px
+    }
+
+    .bottom-rec-product img {
+        width: 122px
+    }
+}

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>长寿指数报告 V3</title>
+  <link rel="stylesheet" href="v3.css?v=20260806-v316" />
+</head>
+
+<body>
+  <main class="app-shell report-v3">
+    <div class="status-bar" aria-hidden="true"><span>9:41</span><span>● ◒ ▰</span></div>
+
+    <section id="scorePanel" class="mint-hero" aria-label="长寿指数68分，重点关注">
+      <div class="hero-mesh" aria-hidden="true"></div>
+      <div class="hero-toolbar">
+        <span>LONGEVITY REPORT · 2026.08.04</span>
+        <a id="saveReport" class="save-report-button" href="长寿指数报告V3_手机长图.png" download aria-label="保存长寿指数报告长图">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 18v2h14v-2" />
+          </svg><span>保存报告</span>
+        </a>
+      </div>
+
+      <div class="hero-title">
+        <span>AI 分析 · 健康趋势 · 长期管理</span>
+        <h1>长寿指数<br><em>综合分析</em></h1>
+        <p>内分泌与骨骼是本次主要影响项，建议优先开始连续健康管理。</p>
+      </div>
+
+      <div class="score-sheet">
+        <div class="score-copy"><span>本次报告</span><strong>重点关注</strong>
+          <p>内分泌与骨骼影响当前得分，建议从睡眠和骨量管理开始改善。</p>
+        </div>
+        <div class="score-gauge">
+          <svg viewBox="0 0 140 140" aria-hidden="true">
+            <circle class="score-track" cx="70" cy="70" r="57" />
+            <circle class="score-progress" cx="70" cy="70" r="57" />
+          </svg>
+          <div><strong id="scoreValue" data-score="68">0</strong><small>活力值</small></div>
+          <i class="score-spark"></i>
+        </div>
+        <div class="score-metrics">
+          <span><strong>7</strong><small>参与系统</small></span><span><strong>2</strong><small>优势指标</small></span><span><strong>2</strong><small>优先改善</small></span>
+        </div>
+      </div>
+
+      <div class="age-compare" aria-label="实际年龄42岁，生理年龄44.2岁">
+        <div class="age-primary"><small>生理年龄</small><strong>44.2</strong><span>岁</span></div>
+        <div class="age-vs">VS</div>
+        <div><small>实际年龄</small><strong>42</strong><span>岁</span></div>
+        <p><b>大 2.2 岁</b>，建议以更主动的节奏开始修复。</p>
+      </div>
+    </section>
+    <div id="saveToast" class="save-toast" role="status" aria-live="polite"><i></i><span>报告长图已保存</span></div>
+
+    <a class="ai-consult-entry" href="AI长寿咨询聊天页设计稿.png" aria-label="进入 AI 长寿咨询">
+      <span class="ai-entry-icon" aria-hidden="true"><img src="AI长寿咨询-卡通医生形象.png" alt="" width="42" height="42"></span>
+      <span class="ai-entry-copy"><small>LONGEVITY AI</small><strong>AI 长寿咨询</strong></span>
+      <svg class="ai-entry-arrow" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m9 6 6 6-6 6" />
+      </svg>
+    </a>
+
+    <section class="report-intro">
+      <span class="section-kicker">BODY SYSTEMS / 07</span>
+      <h2>身体系统<br>活力图谱</h2>
+      <p>内分泌与骨骼是当前优先改善项。向下滑动查看对应问题与管理方案。</p>
+      <div class="legend"><span><i></i>优势</span><span><i></i>稳定</span><span><i></i>关注</span></div>
+    </section>
+
+    <section class="systems-section" aria-label="身体系统活力图谱">
+      <a class="data-card cardio-card" href="detail.html?id=cardio" aria-label="查看心血管详情">
+        <div class="card-top">
+          <div class="module-icon"><svg viewBox="0 0 24 24">
+              <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />
+              <path d="M4 12h4l1.4-3 2.2 6 1.5-3H20" />
+            </svg></div>
+          <div><span>01 / CARDIO</span>
+            <h3>心血管</h3>
+            <p>血管弹性突出，循环状态稳定</p>
+          </div><strong>88</strong>
+        </div>
+        <svg class="cardio-chart" viewBox="0 0 340 154" role="img" aria-label="心血管近六次活力值上升趋势">
+          <defs>
+            <linearGradient id="v3CardioFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#00B886" stop-opacity=".28" />
+              <stop offset="1" stop-color="#00B886" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path class="grid" d="M8 35H332M8 77H332M8 119H332" />
+          <path class="area" d="M8 113C42 111 55 88 87 93s45 16 73-3 47-8 70-2 51-21 102-55v104H8Z" />
+          <path class="line" d="M8 113C42 111 55 88 87 93s45 16 73-3 47-8 70-2 51-21 102-55" />
+          <g class="point">
+            <circle cx="332" cy="33" r="6" /><text x="317" y="22">88</text>
+          </g>
+        </svg>
+        <div class="metric-strip"><span>血脂<b>86</b></span><span>血管弹性<b>91</b></span><span>心肌耗氧<b>87</b></span><em>查看详情
+            →</em></div>
+      </a>
+
+      <div class="card-pair">
+        <a class="data-card lung-card" href="detail.html?id=lung" aria-label="查看肺功能详情">
+          <div class="module-icon"><svg viewBox="0 0 24 24">
+              <path d="M12 4v8" />
+              <path d="M10 12c-1-3-2-5-3.5-5S3 10 3 15s3 5 7 3V12Z" />
+              <path d="M14 12c1-3 2-5 3.5-5S21 10 21 15s-3 5-7 3V12Z" />
+            </svg></div>
+          <span class="card-code">02 / LUNG</span>
+          <h3>肺功能</h3>
+          <div class="lung-visual"><svg viewBox="0 0 130 130">
+              <circle cx="65" cy="65" r="50" />
+              <circle class="lung-ring" cx="65" cy="65" r="50" />
+            </svg><strong>83</strong><small>活力值</small></div>
+          <div class="oxygen-row"><span>血氧饱和</span><b>98%</b><i><em></em></i></div>
+        </a>
+
+        <a class="data-card endocrine-card" href="detail.html?id=endocrine" aria-label="查看内分泌详情">
+          <div class="module-icon"><svg viewBox="0 0 24 24">
+              <path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2Z" />
+              <path d="m18 15 .8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15Z" />
+            </svg></div>
+          <span class="card-code">04 / ENDO</span>
+          <h3>内分泌 <strong>58</strong></h3>
+          <div class="endo-heat"><span style="--level:.68"><b>胰岛素</b><i>68</i></span><span
+              style="--level:.60"><b>肾上腺</b><i>60</i></span><span style="--level:.64"><b>性腺</b><i>64</i></span><span
+              style="--level:.48"><b>松果体</b><i>48</i></span></div>
+          <p>松果体节律与睡眠是改善重点</p>
+        </a>
+      </div>
+
+      <section class="v3-issue-plan v3-issue-plan-sleep" aria-labelledby="v3SleepPlanTitle">
+        <div class="v3-issue-plan-label"><span>问题聚焦</span><strong>松果体分泌 · 活力值 48</strong></div>
+        <div class="v3-issue-plan-main"><div class="v3-issue-plan-copy"><span class="eyebrow">SLEEP RHYTHM SUPPORT</span><h2 id="v3SleepPlanTitle">睡眠健康<br>管理方案</h2><p>针对松果体节律偏弱，帮助建立稳定的睡眠节律与晚间恢复习惯。</p><div class="v3-issue-plan-tags"><span>睡眠节律管理</span><span>晚间恢复支持</span></div></div><div class="v3-issue-plan-visual"><img src="睡眠健康管理方案.png" alt="深蓝金色睡眠健康管理礼盒" width="132" height="198" loading="lazy"></div></div>
+        <a class="v3-issue-plan-action" href="detail.html?id=endocrine"><span><b>查看松果体改善建议</b><small>从睡眠节律开始管理</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+        <p class="v3-issue-plan-note">仅作日常健康管理参考，不能替代医学诊断或治疗。</p>
+      </section>
+
+      <a class="data-card digest-card" href="detail.html?id=digest" aria-label="查看消化系统详情">
+        <div class="digest-heading">
+          <div class="module-icon"><svg viewBox="0 0 24 24">
+              <path d="M9 3c0 4 1 5 4 5s5 2 5 5c0 5-3 8-8 8-4 0-7-2-7-6 0-3 2-5 5-5" />
+              <path d="M9 3v7m4 2c-3 0-5 1-5 4" />
+            </svg></div>
+          <div><span>03 / DIGESTION</span>
+            <h3>消化系统</h3>
+            <p>五项能力整体均衡</p>
+          </div><strong>85</strong>
+        </div>
+        <div class="digest-flow">
+          <div><span>01</span><b>肝内脂肪</b><i><em style="--width:82%"></em></i><strong>82</strong></div>
+          <div><span>02</span><b>胃蠕动</b><i><em style="--width:86%"></em></i><strong>86</strong></div>
+          <div><span>03</span><b>小肠吸收</b><i><em style="--width:88%"></em></i><strong>88</strong></div>
+          <div><span>04</span><b>小肠蠕动</b><i><em style="--width:84%"></em></i><strong>84</strong></div>
+          <div><span>05</span><b>胃吸收</b><i><em style="--width:85%"></em></i><strong>85</strong></div>
+        </div>
+      </a>
+
+      <a class="data-card female-card" href="detail.html?id=female" aria-label="查看女性功能详情">
+        <div class="female-copy">
+          <div class="module-icon"><svg viewBox="0 0 24 24">
+              <circle cx="12" cy="9" r="6" />
+              <path d="M12 15v7m-3-3h6" />
+            </svg></div><span>05 / FEMALE</span>
+          <h3>女性功能</h3>
+          <p>女性专项指标整体稳定，周期表现均衡。</p><strong>81<small>活力值</small></strong>
+        </div>
+        <div class="female-radar">
+          <svg viewBox="0 0 210 210" role="img" aria-label="女性功能五项雷达图">
+            <g class="radar-web">
+              <polygon points="105,20 186,79 155,174 55,174 24,79" />
+              <polygon points="105,47 160,87 139,151 71,151 50,87" />
+              <path d="M105 105V20M105 105L186 79M105 105L155 174M105 105L55 174M105 105L24 79" />
+            </g>
+            <polygon class="radar-shape" points="105,35 172,84 146,161 66,158 38,84" />
+            <g class="radar-dots">
+              <circle cx="105" cy="35" r="5" />
+              <circle cx="172" cy="84" r="5" />
+              <circle cx="146" cy="161" r="5" />
+              <circle cx="66" cy="158" r="5" />
+              <circle cx="38" cy="84" r="5" />
+            </g>
+          </svg>
+          <div class="radar-labels"><span>黄体酮</span><span>内分泌</span><span>宫颈</span><span>阴道</span><span>乳腺</span></div>
+        </div>
+      </a>
+
+      <a class="data-card immune-card" href="detail.html?id=immune" aria-label="查看免疫力详情">
+        <div class="immune-copy">
+          <div class="module-icon"><svg viewBox="0 0 24 24">
+              <path d="M12 3 20 6v6c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6l8-3Z" />
+              <path d="m8.5 12 2.2 2.2 4.8-5" />
+            </svg></div><span>07 / IMMUNITY</span>
+          <h3>免疫力</h3><strong>90</strong>
+          <p>六个关键节点协同稳定</p>
+        </div>
+        <svg class="immune-network" viewBox="0 0 220 220" role="img" aria-label="六维免疫防御网络">
+          <g class="network-links">
+            <path d="M110 110 110 25M110 110 184 67M110 110 184 153M110 110 110 195M110 110 36 153M110 110 36 67" />
+            <path d="M110 25 184 67 184 153 110 195 36 153 36 67Z" />
+          </g>
+          <circle class="network-core" cx="110" cy="110" r="38" />
+          <g class="network-nodes">
+            <circle cx="110" cy="25" r="14" />
+            <circle cx="184" cy="67" r="14" />
+            <circle cx="184" cy="153" r="14" />
+            <circle cx="110" cy="195" r="14" />
+            <circle cx="36" cy="153" r="14" />
+            <circle cx="36" cy="67" r="14" />
+          </g><text x="110" y="117">90</text>
+        </svg>
+        <div class="immune-tags"><span>淋巴结 91</span><span>扁桃体 88</span><span>免疫球蛋白 90</span><span>呼吸道 89</span><span>脾脏
+            92</span><span>消化道 89</span></div>
+      </a>
+
+      <a class="data-card bone-card" href="detail.html?id=bone" aria-label="查看骨骼详情">
+        <div class="bone-heading">
+          <div class="module-icon"><svg viewBox="0 0 24 24">
+              <path
+                d="M6.2 9.2a3 3 0 1 1-3.4-4.8A3 3 0 1 1 7.6 1l8.8 8.8a3 3 0 1 1 4.8 3.4 3 3 0 1 1-3.4 4.8L9 9.2a3 3 0 0 1-2.8 0Z" />
+            </svg></div>
+          <div><span>08 / BONE</span>
+            <h3>骨骼</h3>
+            <p>骨质疏松与钙流失管理优先</p>
+          </div><strong>54</strong>
+        </div>
+        <div class="bone-chart"><span><b>48</b><i style="--height:48%"></i><small>骨质疏松</small></span><span><b>60</b><i
+              style="--height:60%"></i><small>骨质增生</small></span><span><b>57</b><i
+              style="--height:57%"></i><small>颈椎钙化</small></span><span><b>55</b><i
+              style="--height:55%"></i><small>腰椎钙化</small></span></div>
+        <div class="priority-tip"><span>PRIORITY</span>未来 90 天优先改善骨量与钙流失管理</div>
+      </a>
+
+      <section class="v3-issue-plan v3-issue-plan-bone" aria-labelledby="v3BonePlanTitle">
+        <div class="v3-issue-plan-label"><span>问题聚焦</span><strong>骨质疏松 · 活力值 48</strong></div>
+        <div class="v3-issue-plan-main"><div class="v3-issue-plan-copy"><span class="eyebrow">BONE DENSITY SUPPORT</span><h2 id="v3BonePlanTitle">钙流失健康<br>管理方案</h2><p>针对骨量流失风险，提供钙营养、维生素 D 与日常负重活动的连续管理参考。</p><div class="v3-issue-plan-tags"><span>钙营养支持</span><span>骨量日常管理</span></div></div><div class="v3-issue-plan-visual"><img src="钙流失健康管理方案.png" alt="墨绿金色钙流失健康管理礼盒" width="132" height="198" loading="lazy"></div></div>
+        <a class="v3-issue-plan-action" href="detail.html?id=bone"><span><b>查看骨质疏松改善建议</b><small>从钙流失管理开始</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+        <p class="v3-issue-plan-note">仅作日常健康管理参考，不能替代医学诊断或治疗。</p>
+      </section>
+    </section>
+    <footer>
+      <p>本报告用于健康趋势管理，不构成临床诊断。</p><span>V3 · MINT HEALTH SYSTEM</span>
+    </footer>
+  </main>
+  <script src="data.js?v=20260806-warning68"></script>
+  <script src="app.js?v=20260806-warning68"></script>
+</body>
+
+</html>

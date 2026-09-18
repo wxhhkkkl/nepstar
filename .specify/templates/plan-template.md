@@ -33,6 +33,15 @@
 
 [Gates determined based on constitution file]
 
+- [ ] All target files are inside the canonical repository root.
+- [ ] If the report frontend is in scope, the plan targets
+      `reportFront/report-v2` only, unless another version was explicitly
+      authorized by the user.
+- [ ] Report frontend implementation uses Vue 3 + JavaScript, not TypeScript,
+      and preserves the approved V2 visual behavior unless the spec changes it.
+- [ ] Any framework, dependency, storage, or communication-layer change has
+      explicit user approval before implementation.
+
 ## Project Structure
 
 ### Documentation (this feature)
