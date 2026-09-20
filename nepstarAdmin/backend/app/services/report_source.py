@@ -238,51 +238,45 @@ async def fetch_recent_indicator_trend(
     limit: int = 6,
     collection=None,
 ) -> list[dict[str, Any]]:
-    """只读查询同客户当前报告之前的同一指标；当前有效结果作为最后一点。"""
+    """只读查询同客户同一指标的最近记录，并保留当前报告。
+
+    参考项目的三级指标趋势按用户和指标查询，不以当前报告日期截断；
+    因此这里也纳入当前报告之后生成的有效报告，按日期升序返回最近 ``limit`` 次。
+    所有来源仍然只读：报告编号/日期来自旧库，分数来自 MongoDB 报告文档。
+    """
     if current_inspect_date is None or limit <= 0:
         return []
 
     current_valid_score = _valid_score(current_score)
-    previous_limit = limit - (1 if current_valid_score is not None else 0)
-    previous: list[dict[str, Any]] = []
+    other_limit = limit - (1 if current_valid_score is not None else 0)
+    points: list[dict[str, Any]] = []
 
-    if previous_limit:
+    if other_limit:
         if collection is None:
             try:
                 collection = mongo.get_report_collection()
             except mongo.MongoNotConfiguredError as exc:
                 raise ReportSourceUnavailableError(str(exc)) from exc
 
-        cursor_date = current_inspect_date
-        cursor_code = current_report_code
-        batch_size = max(12, limit * 2)
-        while len(previous) < previous_limit:
-            try:
-                rows = (
-                    await db.execute(
-                        text(
-                            "SELECT report_code, inspect_date FROM inspect_base "
-                            "WHERE customer_id = :cid AND status = 1 "
-                            "AND (inspect_date < :cursor_date "
-                            "  OR (inspect_date = :cursor_date AND report_code < :cursor_code)) "
-                            "ORDER BY inspect_date DESC, report_code DESC LIMIT :n"
-                        ),
-                        {
-                            "cid": customer_id,
-                            "cursor_date": cursor_date,
-                            "cursor_code": cursor_code,
-                            "n": batch_size,
-                        },
-                    )
-                ).all()
-            except SQLAlchemyError as exc:
-                raise ReportSourceUnavailableError(
-                    f"历史报告来源不可用: {type(exc).__name__}"
-                ) from exc
+        try:
+            rows = (
+                await db.execute(
+                    text(
+                        "SELECT report_code, inspect_date FROM inspect_base "
+                        "WHERE customer_id = :cid AND status = 1 "
+                        "AND report_code <> :current_code "
+                        "ORDER BY inspect_date DESC, report_code DESC LIMIT :n"
+                    ),
+                    {"cid": customer_id, "current_code": current_report_code, "n": other_limit},
+                )
+            ).all()
+        except SQLAlchemyError as exc:
+            raise ReportSourceUnavailableError(
+                f"历史报告来源不可用: {type(exc).__name__}"
+            ) from exc
 
-            if not rows:
-                break
-            codes = [r[0] for r in rows if r[0]]
+        codes = [r[0] for r in rows if r[0]]
+        if codes:
             try:
                 docs = await collection.find(
                     {"_id": {"$in": codes}}, {"ddsReportInfo.firstTarget": 1}
@@ -295,7 +289,7 @@ async def fetch_recent_indicator_trend(
             by_code = {doc.get("_id"): doc for doc in docs}
             for report_code, inspect_date in rows:
                 document = by_code.get(report_code)
-                if document is None:
+                if document is None or inspect_date is None:
                     continue
                 node = find_target_under_system(
                     (document.get("ddsReportInfo") or {}).get("firstTarget"),
@@ -303,31 +297,25 @@ async def fetch_recent_indicator_trend(
                     indicator_target_id,
                 )
                 score = _valid_score(node.get("score")) if node else None
-                if score is not None and inspect_date is not None:
-                    previous.append(
+                if score is not None:
+                    points.append(
                         {
                             "report_code": report_code,
                             "date": _iso_date(inspect_date)[:10],
                             "score": score,
                         }
                     )
-                    if len(previous) == previous_limit:
-                        break
 
-            cursor_code, cursor_date = rows[-1]
-            if len(rows) < batch_size:
-                break
-
-    previous.reverse()
     if current_valid_score is not None:
-        previous.append(
+        points.append(
             {
                 "report_code": current_report_code,
                 "date": _iso_date(current_inspect_date)[:10],
                 "score": current_valid_score,
             }
         )
-    return previous
+    points.sort(key=lambda item: (item["date"], item["report_code"]))
+    return points[-limit:]
 
 
 async def fetch_recent_system_scores(

@@ -288,20 +288,29 @@ class TestRecentIndicatorTrend:
         ]}}
 
     @pytest.mark.asyncio
-    async def test_reads_nested_real_scores_and_includes_current_report(self):
-        db = self._db([("OLD2", "2026-08-01"), ("OLD1", "2026-07-01")])
-        coll = self._coll([self._doc("OLD1", 78), self._doc("OLD2", 86)])
+    async def test_reads_nested_real_scores_and_includes_later_reports(self):
+        db = self._db([
+            ("FUTURE2", "2026-08-14"),
+            ("FUTURE1", "2026-08-10"),
+            ("OLD1", "2026-07-01"),
+        ])
+        coll = self._coll([
+            self._doc("OLD1", 78),
+            self._doc("FUTURE1", 86),
+            self._doc("FUTURE2", 88),
+        ])
 
         points = await rs.fetch_recent_indicator_trend(
-            db, 1001, 3135, 3137, "NOW", "2026-09-01", 92, collection=coll
+            db, 1001, 3135, 3137, "NOW", "2026-07-29", 92, collection=coll
         )
 
         assert points == [
             {"report_code": "OLD1", "date": "2026-07-01", "score": 78},
-            {"report_code": "OLD2", "date": "2026-08-01", "score": 86},
-            {"report_code": "NOW", "date": "2026-09-01", "score": 92},
+            {"report_code": "NOW", "date": "2026-07-29", "score": 92},
+            {"report_code": "FUTURE1", "date": "2026-08-10", "score": 86},
+            {"report_code": "FUTURE2", "date": "2026-08-14", "score": 88},
         ]
-        assert coll.find.call_args.args[0] == {"_id": {"$in": ["OLD2", "OLD1"]}}
+        assert coll.find.call_args.args[0] == {"_id": {"$in": ["FUTURE2", "FUTURE1", "OLD1"]}}
         sql = str(db.execute.await_args.args[0])
         assert "SELECT" in sql and "inspect_base" in sql
         assert "UPDATE" not in sql and "DELETE" not in sql and "INSERT" not in sql
@@ -335,7 +344,7 @@ class TestRecentIndicatorTrend:
         assert points == [{"report_code": "NOW", "date": "2026-09-01", "score": 92}]
 
     @pytest.mark.asyncio
-    async def test_missing_current_inspect_date_never_reads_future_reports(self):
+    async def test_missing_current_inspect_date_never_reads_history(self):
         db = self._db([])
         coll = self._coll([])
         points = await rs.fetch_recent_indicator_trend(
