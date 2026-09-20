@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Current feature plan: specs/003-report-v2-data-api/plan.md
+Current feature plan: specs/005-single-indicator-detail/plan.md
 (research.md, data-model.md, quickstart.md, and contracts/ live alongside it)
 <!-- SPECKIT END -->
 
