@@ -41,11 +41,18 @@ describe('SystemDetail', () => {
     const wrapper = await mountDetail(id)
     expect(wrapper.get('[data-system-id]').attributes('data-system-id')).toBe(visualIdByCode[id])
     expect(wrapper.findAll('.detail-indicator-list article').length).toBeGreaterThan(0)
-    if (id === 'SYS_LUNG') {
+    if (id === 'SYS_LUNG' || id === 'SYS_DIGEST') {
       expect(wrapper.find('.detail-chart').exists()).toBe(false)
     } else {
       expect(wrapper.get('.detail-chart').attributes('data-chart-type')).toBeTruthy()
     }
+  })
+
+  it('hides the inherited data visualization card for digestive system', async () => {
+    const wrapper = await mountDetail('SYS_DIGEST')
+    expect(wrapper.find('.detail-visualization').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('INHERITED DATA VIEW')
+    expect(wrapper.findAll('.detail-indicator-list article').length).toBeGreaterThan(0)
   })
 
   it('shows only the matching recommendations', async () => {
