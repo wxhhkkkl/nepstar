@@ -172,6 +172,7 @@ CREATE TABLE IF NOT EXISTS sa_plan (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     plan_name   VARCHAR(100) NOT NULL COMMENT '方案名称',
     description VARCHAR(500) NULL COMMENT '描述/目标',
+    trigger_score_below INT NOT NULL DEFAULT 80 COMMENT '关联指标得分低于该值时展示方案',
     status      TINYINT      DEFAULT 1 COMMENT '1=启用,0=禁用',
     sort_order  INT          DEFAULT 0 COMMENT '排序',
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

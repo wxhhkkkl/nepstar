@@ -13,6 +13,11 @@
         </el-tag>
       </div>
       <p class="desc">{{ detail?.description || '-' }}</p>
+      <div class="trigger-rule">
+        <span>{{ $t('health.planTriggerScore') }}</span>
+        <el-tag type="warning" effect="plain">&lt; {{ detail?.trigger_score_below ?? 80 }} {{ $t('health.scoreUnit') }}</el-tag>
+        <span>{{ $t('health.planTriggerHint') }}</span>
+      </div>
 
       <h4>{{ $t('health.planProducts') }} ({{ detail?.products?.length || 0 }})</h4>
       <div v-if="detail?.products?.length" class="products">
@@ -92,6 +97,7 @@ watch(() => props.visible, (v) => { if (v) load() }, { immediate: true })
 .head { display: flex; align-items: center; gap: 10px; }
 .name { font-size: 16px; font-weight: 600; }
 .desc { color: #64748b; margin: 6px 0 14px; }
+.trigger-rule { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 12px; border-radius: 8px; background: #fffbeb; color: #92400e; font-size: 13px; }
 h4 { margin: 14px 0 8px; font-size: 13px; color: #334155; }
 .products { display: flex; flex-wrap: wrap; gap: 10px; }
 .prod { display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 10px 4px 4px; }

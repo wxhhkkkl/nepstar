@@ -19,6 +19,9 @@ from .. import mongo
 from ..database import NEPSTAR_SCHEMA
 from ..models.old.inspect_base import inspect_base_table
 
+# 方案默认触发阈值：关联指标得分严格低于该值才展示方案。
+DEFAULT_PLAN_TRIGGER_SCORE_BELOW = 80
+
 
 def _t(table: str) -> str:
     """sa_* 表所在的库名限定（与 indicator_service 的做法一致）。"""
@@ -422,7 +425,8 @@ async def fetch_plans_for_indicators(
     plan_rows = (
         await db.execute(
             text(
-                f"SELECT pi.indicator_id, p.id, p.plan_name, p.description, p.sort_order "
+                f"SELECT pi.indicator_id, p.id, p.plan_name, p.description, "
+                f"p.trigger_score_below, p.sort_order "
                 f"FROM {_t('sa_plan_indicator')} pi "
                 f"JOIN {_t('sa_plan')} p ON p.id = pi.plan_id "
                 f"WHERE p.status = 1 AND pi.indicator_id IN :ids "
@@ -434,12 +438,17 @@ async def fetch_plans_for_indicators(
         return {}
 
     plans: dict[int, list[dict]] = {}
-    for indicator_id, plan_id, plan_name, description, _sort in plan_rows:
+    for indicator_id, plan_id, plan_name, description, trigger_score_below, _sort in plan_rows:
         plans.setdefault(int(indicator_id), []).append(
             {
                 "plan_id": int(plan_id),
                 "plan_name": plan_name,
                 "description": description,
+                "trigger_score_below": (
+                    int(trigger_score_below)
+                    if trigger_score_below is not None
+                    else DEFAULT_PLAN_TRIGGER_SCORE_BELOW
+                ),
                 # tags / actionLabel / actionHint 在 sa_plan 里没有对应列，当前无来源
                 "tags": [],
                 "action_label": None,

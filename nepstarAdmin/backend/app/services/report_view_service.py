@@ -144,6 +144,10 @@ def _build_recommendation(child: SAIndicator, score: int, plan: dict) -> dict[st
     return {
         "trigger_indicator_code": child.ind_code,
         "issue": f"{child.ind_name} · 活力值 {score}",
+        "indicator_score": score,
+        "trigger_score_below": plan.get(
+            "trigger_score_below", report_source.DEFAULT_PLAN_TRIGGER_SCORE_BELOW
+        ),
         "plan_id": plan["plan_id"],
         "plan_name": plan["plan_name"],
         # 展示标题取方案名——sa_plan 没有独立的标题列
@@ -177,7 +181,14 @@ def _build_system(
         # 同一指标命中多个方案时按后台排序取第一个（FR-017）
         candidates = plans.get(child.id) or []
         if recommendation is None and candidates:
-            recommendation = _build_recommendation(child, score, candidates[0])
+            # 方案的触发条件属于报告聚合层，前端不能自行决定是否展示。
+            # 严格使用“低于”比较，达到阈值（如 80）不触发。
+            plan = candidates[0]
+            threshold = plan.get(
+                "trigger_score_below", report_source.DEFAULT_PLAN_TRIGGER_SCORE_BELOW
+            )
+            if score < threshold:
+                recommendation = _build_recommendation(child, score, plan)
         indicators.append(
             {
                 "indicator_code": child.ind_code,

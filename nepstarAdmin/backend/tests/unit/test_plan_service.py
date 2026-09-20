@@ -25,6 +25,7 @@ def plan_row(id=1, name="体重管理方案"):
     r.id = id
     r.plan_name = name
     r.description = None
+    r.trigger_score_below = 80
     r.status = 1
     r.sort_order = 0
     r.created_at = None

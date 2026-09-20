@@ -15,6 +15,9 @@ class SAPlan(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     plan_name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # 方案仅在关联指标的得分低于该值时出现在报告中。
+    # 业务默认值为 80，允许后台按方案调整但限制在 0-100 分范围内。
+    trigger_score_below: Mapped[int] = mapped_column(Integer, nullable=False, default=80, server_default="80")
     status: Mapped[int] = mapped_column(Integer, default=1)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)

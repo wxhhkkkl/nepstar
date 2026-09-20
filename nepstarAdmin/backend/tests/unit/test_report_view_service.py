@@ -513,6 +513,35 @@ class TestRecommendations:
         payload = await build_with_plans(PLANS)
         assert [s["system_code"] for s in payload["systems"]][0] == "SYS_BONE"
 
+    @pytest.mark.asyncio
+    async def test_score_at_threshold_does_not_show_plan(self):
+        """触发条件是严格低于；80 分不展示方案。"""
+        system = INDICATORS[0]
+        child = INDICATORS[1]
+        plan = {"plan_id": 9, "plan_name": "心血管方案", "trigger_score_below": 80}
+        result = svc._build_system(
+            system,
+            [child],
+            {child.target_id: 80},
+            WEIGHTS,
+            {child.id: [plan]},
+        )
+        assert result["recommendation"] is None
+
+    @pytest.mark.asyncio
+    async def test_score_below_threshold_shows_plan_and_threshold(self):
+        child = INDICATORS[1]
+        plan = {"plan_id": 9, "plan_name": "心血管方案", "trigger_score_below": 80}
+        result = svc._build_system(
+            INDICATORS[0],
+            [child],
+            {child.target_id: 79},
+            WEIGHTS,
+            {child.id: [plan]},
+        )
+        assert result["recommendation"]["indicator_score"] == 79
+        assert result["recommendation"]["trigger_score_below"] == 80
+
 
 class TestEntryConfig:
     """入口配置与功能开关取自后台固定值，前端不内置（FR-020、US5）。"""

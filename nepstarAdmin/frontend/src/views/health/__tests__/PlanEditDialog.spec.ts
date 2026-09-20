@@ -84,5 +84,6 @@ describe('PlanEditDialog', () => {
     const payload = (wrapper.vm as any).buildPayload();
     expect(payload.name).toBe('体重管理方案');
     expect(payload.status).toBe(0);
+    expect(payload.trigger_score_below).toBe(80);
   });
 });

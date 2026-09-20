@@ -13,6 +13,13 @@
       <el-form-item :label="$t('health.planDesc')">
         <el-input v-model="form.description" type="textarea" :rows="2" maxlength="500" />
       </el-form-item>
+      <el-form-item :label="$t('health.planTriggerScore')" prop="trigger_score_below">
+        <div class="trigger-score">
+          <span>{{ $t('health.planTriggerHint') }}</span>
+          <el-input-number v-model="form.trigger_score_below" :min="0" :max="100" :step="1" />
+          <span>{{ $t('health.scoreUnit') }}</span>
+        </div>
+      </el-form-item>
 
       <el-form-item :label="$t('health.planProducts')">
         <div class="picker-box">
@@ -105,7 +112,7 @@ const submitting = ref(false)
 const products = ref<ProductListItem[]>([])
 const indicatorTree = ref<IndicatorNode[]>([])
 
-const form = ref({ name: '', description: '', sort_order: 0, status: 1 })
+const form = ref({ name: '', description: '', trigger_score_below: 80, sort_order: 0, status: 1 })
 const productIds = ref<number[]>([])
 const indicatorIds = ref<number[]>([])
 
@@ -162,6 +169,7 @@ function buildPayload() {
   return {
     name: form.value.name,
     description: form.value.description,
+    trigger_score_below: form.value.trigger_score_below,
     sort_order: form.value.sort_order,
     status: form.value.status,
     product_ids: [...productIds.value],
@@ -182,6 +190,7 @@ async function load() {
       form.value = {
         name: d.name,
         description: d.description || '',
+        trigger_score_below: d.trigger_score_below ?? 80,
         sort_order: d.sort_order ?? 0,
         status: d.status,
       }
@@ -194,7 +203,7 @@ async function load() {
       loading.value = false
     }
   } else {
-    form.value = { name: '', description: '', sort_order: 0, status: 1 }
+    form.value = { name: '', description: '', trigger_score_below: 80, sort_order: 0, status: 1 }
     productIds.value = []
     indicatorIds.value = []
   }
@@ -243,6 +252,7 @@ defineExpose({ form, productIds, indicatorIds, setProductIds, removeProduct, mov
 .idx { width: 20px; color: #94a3b8; font-size: 12px; }
 .name { flex: 1; }
 .tree-box { max-height: 30vh; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; width: 100%; box-sizing: border-box; }
+.trigger-score { display: flex; align-items: center; gap: 8px; color: #64748b; }
 .tree-hint { color: #94a3b8; font-size: 12px; margin: 0 0 6px 4px; }
 .code { color: #94a3b8; font-size: 12px; }
 .off { margin-left: 6px; }

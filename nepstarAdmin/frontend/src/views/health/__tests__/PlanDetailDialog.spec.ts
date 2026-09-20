@@ -28,6 +28,7 @@ beforeEach(() => {
       name: '体重管理方案',
       description: '目标描述',
       status: 1,
+      trigger_score_below: 80,
       sort_order: 0,
       product_count: 1,
       indicator_count: 3,
@@ -53,6 +54,7 @@ describe('PlanDetailDialog', () => {
     await flushPromises();
     const text = wrapper.text();
     expect(text).toContain('复合维生素');
+    expect(text).toContain('80');
     expect(text).toContain('体重管理');
     expect(text).toContain('体脂率');
     expect(text).toContain('基础代谢');

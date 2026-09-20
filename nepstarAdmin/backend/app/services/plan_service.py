@@ -25,6 +25,7 @@ def _list_row(row: SAPlan) -> dict:
         "id": row.id,
         "name": row.plan_name,
         "description": row.description,
+        "trigger_score_below": row.trigger_score_below,
         "status": row.status,
         "sort_order": row.sort_order,
         "created_at": row.created_at,
@@ -219,6 +220,7 @@ async def create_plan(db: AsyncSession, data: PlanCreate) -> dict:
     row = SAPlan(
         plan_name=data.name,
         description=data.description,
+        trigger_score_below=data.trigger_score_below,
         status=data.status,
         sort_order=data.sort_order,
     )
@@ -238,6 +240,8 @@ async def update_plan(db: AsyncSession, plan_id: int, data: PlanUpdate) -> dict:
         row.plan_name = data.name
     if data.description is not None:
         row.description = data.description
+    if data.trigger_score_below is not None:
+        row.trigger_score_below = data.trigger_score_below
     if data.status is not None:
         row.status = data.status
     if data.sort_order is not None:

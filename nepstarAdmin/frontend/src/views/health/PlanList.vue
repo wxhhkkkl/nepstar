@@ -15,6 +15,11 @@
         <el-table-column :label="$t('health.planDesc')" min-width="220">
           <template #default="{ row }">{{ row.description || '-' }}</template>
         </el-table-column>
+        <el-table-column :label="$t('health.planTriggerScore')" width="170" align="center">
+          <template #default="{ row }">
+            <el-tag type="warning" effect="plain">&lt; {{ row.trigger_score_below }} 分</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column :label="$t('health.planProducts')" width="110" align="center">
           <template #default="{ row }">
             <span class="count-badge">{{ row.product_count }}</span>

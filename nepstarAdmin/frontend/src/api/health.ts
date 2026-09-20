@@ -6,6 +6,7 @@ export interface IndicatorNode {
   code: string;
   name: string;
   description?: string | null;
+  trigger_score_below: number;
   status: number;
   sort_order: number;
   /** 报告数据中的数字标识；只有登记了它的指标才会出现在报告里 */
@@ -150,6 +151,7 @@ export interface PlanDetail extends PlanListItem {
 export interface PlanPayload {
   name?: string;
   description?: string | null;
+  trigger_score_below?: number;
   status?: number;
   sort_order?: number;
   product_ids?: number[];
