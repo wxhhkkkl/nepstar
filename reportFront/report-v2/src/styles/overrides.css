@@ -2634,6 +2634,124 @@ body {
     }
 }
 
+/* V2.20 — 肺功能卡片：左侧总分环，右侧展示三个实际子级指标。 */
+.report-v2 .lung-card {
+    min-height: 268px;
+}
+
+.report-v2 .lung-card h3 {
+    margin-top: 11px;
+}
+
+.report-v2 .lung-overview {
+    display: grid;
+    margin-top: 6px;
+    grid-template-columns: 126px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.report-v2 .lung-gauge {
+    width: 116px;
+    height: 116px;
+    margin: 0 auto;
+}
+
+.report-v2 .lung-gauge strong {
+    font-size: 34px;
+}
+
+.report-v2 .lung-score-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.report-v2 .lung-score-copy strong {
+    line-height: .92;
+}
+
+.report-v2 .lung-gauge .lung-score-copy span {
+    position: static;
+    display: block;
+    color: #6e7b8c;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.report-v2 .lung-indicator-list {
+    display: grid;
+    gap: 8px;
+}
+
+.report-v2 .lung-indicator-item {
+    min-width: 0;
+    padding: 9px 10px 8px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, .7);
+}
+
+.report-v2 .lung-indicator-item>div {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.report-v2 .lung-indicator-item span {
+    overflow: hidden;
+    color: #68778d;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.report-v2 .lung-indicator-item strong {
+    flex: 0 0 auto;
+    color: #29486f;
+    font: 700 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.report-v2 .lung-indicator-item i {
+    display: block;
+    height: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(76, 122, 177, .14);
+}
+
+.report-v2 .lung-indicator-item i b {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #76a8df, #4c80c8);
+}
+
+.report-v2 .lung-card>p {
+    margin-top: 10px;
+}
+
+@media (max-width: 374px) {
+    .report-v2 .lung-overview {
+        grid-template-columns: 108px minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .report-v2 .lung-gauge {
+        width: 104px;
+        height: 104px;
+    }
+
+    .report-v2 .lung-indicator-item {
+        padding: 7px 8px 6px;
+    }
+}
+
 .detail-product-recommendation::before {
     content: "";
     position: absolute;

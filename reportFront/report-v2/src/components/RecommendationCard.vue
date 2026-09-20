@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from 'vue'
+import { reportRouteQueryFromLocation } from '@/api/reportClient.js'
+import { saveHomeScroll } from '@/composables/useScrollRestoration.js'
 
 const props = defineProps({
   system: { type: Object, required: true },
@@ -7,6 +9,7 @@ const props = defineProps({
 })
 const recommendation = computed(() => props.system.recommendation)
 const titleLines = computed(() => recommendation.value?.title.split('\n') ?? [])
+const reportQuery = reportRouteQueryFromLocation()
 </script>
 
 <template>
@@ -16,7 +19,7 @@ const titleLines = computed(() => recommendation.value?.title.split('\n') ?? [])
       <div class="issue-plan-copy"><span class="eyebrow">{{ recommendation.eyebrow }}</span><h2 :id="`${system.id}PlanTitle`"><template v-for="(line, index) in titleLines" :key="line">{{ line }}<br v-if="index < titleLines.length - 1"></template></h2><p>{{ recommendation.context }}</p><div class="issue-plan-tags"><span v-for="tag in recommendation.tags" :key="tag">{{ tag }}</span></div></div>
       <div class="issue-plan-visual product-contain"><img :src="recommendation.image" :alt="recommendation.imageAlt" width="180" height="270"></div>
     </div>
-    <RouterLink class="issue-plan-action" :to="{ name: 'system-detail', params: { systemId: system.id } }"><span><b>{{ recommendation.actionLabel }}</b><small>{{ recommendation.actionHint }}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
+    <RouterLink class="issue-plan-action" :to="{ name: 'system-detail', params: { systemId: system.systemCode }, query: reportQuery }" @click="saveHomeScroll"><span><b>{{ recommendation.actionLabel }}</b><small>{{ recommendation.actionHint }}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
     <p class="issue-plan-note">仅作日常健康管理参考，不能替代医学诊断或治疗。</p>
   </section>
 

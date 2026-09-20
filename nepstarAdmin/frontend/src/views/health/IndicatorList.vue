@@ -88,13 +88,13 @@
         </el-form-item>
         <template v-if="!level2">
           <el-divider content-position="left">{{ $t('health.reportCopy') }}</el-divider>
-          <el-form-item :label="$t('health.reportStatusText')">
+          <el-form-item :label="$t('health.reportStatusText')" prop="report_status_text">
             <el-input v-model="form.report_status_text" maxlength="50" />
           </el-form-item>
-          <el-form-item :label="$t('health.reportSummary')">
+          <el-form-item :label="$t('health.reportSummary')" prop="report_summary">
             <el-input v-model="form.report_summary" maxlength="255" />
           </el-form-item>
-          <el-form-item :label="$t('health.reportInterpretation')">
+          <el-form-item :label="$t('health.reportInterpretation')" prop="report_interpretation">
             <el-input v-model="form.report_interpretation" type="textarea" :rows="2" maxlength="500" />
           </el-form-item>
           <el-form-item :label="$t('health.reportActions')">
@@ -173,7 +173,16 @@ const form = ref(emptyForm())
 const rules: FormRules = {
   name: [{ required: true, message: t('health.nameRequired'), trigger: 'blur' }],
   code: [{ required: true, message: t('health.codeRequired'), trigger: 'blur' }],
+  report_status_text: [{ required: true, message: t('health.reportStatusTextRequired'), trigger: 'blur' }],
+  report_summary: [{ required: true, message: t('health.reportSummaryRequired'), trigger: 'blur' }],
+  report_interpretation: [{ required: true, message: t('health.reportInterpretationRequired'), trigger: 'blur' }],
 }
+
+const requiredReportCopyFields = [
+  { key: 'report_status_text' as const, message: t('health.reportStatusTextRequired') },
+  { key: 'report_summary' as const, message: t('health.reportSummaryRequired') },
+  { key: 'report_interpretation' as const, message: t('health.reportInterpretationRequired') },
+]
 
 const level2 = computed(() => (editingId.value === null && parentId.value !== null) || (editingId.value !== null && parentId.value !== null))
 
@@ -224,13 +233,22 @@ function findParentName(id: number | null): string {
 
 function errText(key?: string): string {
   if (!key) return t('health.operationFailed')
-  const msg = t(`health.${key}`)
+  // 后端错误键为 indicator.has_children，翻译键只保留后半段 has_children。
+  const normalizedKey = key.replace(/^indicator\./, '')
+  const msg = t(`health.${normalizedKey}`)
   return msg.startsWith('health.') ? t('health.operationFailed') : msg
 }
 
 async function submitForm() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
+  if (!level2.value) {
+    const missing = requiredReportCopyFields.filter(({ key }) => !form.value[key].trim())
+    if (missing.length) {
+      await Promise.all(missing.map(({ key }) => formRef.value?.validateField(key).catch(() => undefined)))
+      return
+    }
+  }
   submitting.value = true
   try {
     const { report_actions_text, ...rest } = form.value

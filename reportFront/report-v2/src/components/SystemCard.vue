@@ -1,15 +1,23 @@
 <script setup>
 import { saveHomeScroll } from '@/composables/useScrollRestoration.js'
 import { useCardReveal } from '@/composables/useCardReveal.js'
+import { reportRouteQueryFromLocation } from '@/api/reportClient.js'
 
 const props = defineProps({ system: { type: Object, required: true } })
 const { element, isVisible } = useCardReveal()
+const reportQuery = reportRouteQueryFromLocation()
 const legacyIndexes = { cardio: '01', lung: '02', digest: '03', endocrine: '04', female: '05', immune: '07', bone: '08' }
 const indexLabel = legacyIndexes[props.system.id] ?? '00'
+const lungIndicators = props.system.id === 'lung'
+  ? (props.system.indicators?.length
+      ? props.system.indicators
+      : props.system.visualization.categories.map((name, index) => ({ name, score: props.system.visualization.series?.[index] })))
+    .slice(0, 3)
+  : []
 </script>
 
 <template>
-  <RouterLink ref="element" :to="{ name: 'system-detail', params: { systemId: system.id } }" class="data-card" :class="[`${system.id}-card`, { 'is-visible': isVisible }]" :data-system-id="system.id" :aria-label="`查看${system.name}详情`" @click="saveHomeScroll">
+  <RouterLink ref="element" :to="{ name: 'system-detail', params: { systemId: system.systemCode }, query: reportQuery }" class="data-card" :class="[`${system.id}-card`, { 'is-visible': isVisible }]" :data-system-id="system.id" :aria-label="`查看${system.name}详情`" @click="saveHomeScroll">
     <template v-if="system.id === 'cardio'">
       <div class="card-index">{{ indexLabel }} / CARDIO</div><div class="card-head"><div><h3>{{ system.name }}</h3><p>稳定而有弹性的循环系统</p></div><strong>{{ system.score }}</strong></div>
       <svg class="cardio-chart" viewBox="0 0 330 120" role="img" aria-label="心血管近六次活力值上升趋势"><defs><linearGradient id="cardioArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#42C7FF" stop-opacity=".38" /><stop offset="1" stop-color="#42C7FF" stop-opacity="0" /></linearGradient></defs><path class="chart-grid" d="M0 24H330M0 60H330M0 96H330" /><path class="chart-area" d="M0 90C40 86 46 60 83 67s50 22 82 2 45-14 69-4 52-12 96-43v98H0Z" /><path class="chart-line" d="M0 90C40 86 46 60 83 67s50 22 82 2 45-14 69-4 52-12 96-43" /><circle cx="330" cy="22" r="5" /></svg>
@@ -17,7 +25,18 @@ const indexLabel = legacyIndexes[props.system.id] ?? '00'
     </template>
 
     <template v-else-if="system.id === 'lung'">
-      <div class="card-index">{{ indexLabel }} / LUNG</div><h3>{{ system.name }}</h3><div class="lung-gauge"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="47" /><circle class="lung-progress" cx="60" cy="60" r="47" /></svg><strong>{{ system.score }}</strong><span>活力值</span></div><div class="oxygen"><span>血氧饱和度</span><strong>98%</strong><i></i></div><p>肺活量良好 · 睡眠呼吸可提升</p>
+      <div class="card-index">{{ indexLabel }} / LUNG</div>
+      <h3>{{ system.name }}</h3>
+      <div class="lung-overview">
+        <div class="lung-gauge"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="47" /><circle class="lung-progress" cx="60" cy="60" r="47" /></svg><div class="lung-score-copy"><strong>{{ system.score }}</strong><span>活力值</span></div></div>
+        <div class="lung-indicator-list" aria-label="肺功能子级指标">
+          <div v-for="item in lungIndicators" :key="item.name" class="lung-indicator-item">
+            <div><span>{{ item.name }}</span><strong>{{ item.score ?? '—' }}</strong></div>
+            <i><b :style="{ width: `${item.score ?? 0}%` }" /></i>
+          </div>
+        </div>
+      </div>
+      <p>肺活量良好 · 睡眠呼吸可提升</p>
     </template>
 
     <template v-else-if="system.id === 'endocrine'">
@@ -37,7 +56,7 @@ const indexLabel = legacyIndexes[props.system.id] ?? '00'
     </template>
 
     <template v-else-if="system.id === 'bone'">
-      <div class="card-index">{{ indexLabel }} / BONE</div><div class="bone-head"><div><h3>{{ system.name }}</h3><p>骨质疏松与钙流失管理优先</p></div><strong>{{ system.score }}</strong></div><div class="density-scale"><div class="scale-axis"><span>100</span><span>90</span><span>80</span><span>70</span><span>60</span></div><div class="bone-bars"><span v-for="(name, itemIndex) in system.visualization.categories" :key="name" :style="{ '--h': `${system.visualization.series[itemIndex]}%` }"><i>{{ system.visualization.series[itemIndex] }}</i><b>{{ name }}</b></span></div></div><div class="bone-tip"><span>PRIORITY</span>未来 90 天优先改善</div>
+      <div class="card-index">{{ indexLabel }} / BONE</div><div class="bone-head"><div><h3>{{ system.name }}</h3><p>骨质疏松与钙流失管理优先</p></div><strong>{{ system.score }}</strong></div><div class="density-scale"><div class="scale-axis"><span>100</span><span>90</span><span>80</span><span>70</span><span>60</span></div><div class="bone-bars"><span v-for="(name, itemIndex) in system.visualization.categories" :key="name" :style="{ '--h': `${system.visualization.series[itemIndex]}%` }"><i>{{ system.visualization.series[itemIndex] }}</i><b :aria-label="name">{{ name.slice(0, 2) }}</b></span></div></div><div class="bone-tip"><span>PRIORITY</span>未来 90 天优先改善</div>
     </template>
   </RouterLink>
 </template>

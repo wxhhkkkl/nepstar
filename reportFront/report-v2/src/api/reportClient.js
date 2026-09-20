@@ -75,13 +75,28 @@ export function fetchSystemDetail(reportCode, systemCode, customerId, options) {
  * 从地址栏取报告参数。沿用既有报告链接的参数名（reportId / customerId），
  * 这样旧链接不需要改造就能打开新页面。
  */
-export function reportParamsFromLocation(search = globalThis.location?.search || '') {
-  const params = new URLSearchParams(search)
-  const reportCode = params.get('reportId') || params.get('reportCode') || ''
-  const raw = params.get('customerId')
+export function reportParamsFromLocation(
+  search = globalThis.location?.search || '',
+  hash = globalThis.location?.hash || '',
+) {
+  const searchParams = new URLSearchParams(search)
+  // Hash history links commonly put business parameters after `#/`.
+  // Read both forms so old `?params#/` links and canonical `#/?params` links work.
+  const queryStart = hash.indexOf('?')
+  const hashParams = new URLSearchParams(queryStart >= 0 ? hash.slice(queryStart + 1) : '')
+  const getParam = (name) => searchParams.get(name) || hashParams.get(name)
+  const reportCode = getParam('reportId') || getParam('reportCode') || ''
+  const raw = getParam('customerId')
   const customerId = raw === null || raw === '' ? null : Number(raw)
   return {
     reportCode,
     customerId: Number.isFinite(customerId) ? customerId : null,
   }
+}
+
+/** Keep report identity when navigating between Hash-router pages. */
+export function reportRouteQueryFromLocation() {
+  const { reportCode, customerId } = reportParamsFromLocation()
+  if (!reportCode || customerId === null) return {}
+  return { reportId: reportCode, customerId: String(customerId) }
 }

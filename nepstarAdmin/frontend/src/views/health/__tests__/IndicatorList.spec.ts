@@ -59,6 +59,8 @@ function mountPage() {
 }
 
 beforeEach(() => {
+  document.body.innerHTML = '';
+  vi.clearAllMocks();
   vi.mocked(fetchIndicatorTree).mockResolvedValue({ data: tree() } as any);
 });
 
@@ -132,6 +134,34 @@ describe('IndicatorList', () => {
     expect(payload.report_actions).toEqual(['建议一', '建议二']);
     // 表单内部的编辑字段不应泄漏给接口
     expect(payload).not.toHaveProperty('report_actions_text');
+  });
+
+  it('requires the report copy fields for a level-1 indicator', async () => {
+    vi.mocked(updateIndicator).mockClear();
+    vi.mocked(fetchIndicatorTree).mockResolvedValue({
+      data: [{
+        id: 9,
+        parent_id: null,
+        code: 'HT009',
+        name: '骨骼',
+        description: '',
+        status: 1,
+        sort_order: 1,
+        target_id: 3195,
+        report_status_text: '',
+        report_summary: '',
+        report_interpretation: '',
+        report_actions: [],
+        children: [],
+      }],
+    } as any);
+    const wrapper = mountPage();
+    await flushPromises();
+    await clickButton('编辑');
+    await clickButton('保存');
+
+    expect(updateIndicator).not.toHaveBeenCalled();
+    expect(document.body.querySelectorAll('.el-form-item.is-required').length).toBeGreaterThanOrEqual(5);
   });
 
   it('opens create dialog and submits a level-2 indicator under a parent', async () => {

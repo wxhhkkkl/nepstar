@@ -19,36 +19,36 @@ describe('report adapter (DTO → ViewModel)', () => {
   it('derives systemOrder from the order the interface returned', () => {
     const vm = toReportViewModel(reportDto)
     expect(vm.systemOrder).toEqual([
-      'SYS_ENDOCRINE', 'SYS_LUNG', 'SYS_BONE', 'SYS_CARDIO', 'SYS_DIGEST', 'SYS_FEMALE', 'SYS_IMMUNE',
+      'endocrine', 'lung', 'bone', 'cardio', 'digest', 'female', 'immune',
     ])
   })
 
   it('supplies chart type and tone on the frontend side', () => {
-    const cardio = toReportViewModel(reportDto).systems.find((s) => s.id === 'SYS_CARDIO')
+    const cardio = toReportViewModel(reportDto).systems.find((s) => s.systemCode === 'SYS_CARDIO')
     expect(cardio.visualization.type).toBe('line')
     expect(cardio.tone).toBe('violet')
     expect(cardio.icon).toBe('heart')
   })
 
   it('uses the trend series for the cardiac chart and keeps it ascending', () => {
-    const cardio = toReportViewModel(reportDto).systems.find((s) => s.id === 'SYS_CARDIO')
+    const cardio = toReportViewModel(reportDto).systems.find((s) => s.systemCode === 'SYS_CARDIO')
     expect(cardio.visualization.series).toEqual([82, 85, 83, 86, 84, 88])
     expect(cardio.visualization.categories).toEqual([])
   })
 
   it('uses the per-report indicator series for systems without a trend', () => {
-    const bone = toReportViewModel(reportDto).systems.find((s) => s.id === 'SYS_BONE')
+    const bone = toReportViewModel(reportDto).systems.find((s) => s.systemCode === 'SYS_BONE')
     expect(bone.visualization.series).toEqual([54])
     expect(bone.visualization.categories).toEqual(['骨骼指标A'])
   })
 
   it('builds tags from the first three indicators', () => {
-    const endo = toReportViewModel(reportDto).systems.find((s) => s.id === 'SYS_ENDOCRINE')
+    const endo = toReportViewModel(reportDto).systems.find((s) => s.systemCode === 'SYS_ENDOCRINE')
     expect(endo.tags).toEqual(['内分泌指标A 58'])
   })
 
   it('maps a recommendation and carries the product image', () => {
-    const endo = toReportViewModel(reportDto).systems.find((s) => s.id === 'SYS_ENDOCRINE')
+    const endo = toReportViewModel(reportDto).systems.find((s) => s.systemCode === 'SYS_ENDOCRINE')
     expect(endo.recommendation.title).toBe('睡眠健康管理方案')
     expect(endo.recommendation.tags).toEqual(['睡眠节律管理'])
     expect(endo.recommendation.image).toBe('./睡眠管理.png')
@@ -56,7 +56,7 @@ describe('report adapter (DTO → ViewModel)', () => {
   })
 
   it('leaves recommendation null when the interface returned none', () => {
-    const immune = toReportViewModel(reportDto).systems.find((s) => s.id === 'SYS_IMMUNE')
+    const immune = toReportViewModel(reportDto).systems.find((s) => s.systemCode === 'SYS_IMMUNE')
     expect(immune.recommendation).toBeNull()
   })
 

@@ -10,13 +10,16 @@ vi.mock('@/api/reportClient.js', async (importOriginal) => {
 
 const { fetchSystemDetail, reportParamsFromLocation, ReportApiError } = await import('@/api/reportClient.js')
 
-const byId = (id) => reportDto.systems.find((s) => s.system_code === id)
+const visualIdByCode = {
+  SYS_CARDIO: 'cardio', SYS_LUNG: 'lung', SYS_ENDOCRINE: 'endocrine', SYS_BONE: 'bone',
+  SYS_DIGEST: 'digest', SYS_FEMALE: 'female', SYS_IMMUNE: 'immune',
+}
 
-async function mountDetail(systemId) {
+async function mountDetail(systemId, dto = reportDto) {
   fetchSystemDetail.mockImplementation(async (_code, code) => {
-    const system = byId(code)
+    const system = dto.systems.find((s) => s.system_code === code)
     if (!system) throw new ReportApiError('system_not_found')
-    return { report_code: reportDto.report.report_code, system }
+    return { report_code: dto.report.report_code, system }
   })
   reportParamsFromLocation.mockReturnValue({ reportCode: 'R1', customerId: 1001 })
   const wrapper = mount(SystemDetail, {
@@ -36,9 +39,13 @@ describe('SystemDetail', () => {
     'SYS_CARDIO', 'SYS_LUNG', 'SYS_ENDOCRINE', 'SYS_BONE', 'SYS_DIGEST', 'SYS_FEMALE', 'SYS_IMMUNE',
   ])('renders shared data for %s', async (id) => {
     const wrapper = await mountDetail(id)
-    expect(wrapper.get('[data-system-id]').attributes('data-system-id')).toBe(id)
+    expect(wrapper.get('[data-system-id]').attributes('data-system-id')).toBe(visualIdByCode[id])
     expect(wrapper.findAll('.detail-indicator-list article').length).toBeGreaterThan(0)
-    expect(wrapper.get('.detail-chart').attributes('data-chart-type')).toBeTruthy()
+    if (id === 'SYS_LUNG') {
+      expect(wrapper.find('.detail-chart').exists()).toBe(false)
+    } else {
+      expect(wrapper.get('.detail-chart').attributes('data-chart-type')).toBeTruthy()
+    }
   })
 
   it('shows only the matching recommendations', async () => {
@@ -57,6 +64,21 @@ describe('SystemDetail', () => {
     const wrapper = await mountDetail('SYS_BONE')
     expect(wrapper.text()).toContain('骨质疏松是本次骨骼维度的主要影响项。')
     expect(wrapper.text()).toContain('评估钙与维生素 D 摄入')
+  })
+
+  it('hides empty copy blocks', async () => {
+    const dto = structuredClone(reportDto)
+    const bone = dto.systems.find((s) => s.system_code === 'SYS_BONE')
+    bone.status_text = ''
+    bone.summary = ''
+    bone.interpretation = ''
+    bone.actions = []
+
+    const wrapper = await mountDetail('SYS_BONE', dto)
+
+    expect(wrapper.find('.detail-score-identity > div:nth-child(2) > span').exists()).toBe(false)
+    expect(wrapper.find('.detail-score-identity > div:nth-child(2) > p').exists()).toBe(false)
+    expect(wrapper.find('.detail-conclusion').exists()).toBe(false)
   })
 
   it('shows a recoverable error state for an unknown system', async () => {

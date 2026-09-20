@@ -7,14 +7,14 @@
 
 // 后端系统编码 → 前端视觉属性。接口只给数据，视觉决策留在前端。
 const SYSTEM_VISUALS = {
-  SYS_CARDIO: { tone: 'violet', icon: 'heart', chart: 'line' },
-  SYS_LUNG: { tone: 'blue', icon: 'lungs', chart: 'radial-gauge' },
-  SYS_DIGEST: { tone: 'orange', icon: 'digest', chart: 'horizontal-bars' },
-  SYS_ENDOCRINE: { tone: 'pink', icon: 'spark', chart: 'matrix' },
-  SYS_FEMALE: { tone: 'rose', icon: 'female', chart: 'radial-orbit' },
-  SYS_MALE: { tone: 'gray', icon: 'male', chart: 'radial-orbit' },
-  SYS_IMMUNE: { tone: 'green', icon: 'shield', chart: 'network' },
-  SYS_BONE: { tone: 'amber', icon: 'bone', chart: 'vertical-bars' },
+  SYS_CARDIO: { id: 'cardio', tone: 'violet', icon: 'heart', chart: 'line' },
+  SYS_LUNG: { id: 'lung', tone: 'blue', icon: 'lungs', chart: 'radial-gauge' },
+  SYS_DIGEST: { id: 'digest', tone: 'orange', icon: 'digest', chart: 'horizontal-bars' },
+  SYS_ENDOCRINE: { id: 'endocrine', tone: 'pink', icon: 'spark', chart: 'matrix' },
+  SYS_FEMALE: { id: 'female', tone: 'rose', icon: 'female', chart: 'radial-orbit' },
+  SYS_MALE: { id: 'male', tone: 'gray', icon: 'male', chart: 'radial-orbit' },
+  SYS_IMMUNE: { id: 'immune', tone: 'green', icon: 'shield', chart: 'network' },
+  SYS_BONE: { id: 'bone', tone: 'amber', icon: 'bone', chart: 'vertical-bars' },
 }
 
 // 图表各类型的单位文案，接口不返回
@@ -71,9 +71,13 @@ function toVisualization(dto) {
 }
 
 export function toSystemViewModel(system) {
-  const visual = SYSTEM_VISUALS[system.system_code] || {}
+  const systemCode = system.system_code || ''
+  const visual = SYSTEM_VISUALS[systemCode] || {}
+  // `id` controls V2 card templates and CSS; `systemCode` is the backend identity.
+  // Keeping them separate prevents SYS_ENDOCRINE from missing the endocrine card branch.
+  const visualId = visual.id || systemCode
   const dto = {
-    id: system.system_code,
+    id: visualId,
     name: system.name,
     score: system.score,
     chart: visual.chart,
@@ -83,7 +87,8 @@ export function toSystemViewModel(system) {
   }
   const indicators = system.indicators || []
   return {
-    id: system.system_code,
+    id: visualId,
+    systemCode,
     name: system.name,
     score: system.score ?? null,
     status: system.status_text || '',
@@ -99,7 +104,7 @@ export function toSystemViewModel(system) {
     direct: system.direct_measurements || [],
     interpretation: system.interpretation || '',
     actions: system.actions || [],
-    recommendation: toRecommendation(system.recommendation, system.system_code),
+    recommendation: toRecommendation(system.recommendation, visualId),
   }
 }
 

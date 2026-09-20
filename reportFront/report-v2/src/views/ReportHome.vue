@@ -1,9 +1,10 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { ReportApiError, fetchReportHome, reportParamsFromLocation } from '@/api/reportClient.js'
 import { toReportViewModel } from '@/data/reportAdapter.js'
-import { useHomeScrollRestoration } from '@/composables/useScrollRestoration.js'
+import { restoreHomeScroll } from '@/composables/useScrollRestoration.js'
 import AiConsultEntry from '@/components/AiConsultEntry.vue'
+import ReportHomeSkeleton from '@/components/ReportHomeSkeleton.vue'
 import ReportProfile from '@/components/ReportProfile.vue'
 import ReportErrorState from '@/components/ReportErrorState.vue'
 import ScoreOverview from '@/components/ScoreOverview.vue'
@@ -21,8 +22,6 @@ const state = ref('loading')
 const errorKind = ref('')
 const report = ref(null)
 
-useHomeScrollRestoration()
-
 async function load() {
   const { reportCode, customerId } = reportParamsFromLocation()
   if (!reportCode || customerId === null) {
@@ -35,6 +34,8 @@ async function load() {
     const dto = await fetchReportHome(reportCode, customerId)
     report.value = toReportViewModel(dto, { assets: ASSETS })
     state.value = 'ready'
+    await nextTick()
+    await restoreHomeScroll()
   } catch (error) {
     errorKind.value = error instanceof ReportApiError ? error.kind : 'network'
     state.value = 'error'
@@ -45,7 +46,8 @@ onMounted(load)
 </script>
 
 <template>
-  <ReportErrorState v-if="state !== 'ready'" :loading="state === 'loading'" :kind="errorKind" />
+  <ReportHomeSkeleton v-if="state === 'loading'" />
+  <ReportErrorState v-else-if="state !== 'ready'" :kind="errorKind" />
   <main v-else class="app-shell report-v2" data-testid="report-home">
     <ScoreOverview :report="report" />
     <ReportProfile :report="report" />
