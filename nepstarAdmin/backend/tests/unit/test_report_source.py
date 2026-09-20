@@ -74,6 +74,29 @@ class TestWalkTargets:
         assert [n["target_id"] for n in nodes] == [5]
 
 
+class TestFindTargetUnderSystem:
+    def test_finds_third_level_only_inside_the_selected_system(self):
+        targets = [
+            {"targetId": 3135, "secondTarget": [
+                {"targetId": 3136, "threeTarget": [
+                    {"targetId": 3137, "score": 92, "lastScore": 90, "abLevel": 1}
+                ]}
+            ]},
+            {"targetId": 4000, "secondTarget": [
+                {"targetId": 4001, "threeTarget": [{"targetId": 4002, "score": 10}]}
+            ]},
+        ]
+        assert rs.find_target_under_system(targets, 3135, 3137)["score"] == 92
+        assert rs.find_target_under_system(targets, 3135, 4002) is None
+        assert rs.find_target_under_system(targets, 3135, 3135) is None
+
+    def test_system_can_itself_be_a_second_level_node(self):
+        targets = [{"targetId": 3143, "secondTarget": [
+            {"targetId": 3152, "threeTarget": [{"targetId": 3154, "score": 83}]}
+        ]}]
+        assert rs.find_target_under_system(targets, 3152, 3154)["score"] == 83
+
+
 class TestParseSummary:
     """报告摘要字段来源（FR-046）。"""
 
@@ -236,3 +259,88 @@ class TestRecentSystemScores:
         coll.find.side_effect = ServerSelectionTimeoutError("boom")
         with pytest.raises(rs.ReportSourceUnavailableError):
             await rs.fetch_recent_system_scores(db, 1001, 3087, collection=coll)
+
+
+class TestRecentIndicatorTrend:
+    @staticmethod
+    def _db(rows):
+        result = MagicMock()
+        result.all.return_value = rows
+        db = AsyncMock()
+        db.execute = AsyncMock(return_value=result)
+        return db
+
+    @staticmethod
+    def _coll(docs):
+        cursor = MagicMock()
+        cursor.to_list = AsyncMock(return_value=docs)
+        coll = MagicMock()
+        coll.find.return_value = cursor
+        return coll
+
+    @staticmethod
+    def _doc(code, score=None):
+        children = [] if score is None else [{"targetId": 3137, "score": score}]
+        return {"_id": code, "ddsReportInfo": {"firstTarget": [
+            {"targetId": 3135, "secondTarget": [
+                {"targetId": 3136, "threeTarget": children}
+            ]}
+        ]}}
+
+    @pytest.mark.asyncio
+    async def test_reads_nested_real_scores_and_includes_current_report(self):
+        db = self._db([("OLD2", "2026-08-01"), ("OLD1", "2026-07-01")])
+        coll = self._coll([self._doc("OLD1", 78), self._doc("OLD2", 86)])
+
+        points = await rs.fetch_recent_indicator_trend(
+            db, 1001, 3135, 3137, "NOW", "2026-09-01", 92, collection=coll
+        )
+
+        assert points == [
+            {"report_code": "OLD1", "date": "2026-07-01", "score": 78},
+            {"report_code": "OLD2", "date": "2026-08-01", "score": 86},
+            {"report_code": "NOW", "date": "2026-09-01", "score": 92},
+        ]
+        assert coll.find.call_args.args[0] == {"_id": {"$in": ["OLD2", "OLD1"]}}
+        sql = str(db.execute.await_args.args[0])
+        assert "SELECT" in sql and "inspect_base" in sql
+        assert "UPDATE" not in sql and "DELETE" not in sql and "INSERT" not in sql
+        db.commit.assert_not_awaited()
+        coll.update_one.assert_not_called()
+        coll.delete_one.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_invalid_current_score_is_not_converted_to_zero(self):
+        db = self._db([])
+        coll = self._coll([])
+        points = await rs.fetch_recent_indicator_trend(
+            db, 1001, 3135, 3137, "NOW", "2026-09-01", None, collection=coll
+        )
+        assert points == []
+
+    @pytest.mark.asyncio
+    async def test_skips_missing_and_other_system_without_fake_zero(self):
+        db = self._db([("OLD2", "2026-08-01"), ("OLD1", "2026-07-01")])
+        wrong_system = {"_id": "OLD2", "ddsReportInfo": {"firstTarget": [
+            {"targetId": 9999, "secondTarget": [
+                {"targetId": 3137, "score": 40}
+            ]}
+        ]}}
+        coll = self._coll([self._doc("OLD1"), wrong_system])
+
+        points = await rs.fetch_recent_indicator_trend(
+            db, 1001, 3135, 3137, "NOW", "2026-09-01", 92, collection=coll
+        )
+
+        assert points == [{"report_code": "NOW", "date": "2026-09-01", "score": 92}]
+
+    @pytest.mark.asyncio
+    async def test_missing_current_inspect_date_never_reads_future_reports(self):
+        db = self._db([])
+        coll = self._coll([])
+        points = await rs.fetch_recent_indicator_trend(
+            db, 1001, 3135, 3137, "NOW", None, 92, collection=coll
+        )
+        assert points == []
+        db.execute.assert_not_awaited()
+        coll.find.assert_not_called()

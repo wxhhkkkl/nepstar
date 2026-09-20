@@ -63,6 +63,36 @@ def walk_targets(first_targets: list[dict] | None) -> list[dict[str, Any]]:
     return out
 
 
+def find_target_under_system(
+    first_targets: list[dict] | None, system_target_id: int, indicator_target_id: int
+) -> dict | None:
+    """在指定系统子树中定位指标。展示层子指标可能是源报告的三级节点。"""
+
+    def children(node: dict) -> list[dict]:
+        return [
+            child
+            for key in ("secondTarget", "threeTarget")
+            for child in (node.get(key) or [])
+            if isinstance(child, dict)
+        ]
+
+    def find(nodes: list[dict] | None, target_id: int) -> dict | None:
+        for node in nodes or []:
+            if not isinstance(node, dict):
+                continue
+            if node.get("targetId") == target_id:
+                return node
+            nested = find(children(node), target_id)
+            if nested is not None:
+                return nested
+        return None
+
+    system = find(first_targets, system_target_id)
+    if system is None or system_target_id == indicator_target_id:
+        return None
+    return find(children(system), indicator_target_id)
+
+
 def parse_summary(document: dict, meta: dict | None) -> dict[str, Any]:
     """从报告文档与旧库主记录中提取报告摘要字段。
 
@@ -166,6 +196,7 @@ async def fetch_report_meta(db: AsyncSession, report_code: str) -> dict | None:
                     inspect_base_table.c.report_date,
                     inspect_base_table.c.ranking,
                     inspect_base_table.c.customer_id,
+                    inspect_base_table.c.inspect_date,
                 ).where(inspect_base_table.c.report_code == report_code)
             )
         ).first()
@@ -178,7 +209,122 @@ async def fetch_report_meta(db: AsyncSession, report_code: str) -> dict | None:
         "report_date": row[1],
         "ranking": row[2],
         "customer_id": row[3],
+        "inspect_date": row[4],
     }
+
+
+def _valid_score(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        score = int(value)
+    except (TypeError, ValueError):
+        return None
+    return score if 0 <= score <= 100 else None
+
+
+async def fetch_recent_indicator_trend(
+    db: AsyncSession,
+    customer_id: int,
+    system_target_id: int,
+    indicator_target_id: int,
+    current_report_code: str,
+    current_inspect_date: Any,
+    current_score: Any,
+    *,
+    limit: int = 6,
+    collection=None,
+) -> list[dict[str, Any]]:
+    """只读查询同客户当前报告之前的同一指标；当前有效结果作为最后一点。"""
+    if current_inspect_date is None or limit <= 0:
+        return []
+
+    current_valid_score = _valid_score(current_score)
+    previous_limit = limit - (1 if current_valid_score is not None else 0)
+    previous: list[dict[str, Any]] = []
+
+    if previous_limit:
+        if collection is None:
+            try:
+                collection = mongo.get_report_collection()
+            except mongo.MongoNotConfiguredError as exc:
+                raise ReportSourceUnavailableError(str(exc)) from exc
+
+        cursor_date = current_inspect_date
+        cursor_code = current_report_code
+        batch_size = max(12, limit * 2)
+        while len(previous) < previous_limit:
+            try:
+                rows = (
+                    await db.execute(
+                        text(
+                            "SELECT report_code, inspect_date FROM inspect_base "
+                            "WHERE customer_id = :cid AND status = 1 "
+                            "AND (inspect_date < :cursor_date "
+                            "  OR (inspect_date = :cursor_date AND report_code < :cursor_code)) "
+                            "ORDER BY inspect_date DESC, report_code DESC LIMIT :n"
+                        ),
+                        {
+                            "cid": customer_id,
+                            "cursor_date": cursor_date,
+                            "cursor_code": cursor_code,
+                            "n": batch_size,
+                        },
+                    )
+                ).all()
+            except SQLAlchemyError as exc:
+                raise ReportSourceUnavailableError(
+                    f"历史报告来源不可用: {type(exc).__name__}"
+                ) from exc
+
+            if not rows:
+                break
+            codes = [r[0] for r in rows if r[0]]
+            try:
+                docs = await collection.find(
+                    {"_id": {"$in": codes}}, {"ddsReportInfo.firstTarget": 1}
+                ).to_list(length=len(codes))
+            except PyMongoError as exc:
+                raise ReportSourceUnavailableError(
+                    f"报告数据源不可用: {type(exc).__name__}"
+                ) from exc
+
+            by_code = {doc.get("_id"): doc for doc in docs}
+            for report_code, inspect_date in rows:
+                document = by_code.get(report_code)
+                if document is None:
+                    continue
+                node = find_target_under_system(
+                    (document.get("ddsReportInfo") or {}).get("firstTarget"),
+                    system_target_id,
+                    indicator_target_id,
+                )
+                score = _valid_score(node.get("score")) if node else None
+                if score is not None and inspect_date is not None:
+                    previous.append(
+                        {
+                            "report_code": report_code,
+                            "date": _iso_date(inspect_date)[:10],
+                            "score": score,
+                        }
+                    )
+                    if len(previous) == previous_limit:
+                        break
+
+            cursor_code, cursor_date = rows[-1]
+            if len(rows) < batch_size:
+                break
+
+    previous.reverse()
+    if current_valid_score is not None:
+        previous.append(
+            {
+                "report_code": current_report_code,
+                "date": _iso_date(current_inspect_date)[:10],
+                "score": current_valid_score,
+            }
+        )
+    return previous
 
 
 async def fetch_recent_system_scores(

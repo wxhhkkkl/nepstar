@@ -2,7 +2,7 @@
 
 **Feature Branch**: `005-single-indicator-detail`
 **Created**: 2026-09-20
-**Status**: Ready for implementation
+**Status**: Implemented (mock/offline verified; live data acceptance pending deployment)
 **Input**: 在现有 V2 报告系统详情页中打开单个指标详情；沿用已确认的疏朗、高保真设计；除 `nepstar` 库外，所有外部数据源只能读取，绝不修改。
 
 ## User Scenarios & Testing *(mandatory)*

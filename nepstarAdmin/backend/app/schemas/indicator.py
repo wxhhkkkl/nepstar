@@ -12,7 +12,7 @@ class IndicatorCreate(BaseModel):
     status: int = 1
     # 合法性（正整数、不冲突）由 service 校验，以便返回 i18n 错误 key 而非 422
     target_id: int | None = Field(default=None, description="报告文档中对应的数字标识")
-    # 面向报告用户的文案，仅一级指标使用
+    # 面向报告用户的文案；一级系统与子指标均可维护
     report_status_text: str | None = Field(default=None, max_length=50, description="报告状态描述")
     report_summary: str | None = Field(default=None, max_length=255, description="报告系统摘要")
     report_interpretation: str | None = Field(default=None, max_length=500, description="报告结论解读")

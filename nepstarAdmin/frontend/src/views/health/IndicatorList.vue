@@ -86,21 +86,19 @@
           <el-input-number v-model="form.target_id" :min="1" :controls="false" placeholder="" style="width: 100%" />
           <div class="form-hint">{{ $t('health.targetIdHint') }}</div>
         </el-form-item>
-        <template v-if="!level2">
-          <el-divider content-position="left">{{ $t('health.reportCopy') }}</el-divider>
-          <el-form-item :label="$t('health.reportStatusText')" prop="report_status_text">
-            <el-input v-model="form.report_status_text" maxlength="50" />
-          </el-form-item>
-          <el-form-item :label="$t('health.reportSummary')" prop="report_summary">
-            <el-input v-model="form.report_summary" maxlength="255" />
-          </el-form-item>
-          <el-form-item :label="$t('health.reportInterpretation')" prop="report_interpretation">
-            <el-input v-model="form.report_interpretation" type="textarea" :rows="2" maxlength="500" />
-          </el-form-item>
-          <el-form-item :label="$t('health.reportActions')">
-            <el-input v-model="form.report_actions_text" type="textarea" :rows="3" :placeholder="$t('health.reportActionsHint')" />
-          </el-form-item>
-        </template>
+        <el-divider content-position="left">{{ $t('health.reportCopy') }}</el-divider>
+        <el-form-item :label="$t('health.reportStatusText')" prop="report_status_text">
+          <el-input v-model="form.report_status_text" maxlength="50" />
+        </el-form-item>
+        <el-form-item :label="$t('health.reportSummary')" prop="report_summary">
+          <el-input v-model="form.report_summary" maxlength="255" />
+        </el-form-item>
+        <el-form-item :label="$t('health.reportInterpretation')" prop="report_interpretation">
+          <el-input v-model="form.report_interpretation" type="textarea" :rows="2" maxlength="500" />
+        </el-form-item>
+        <el-form-item :label="$t('health.reportActions')">
+          <el-input v-model="form.report_actions_text" type="textarea" :rows="3" :placeholder="$t('health.reportActionsHint')" />
+        </el-form-item>
         <el-form-item :label="$t('health.sort')">
           <el-input-number v-model="form.sort_order" :min="0" :max="9999" />
         </el-form-item>
@@ -170,13 +168,14 @@ function toForm(node: IndicatorNode) {
 
 const form = ref(emptyForm())
 
-const rules: FormRules = {
+const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('health.nameRequired'), trigger: 'blur' }],
   code: [{ required: true, message: t('health.codeRequired'), trigger: 'blur' }],
-  report_status_text: [{ required: true, message: t('health.reportStatusTextRequired'), trigger: 'blur' }],
-  report_summary: [{ required: true, message: t('health.reportSummaryRequired'), trigger: 'blur' }],
-  report_interpretation: [{ required: true, message: t('health.reportInterpretationRequired'), trigger: 'blur' }],
-}
+  // 子指标可以按已有内容逐步补文案；一级系统仍要求完整报告文案。
+  report_status_text: level2.value ? [] : [{ required: true, message: t('health.reportStatusTextRequired'), trigger: 'blur' }],
+  report_summary: level2.value ? [] : [{ required: true, message: t('health.reportSummaryRequired'), trigger: 'blur' }],
+  report_interpretation: level2.value ? [] : [{ required: true, message: t('health.reportInterpretationRequired'), trigger: 'blur' }],
+}))
 
 const requiredReportCopyFields = [
   { key: 'report_status_text' as const, message: t('health.reportStatusTextRequired') },

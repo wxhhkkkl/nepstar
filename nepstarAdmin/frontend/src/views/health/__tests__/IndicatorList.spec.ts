@@ -155,7 +155,7 @@ describe('IndicatorList', () => {
         children: [],
       }],
     } as any);
-    const wrapper = mountPage();
+    mountPage();
     await flushPromises();
     await clickButton('编辑');
     await clickButton('保存');
@@ -172,5 +172,30 @@ describe('IndicatorList', () => {
     expect(addChildBtn).toBeTruthy();
     await addChildBtn!.trigger('click');
     expect(wrapper.text()).toContain('新增二级指标');
+  });
+
+  it('allows level-2 report copy to be edited and saved without root-only required fields', async () => {
+    vi.mocked(updateIndicator).mockResolvedValue({ data: {} } as any);
+    const wrapper = mountPage();
+    await flushPromises();
+    await wrapper.find('.el-table__expand-icon').trigger('click');
+    await flushPromises();
+    const childEdit = wrapper.findAll('.child-row button').find((button) => button.text().includes('编辑'));
+    expect(childEdit).toBeTruthy();
+    await childEdit!.trigger('click');
+    await flushPromises();
+    const dialog = document.body.querySelector('.el-dialog')!;
+    expect(dialog.textContent).toContain('报告文案');
+    expect(dialog.textContent).toContain('状态描述');
+    expect(dialog.textContent).toContain('结论解读');
+    expect(dialog.textContent).toContain('行动建议');
+    await clickButton('保存');
+    expect(updateIndicator).toHaveBeenCalledWith(4, expect.objectContaining({
+      parent_id: 1,
+      report_status_text: '',
+      report_summary: '',
+      report_interpretation: '',
+      report_actions: [],
+    }));
   });
 });

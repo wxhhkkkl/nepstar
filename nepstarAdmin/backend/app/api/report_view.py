@@ -58,6 +58,28 @@ async def get_report_system_detail(
     return ApiResponse(data=data)
 
 
+@router.get("/{report_code}/indicators/{indicator_code}")
+async def get_report_indicator_detail(
+    report_code: str,
+    indicator_code: str,
+    customer_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """单指标详情；只读原始报告和旧库，文案取 nepstar 现有指标配置。"""
+    started = time.perf_counter()
+    try:
+        data = await report_view_service.build_indicator_detail(
+            db, report_code, indicator_code, customer_id
+        )
+    except report_view_service.ReportViewError as exc:
+        _log_failure(report_code, exc.reason, started)
+        return ApiResponse(code=exc.code, message=exc.key)
+    except report_source.ReportSourceUnavailableError as exc:
+        _log_failure(report_code, "unavailable", started)
+        return ApiResponse(code=503, message="report.unavailable", data={"detail": str(exc)})
+    return ApiResponse(data=data)
+
+
 def _log_failure(report_code: str, outcome: str, started: float) -> None:
     log_report_request(
         report_code=report_code,

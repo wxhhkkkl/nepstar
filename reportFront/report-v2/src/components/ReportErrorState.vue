@@ -13,6 +13,7 @@ const MESSAGES = {
   [ERROR_KINDS.NOT_FOUND]: { title: '报告打不开', detail: '报告不存在，或这份报告不属于当前账户。' },
   [ERROR_KINDS.NOT_READY]: { title: '报告尚未生成完成', detail: '报告还在生成中，请稍后再试。' },
   [ERROR_KINDS.SYSTEM_NOT_FOUND]: { title: '该系统不属于此报告', detail: '请返回首页重新选择。' },
+  [ERROR_KINDS.INDICATOR_NOT_FOUND]: { title: '该指标不属于此报告', detail: '请返回系统详情重新选择。' },
   [ERROR_KINDS.UNAVAILABLE]: { title: '报告服务暂时不可用', detail: '数据源暂时无法访问，请稍后重试。' },
   [ERROR_KINDS.NETWORK]: { title: '网络连接失败', detail: '请检查网络后重试。' },
 }

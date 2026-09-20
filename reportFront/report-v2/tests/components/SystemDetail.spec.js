@@ -66,6 +66,13 @@ describe('SystemDetail', () => {
     expect(wrapper.text()).toContain('评估钙与维生素 D 摄入')
   })
 
+  it('makes registered child indicators navigable with stable codes', async () => {
+    const wrapper = await mountDetail('SYS_BONE')
+    const link = wrapper.get('[data-indicator-code="SYS_BONE_A"]')
+    expect(link.attributes('href')).toBeUndefined() // router stub controls the real href
+    expect(link.text()).toContain('骨骼指标A')
+  })
+
   it('hides empty copy blocks', async () => {
     const dto = structuredClone(reportDto)
     const bone = dto.systems.find((s) => s.system_code === 'SYS_BONE')

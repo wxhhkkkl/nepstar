@@ -36,6 +36,7 @@ MESSAGES = {
         "report.not_found": "报告不存在或无权访问",
         "report.not_ready": "报告尚未生成完成",
         "report.system_not_found": "该系统不属于此报告",
+        "report.indicator_not_found": "该指标不属于此报告",
         "report.unavailable": "报告服务暂时不可用，请稍后重试",
     },
     "en": {
@@ -75,6 +76,7 @@ MESSAGES = {
         "report.not_found": "Report not found or access denied",
         "report.not_ready": "Report is not ready yet",
         "report.system_not_found": "System does not belong to this report",
+        "report.indicator_not_found": "Indicator does not belong to this report",
         "report.unavailable": "Report service is temporarily unavailable",
     },
     "es": {
@@ -116,6 +118,7 @@ MESSAGES = {
         "report.not_found": "Informe no encontrado o acceso denegado",
         "report.not_ready": "El informe aún no está listo",
         "report.system_not_found": "El sistema no pertenece a este informe",
+        "report.indicator_not_found": "El indicador no pertenece a este informe",
         "report.unavailable": "Servicio de informes no disponible temporalmente",
     },
 }

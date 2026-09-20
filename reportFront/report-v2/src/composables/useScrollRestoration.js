@@ -1,5 +1,6 @@
 export const HOME_SCROLL_KEY = 'longevityReportV2ScrollY'
 const HOME_SCROLL_RESTORE_KEY = 'longevityReportV2ShouldRestoreScroll'
+const SYSTEM_SCROLL_KEY = 'longevityReportV2SystemReturnScroll'
 
 export function saveHomeScroll() {
   const value = Number(window.scrollY)
@@ -23,6 +24,41 @@ export function restoreHomeScroll() {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         window.scrollTo({ top: saved, left: 0, behavior: 'auto' })
+        resolve()
+      })
+    })
+  })
+}
+
+export function saveSystemDetailScroll(reportCode, systemCode) {
+  const value = Number(window.scrollY)
+  if (!reportCode || !systemCode || !Number.isFinite(value) || value < 0) return
+  sessionStorage.setItem(SYSTEM_SCROLL_KEY, JSON.stringify({ reportCode, systemCode, scrollY: value }))
+}
+
+export function restoreSystemDetailScroll(reportCode, systemCode) {
+  const raw = sessionStorage.getItem(SYSTEM_SCROLL_KEY)
+  sessionStorage.removeItem(SYSTEM_SCROLL_KEY)
+  if (!raw) return Promise.resolve()
+
+  let saved
+  try {
+    saved = JSON.parse(raw)
+  } catch {
+    return Promise.resolve()
+  }
+  if (
+    saved.reportCode !== reportCode ||
+    saved.systemCode !== systemCode ||
+    !Number.isFinite(saved.scrollY) ||
+    saved.scrollY <= 0
+  ) return Promise.resolve()
+
+  // 等系统详情的真实数据取代骨架屏后，再恢复点击前的位置。
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: saved.scrollY, left: 0, behavior: 'auto' })
         resolve()
       })
     })

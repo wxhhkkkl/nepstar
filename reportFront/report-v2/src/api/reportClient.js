@@ -12,6 +12,7 @@ export const ERROR_KINDS = {
   NOT_FOUND: 'not_found',
   NOT_READY: 'not_ready',
   SYSTEM_NOT_FOUND: 'system_not_found',
+  INDICATOR_NOT_FOUND: 'indicator_not_found',
   UNAVAILABLE: 'unavailable',
   NETWORK: 'network',
 }
@@ -20,6 +21,7 @@ const MESSAGE_TO_KIND = {
   'report.not_found': ERROR_KINDS.NOT_FOUND,
   'report.not_ready': ERROR_KINDS.NOT_READY,
   'report.system_not_found': ERROR_KINDS.SYSTEM_NOT_FOUND,
+  'report.indicator_not_found': ERROR_KINDS.INDICATOR_NOT_FOUND,
   'report.unavailable': ERROR_KINDS.UNAVAILABLE,
 }
 
@@ -67,6 +69,14 @@ export function fetchSystemDetail(reportCode, systemCode, customerId, options) {
   const query = new URLSearchParams({ customer_id: String(customerId) })
   return request(
     `/report-view/${encodeURIComponent(reportCode)}/systems/${encodeURIComponent(systemCode)}?${query}`,
+    options,
+  )
+}
+
+export function fetchIndicatorDetail(reportCode, indicatorCode, customerId, options) {
+  const query = new URLSearchParams({ customer_id: String(customerId) })
+  return request(
+    `/report-view/${encodeURIComponent(reportCode)}/indicators/${encodeURIComponent(indicatorCode)}?${query}`,
     options,
   )
 }

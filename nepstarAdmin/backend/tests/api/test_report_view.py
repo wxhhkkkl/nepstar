@@ -180,6 +180,44 @@ def detail_url(system_code="SYS_BONE", code=CODE, customer=CUSTOMER):
     return f"{BASE}/{code}/systems/{system_code}?customer_id={customer}"
 
 
+def indicator_url(indicator_code="SYS_IMMUNE_LYMPH", code=CODE, customer=CUSTOMER):
+    return f"{BASE}/{code}/indicators/{indicator_code}?customer_id={customer}"
+
+
+@pytest.mark.asyncio
+async def test_indicator_detail_contract(client):
+    payload = {
+        "report_code": CODE,
+        "system": {"system_code": "SYS_IMMUNE", "name": "免疫力"},
+        "indicator": {
+            "indicator_code": "SYS_IMMUNE_LYMPH", "name": "淋巴结", "score": 92,
+            "trend": [{"report_code": CODE, "date": "2026-09-01", "score": 92}],
+            "actions": ["保持规律作息"],
+        },
+    }
+    with patch.object(report_view_service, "build_indicator_detail", AsyncMock(return_value=payload)):
+        response = await client.get(indicator_url())
+    assert response.status_code == 200
+    assert response.json()["data"]["indicator"]["score"] == 92
+
+
+@pytest.mark.asyncio
+async def test_indicator_route_requires_customer_id_not_admin_login(client):
+    response = await client.get(f"{BASE}/{CODE}/indicators/SYS_IMMUNE_LYMPH")
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_indicator_not_found_and_source_unavailable_map_to_distinct_errors(client):
+    for exc, expected in (
+        (report_view_service.ReportIndicatorNotFoundError(), (404, "report.indicator_not_found")),
+        (report_source.ReportSourceUnavailableError("x"), (503, "report.unavailable")),
+    ):
+        with patch.object(report_view_service, "build_indicator_detail", AsyncMock(side_effect=exc)):
+            body = (await client.get(indicator_url())).json()
+        assert (body["code"], body["message"]) == expected
+
+
 @pytest.mark.asyncio
 async def test_detail_returns_system_payload(client):
     with patch.object(

@@ -15,6 +15,7 @@ import time
 from typing import Any
 
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -71,6 +72,14 @@ class ReportSystemNotFoundError(ReportViewError):
     code = 404
 
     def __init__(self, reason: str = "system_not_found") -> None:
+        super().__init__(reason)
+
+
+class ReportIndicatorNotFoundError(ReportViewError):
+    key = "report.indicator_not_found"
+    code = 404
+
+    def __init__(self, reason: str = "indicator_not_found") -> None:
         super().__init__(reason)
 
 
@@ -363,3 +372,66 @@ async def build_system_detail(
         duration_ms=int((time.perf_counter() - started) * 1000),
     )
     return {"report_code": report_code, "system": item}
+
+
+async def build_indicator_detail(
+    db: AsyncSession, report_code: str, indicator_code: str, customer_id: int
+) -> dict[str, Any]:
+    """单指标详情：原始报告和旧库只读，可维护文案来自 nepstar 配置。"""
+    started = time.perf_counter()
+    document, meta = await _load_document_and_meta(db, report_code, customer_id)
+
+    try:
+        rows = list((await db.execute(select(SAIndicator))).scalars().all())
+    except SQLAlchemyError as exc:
+        raise report_source.ReportSourceUnavailableError(
+            f"指标配置来源不可用: {type(exc).__name__}"
+        ) from exc
+    child = next((row for row in rows if row.ind_code == indicator_code), None)
+    if child is None or child.status != 1 or child.target_id is None or child.parent_id is None:
+        raise ReportIndicatorNotFoundError()
+    system = next((row for row in rows if row.id == child.parent_id), None)
+    if system is None or system.status != 1 or system.target_id is None or system.parent_id is not None:
+        raise ReportIndicatorNotFoundError("parent_unavailable")
+
+    first_targets = (document.get("ddsReportInfo") or {}).get("firstTarget")
+    node = report_source.find_target_under_system(
+        first_targets, system.target_id, child.target_id
+    )
+    if node is None:
+        raise ReportIndicatorNotFoundError("not_in_report_branch")
+
+    score = report_source._valid_score(node.get("score"))
+    last_score = report_source._valid_score(node.get("lastScore"))
+    trend = await report_source.fetch_recent_indicator_trend(
+        db,
+        customer_id,
+        system.target_id,
+        child.target_id,
+        report_code,
+        meta.get("inspect_date"),
+        score,
+    )
+
+    log_report_request(
+        report_code=report_code,
+        outcome="ok",
+        duration_ms=int((time.perf_counter() - started) * 1000),
+    )
+    return {
+        "report_code": report_code,
+        "system": {"system_code": system.ind_code, "name": system.ind_name},
+        "indicator": {
+            "indicator_code": child.ind_code,
+            "name": child.ind_name,
+            "score": score,
+            "last_score": last_score,
+            "score_change": score - last_score if score is not None and last_score is not None else None,
+            "abnormal_level": node.get("abLevel"),
+            "status_text": child.report_status_text,
+            "description": child.description,
+            "interpretation": child.report_interpretation,
+            "actions": _parse_actions(child.report_actions),
+            "trend": trend,
+        },
+    }

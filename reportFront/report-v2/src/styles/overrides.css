@@ -2341,6 +2341,25 @@ body {
     font-size: 24px
 }
 
+.detail-v2 .detail-indicator-link {
+    display: block;
+    color: inherit;
+    text-decoration: none
+}
+
+.detail-v2 .detail-indicator-link:not(:last-child) article {
+    border-bottom: 1px solid var(--line)
+}
+
+.detail-v2 .detail-indicator-link:last-child article {
+    border-bottom: 0
+}
+
+.detail-v2 .detail-indicator-link article>strong {
+    font-size: 24px;
+    color: var(--blue)
+}
+
 .detail-v2 .empty-module {
     font-size: 14px;
     line-height: 1.65
@@ -2632,6 +2651,160 @@ body {
         width: 112px;
         max-height: 170px
     }
+}
+
+/* V2 单指标详情：全宽画布、宽松的阅读节奏，与系统详情共用色系。 */
+.indicator-detail-page {
+    min-height: 100vh;
+    padding-bottom: 28px;
+    color: #1b2b48;
+    background: #f3f7fd
+}
+
+.indicator-detail-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: 52px 1fr 52px;
+    align-items: center;
+    height: 56px;
+    padding: 0 8px;
+    background: #fff;
+    text-align: center
+}
+
+.indicator-detail-nav strong {
+    overflow: hidden;
+    font-size: 17px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis
+}
+
+.indicator-nav-back {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%
+}
+
+.indicator-nav-back:active { background: #edf3fb }
+.indicator-nav-back svg { width: 25px; height: 25px }
+
+.indicator-hero {
+    padding: 30px 24px 22px;
+    background: linear-gradient(135deg, #dcecff 0%, #eaf4ff 58%, #f8fbff 100%)
+}
+
+.indicator-hero-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 174px;
+    gap: 18px
+}
+
+.indicator-hero-copy { min-width: 0 }
+.indicator-system-pill {
+    display: inline-block;
+    padding: 7px 10px;
+    border: 1px solid rgba(65, 109, 174, .18);
+    border-radius: 20px;
+    color: #436a9f;
+    background: rgba(255, 255, 255, .42);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap
+}
+
+.indicator-hero h1 {
+    margin: 23px 0 10px;
+    font-size: clamp(28px, 8vw, 38px);
+    line-height: 1.2;
+    letter-spacing: -.03em
+}
+
+.indicator-hero-copy p { margin: 0; color: #6b83a5; font-size: 13px }
+.indicator-ring { position: relative; flex: 0 0 132px; width: 132px; height: 132px }
+.indicator-ring svg { width: 100%; height: 100%; transform: rotate(-90deg) }
+.indicator-ring circle { fill: none; stroke-width: 7; stroke-linecap: round; stroke-dasharray: 308 }
+.indicator-ring-track { stroke: rgba(73, 110, 158, .13) }
+.indicator-ring-progress { stroke: #4d7ed0; transition: stroke-dashoffset .5s ease }
+.indicator-ring>div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px }
+.indicator-ring strong { font: 700 43px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.07em }
+.indicator-ring span { color: #6b83a5; font-size: 11px }
+
+.indicator-hero-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 20px;
+    padding: 18px 0 0;
+    border-top: 1px solid rgba(89, 130, 180, .18)
+}
+
+.indicator-hero-facts>div { display: flex; flex-direction: column; gap: 7px; min-width: 0; padding: 0 12px }
+.indicator-hero-facts>div:first-child { padding-left: 0 }
+.indicator-hero-facts>div:not(:last-child) { border-right: 1px solid rgba(89, 130, 180, .18) }
+.indicator-hero-facts span { color: #7184a0; font-size: 11px }
+.indicator-hero-facts strong { overflow: hidden; font-size: 13px; white-space: nowrap; text-overflow: ellipsis }
+.indicator-hero-facts strong.is-good { color: #398a77 }
+
+.indicator-panel, .indicator-actions {
+    margin: 14px 12px 0;
+    padding: 25px 22px;
+    border: 1px solid #e8eef6;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(46, 77, 125, .035)
+}
+
+.indicator-detail-page .eyebrow { color: #4b70a9; font: 700 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .18em }
+.indicator-panel h2, .indicator-actions h2 { margin: 10px 0 18px; font-size: 22px; line-height: 1.25 }
+.indicator-profile p { margin: 0; color: #53657f; font-size: 15px; line-height: 1.85 }
+.indicator-profile .indicator-interpretation { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e8eef5 }
+.indicator-panel-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px }
+.indicator-panel-heading>span { padding-bottom: 19px; color: #8595ab; font-size: 11px; white-space: nowrap }
+.indicator-trend-chart { padding: 13px 12px 8px; border-radius: 15px; background: #f5f9fe }
+.indicator-trend-chart svg { display: block; width: 100%; height: 130px; overflow: visible }
+.indicator-chart-area { fill: rgba(87, 150, 224, .13); stroke: none }
+.indicator-chart-line { stroke: #4d7ed0; stroke-width: 2.5 }
+.indicator-trend-chart circle { fill: #fff; stroke: #4d7ed0; stroke-width: 2 }
+.indicator-trend-chart text { fill: #3c5f92; stroke: none; font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace }
+.indicator-trend-labels { display: flex; justify-content: space-between; gap: 8px; color: #8090a9; font-size: 10px }
+.indicator-first-record { margin: 0; padding: 30px 12px; border-radius: 15px; color: #788aa5; background: #f5f9fe; text-align: center; font-size: 13px }
+.indicator-actions { background: #edf5ff }
+.indicator-actions ul { margin: 0; padding: 0; list-style: none }
+.indicator-actions li { display: flex; align-items: flex-start; gap: 12px; padding: 16px 0; border-top: 1px solid rgba(97, 134, 177, .16); font-size: 15px; line-height: 1.55 }
+.indicator-actions li>span { color: #4b7f9a; font-size: 20px; line-height: 1 }
+.indicator-disclaimer { margin: 22px 20px 0; color: #8a99ad; text-align: center; font-size: 11px; line-height: 1.5 }
+.indicator-error-wrap { min-height: 100vh; background: #f5f9ff }
+.indicator-error-back { display: block; width: max-content; margin: 12px auto; color: #456fa9; font-size: 14px }
+
+.indicator-skeleton .indicator-hero { background: #e8f2ff }
+.indicator-skeleton-line { display: block; border-radius: 8px; background: linear-gradient(90deg, #dce7f4 20%, #edf3fa 50%, #dce7f4 80%); background-size: 200% 100%; animation: indicator-skeleton-shimmer 1.4s linear infinite }
+.indicator-skeleton-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0) }
+.indicator-skeleton-back { width: 25px; height: 25px; margin-left: 12px }
+.indicator-skeleton-title { width: 95px; height: 18px; margin: auto }
+.indicator-skeleton-copy { flex: 1 }
+.indicator-skeleton-pill { width: 112px; height: 24px; border-radius: 20px }
+.indicator-skeleton-name { width: 112px; height: 39px; margin: 25px 0 13px }
+.indicator-skeleton-subtitle { width: 90px; height: 13px }
+.indicator-skeleton-ring { width: 132px; height: 132px; flex: 0 0 132px; border-radius: 50% }
+.indicator-skeleton-fact { width: 75%; height: 34px }
+.indicator-skeleton-eyebrow { width: 130px; height: 11px }
+.indicator-skeleton-heading { width: 105px; height: 26px; margin: 14px 0 22px }
+.indicator-skeleton-copyline { width: 100%; height: 14px; margin: 12px 0 }
+.indicator-skeleton-copyline.short { width: 69% }
+.indicator-skeleton-chart { width: 100%; height: 145px; border-radius: 15px }
+.indicator-skeleton-action { width: 100%; height: 20px; margin: 16px 0 }
+@keyframes indicator-skeleton-shimmer { to { background-position-x: -200% } }
+@media (prefers-reduced-motion: reduce) { .indicator-skeleton-line { animation: none } }
+@media (max-width: 370px) {
+    .indicator-hero { padding-inline: 18px }
+    .indicator-ring, .indicator-skeleton-ring { flex-basis: 112px; width: 112px; height: 112px }
+    .indicator-ring strong { font-size: 37px }
 }
 
 /* V2.20 — 肺功能卡片：左侧总分环，右侧展示三个实际子级指标。 */

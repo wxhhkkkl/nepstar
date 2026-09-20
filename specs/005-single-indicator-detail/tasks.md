@@ -10,38 +10,38 @@
 
 ## Phase 2: Foundational
 
-- [ ] T003 在 `nepstarAdmin/backend/tests/unit/test_report_source.py` 先写任意层级节点和只读历史趋势测试并确认失败。
-- [ ] T004 在 `nepstarAdmin/backend/app/services/report_source.py` 实现真实节点定位及最近六次趋势只读查询。
+- [x] T003 在 `nepstarAdmin/backend/tests/unit/test_report_source.py` 先写任意层级节点和只读历史趋势测试并确认失败。
+- [x] T004 在 `nepstarAdmin/backend/app/services/report_source.py` 实现真实节点定位及最近六次趋势只读查询。
 
 ## Phase 3: User Story 1 — 指标详情与导航 (P1)
 
 **Independent Test**: 指标详情与同报告系统详情分数一致；错误指标不回退；返回系统详情原位置。
 
-- [ ] T005 [US1] 在 `nepstarAdmin/backend/tests/unit/test_report_view_service.py` 与 `tests/api/test_report_view.py` 先写详情和错误契约测试并确认失败。
-- [ ] T006 [US1] 在 `nepstarAdmin/backend/app/services/report_view_service.py`、`app/api/report_view.py`、`app/i18n/__init__.py` 实现受保护的详情聚合与接口。
-- [ ] T007 [US1] 在 `reportFront/report-v2/tests/components/IndicatorDetail.spec.js` 先写导航、数据一致性和错误态测试并确认失败。
-- [ ] T008 [US1] 在 `reportFront/report-v2/src/api/reportClient.js`、`src/router/index.js`、`src/views/SystemDetail.vue` 和新详情页实现带报告上下文的指标导航。
-- [ ] T009 [US1] 在 `reportFront/report-v2/src/composables/useScrollRestoration.js` 与对应测试中实现系统详情位置恢复。
+- [x] T005 [US1] 在 `nepstarAdmin/backend/tests/unit/test_indicator_detail_service.py` 与 `tests/api/test_report_view.py` 先写详情和错误契约测试并确认失败。
+- [x] T006 [US1] 在 `nepstarAdmin/backend/app/services/report_view_service.py`、`app/api/report_view.py`、`app/i18n/__init__.py` 实现受保护的详情聚合与接口。
+- [x] T007 [US1] 在 `reportFront/report-v2/tests/components/IndicatorDetail.spec.js` 先写导航、数据一致性和错误态测试并确认失败。
+- [x] T008 [US1] 在 `reportFront/report-v2/src/api/reportClient.js`、`src/router/index.js`、`src/views/SystemDetail.vue` 和新详情页实现带报告上下文的指标导航。
+- [x] T009 [US1] 在 `reportFront/report-v2/src/composables/useScrollRestoration.js` 与对应测试中实现系统详情位置恢复。
 
 ## Phase 4: User Story 2 — 趋势、建议与骨架屏 (P1)
 
 **Independent Test**: 多次记录使用真实点；首次记录不画假线；建议为空时隐藏；加载时显示骨架屏。
 
-- [ ] T010 [US2] 在 `reportFront/report-v2/tests/components/IndicatorDetail.spec.js` 添加先失败的趋势、空值及骨架屏测试。
-- [ ] T011 [US2] 在 `reportFront/report-v2/src/views/IndicatorDetail.vue`、`src/components/IndicatorDetailSkeleton.vue`、`src/styles/overrides.css` 实现已确认高保真布局和状态。
+- [x] T010 [US2] 在 `reportFront/report-v2/tests/components/IndicatorDetail.spec.js` 添加先失败的趋势、空值及骨架屏测试。
+- [x] T011 [US2] 在 `reportFront/report-v2/src/views/IndicatorDetail.vue`、`src/components/IndicatorDetailSkeleton.vue`、`src/styles/overrides.css` 实现已确认高保真布局和状态。
 
 ## Phase 5: User Story 3 — 子指标文案与只读红线 (P1)
 
 **Independent Test**: 子指标文案可编辑、可清空；新增读取链路不包含外部数据源写语句。
 
-- [ ] T012 [US3] 在 `nepstarAdmin/frontend/src/views/health/__tests__/IndicatorList.spec.ts` 先写子指标文案显示、保存及空值测试并确认失败。
-- [ ] T013 [US3] 在 `nepstarAdmin/frontend/src/views/health/IndicatorList.vue` 放开子指标文案编辑，保留一级既有校验。
-- [ ] T014 [US3] 在 `nepstarAdmin/backend/tests/unit/test_report_source.py` 校验外部源调用仅为 SELECT/find，审查全部新增服务代码无非 `nepstar` 写路径。
+- [x] T012 [US3] 在 `nepstarAdmin/frontend/src/views/health/__tests__/IndicatorList.spec.ts` 先写子指标文案显示、保存及空值测试并确认失败。
+- [x] T013 [US3] 在 `nepstarAdmin/frontend/src/views/health/IndicatorList.vue` 放开子指标文案编辑，保留一级既有校验。
+- [x] T014 [US3] 在 `nepstarAdmin/backend/tests/unit/test_report_source.py` 校验外部源调用仅为 SELECT/find，审查全部新增服务代码无非 `nepstar` 写路径。
 
 ## Phase 6: Validation
 
-- [ ] T015 运行后台 pytest、管理端 Vitest、报告端 Vitest，以及代码语法/静态检查；不执行生产数据库迁移或前端构建。
-- [ ] T016 核对 `git diff`、安全边界和本任务范围，并更新 `specs/005-single-indicator-detail/tasks.md` 完成标记。
+- [x] T015 运行离线后台 pytest、管理端 Vitest、报告端定向 Vitest 和模拟 API 的浏览器测试，以及代码静态检查；不执行生产数据库迁移或前端构建。全量报告端旧用例和管理端既有类型依赖问题单独记录。
+- [x] T016 核对 `git diff`、安全边界和本任务范围，并更新 `specs/005-single-indicator-detail/tasks.md` 完成标记。
 
 ## Dependencies
 
