@@ -15,9 +15,9 @@
       </el-form-item>
       <el-form-item :label="$t('health.planTriggerScore')" prop="trigger_score_below">
         <div class="trigger-score">
-          <span>{{ $t('health.planTriggerHint') }}</span>
           <el-input-number v-model="form.trigger_score_below" :min="0" :max="100" :step="1" />
           <span>{{ $t('health.scoreUnit') }}</span>
+          <span class="trigger-score-hint">（{{ $t('health.planTriggerHint') }}）</span>
         </div>
       </el-form-item>
 
@@ -252,7 +252,8 @@ defineExpose({ form, productIds, indicatorIds, setProductIds, removeProduct, mov
 .idx { width: 20px; color: #94a3b8; font-size: 12px; }
 .name { flex: 1; }
 .tree-box { max-height: 30vh; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; width: 100%; box-sizing: border-box; }
-.trigger-score { display: flex; align-items: center; gap: 8px; color: #64748b; }
+.trigger-score { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: #64748b; }
+.trigger-score-hint { color: #94a3b8; font-size: 12px; }
 .tree-hint { color: #94a3b8; font-size: 12px; margin: 0 0 6px 4px; }
 .code { color: #94a3b8; font-size: 12px; }
 .off { margin-left: 6px; }

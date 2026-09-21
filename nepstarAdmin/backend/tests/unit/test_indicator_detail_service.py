@@ -71,6 +71,40 @@ async def test_single_indicator_uses_real_nested_node_and_nepstar_copy():
 
 
 @pytest.mark.asyncio
+async def test_male_prostate_indicator_uses_registered_sibling_branch():
+    male = SAIndicator(
+        id=10, parent_id=None, ind_code="SYS_MALE", ind_name="男性功能",
+        target_id=3144, status=1, sort_order=1,
+    )
+    prostate = SAIndicator(
+        id=11, parent_id=10, ind_code="SYS_MALE_PROSTATE_HYPERPLASIA",
+        ind_name="前列腺增生", target_id=3149, status=1, sort_order=1,
+    )
+    doc = {"ddsReportInfo": {"firstTarget": [
+        {"targetId": 3143, "secondTarget": [
+            {"targetId": 3144, "score": 89, "threeTarget": []},
+            {"targetId": 3148, "threeTarget": [
+                {"targetId": 3149, "score": 79, "lastScore": 82, "abLevel": 2}
+            ]},
+        ]},
+    ]}}
+    trend = [{"report_code": "R1", "date": "2026-09-01", "score": 79}]
+    db = _db([male, prostate])
+    with patch.object(report_source, "fetch_report_document", AsyncMock(return_value=doc)), \
+         patch.object(report_source, "fetch_report_meta", AsyncMock(return_value=META)), \
+         patch.object(report_source, "fetch_recent_indicator_trend", AsyncMock(return_value=trend)) as fetch_trend:
+        data = await svc.build_indicator_detail(
+            db, "R1", "SYS_MALE_PROSTATE_HYPERPLASIA", 1001
+        )
+
+    assert data["system"] == {"system_code": "SYS_MALE", "name": "男性功能"}
+    assert data["indicator"]["score"] == 79
+    assert data["indicator"]["score_change"] == -3
+    assert data["indicator"]["trend"] == trend
+    assert fetch_trend.await_args.args[:4] == (db, 1001, 3144, 3149)
+
+
+@pytest.mark.asyncio
 async def test_wrong_customer_is_indistinguishable_from_missing_report():
     db = _db([ROOT, CHILD])
     with patch.object(report_source, "fetch_report_document", AsyncMock(return_value=_doc())), \

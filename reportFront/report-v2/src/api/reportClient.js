@@ -13,6 +13,7 @@ export const ERROR_KINDS = {
   NOT_READY: 'not_ready',
   SYSTEM_NOT_FOUND: 'system_not_found',
   INDICATOR_NOT_FOUND: 'indicator_not_found',
+  ROUTE_NOT_FOUND: 'route_not_found',
   UNAVAILABLE: 'unavailable',
   NETWORK: 'network',
 }

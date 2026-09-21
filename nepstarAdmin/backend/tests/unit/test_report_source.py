@@ -96,6 +96,28 @@ class TestFindTargetUnderSystem:
         ]}]
         assert rs.find_target_under_system(targets, 3152, 3154)["score"] == 83
 
+    def test_gender_system_uses_only_its_related_sibling_branches(self):
+        targets = [{"targetId": 3143, "secondTarget": [
+            {"targetId": 3144, "threeTarget": [{"targetId": 3146, "score": 98}]},
+            {"targetId": 3148, "threeTarget": [{"targetId": 3149, "score": 79}]},
+            {"targetId": 3152, "threeTarget": [{"targetId": 3154, "score": 83}]},
+            {"targetId": 3155, "threeTarget": [{"targetId": 3159, "score": 90}]},
+            {"targetId": 3161, "threeTarget": [{"targetId": 3162, "score": 98}]},
+        ]}]
+        assert rs.find_target_under_system(targets, 3144, 3149)["score"] == 79
+        assert rs.find_target_under_system(targets, 3152, 3159)["score"] == 90
+        assert rs.find_target_under_system(targets, 3152, 3162)["score"] == 98
+        assert rs.find_target_under_system(targets, 3144, 3159) is None
+        assert rs.find_target_under_system(targets, 3152, 3149) is None
+
+    def test_related_branch_is_rejected_when_system_or_shared_parent_is_missing(self):
+        targets = [{"targetId": 3143, "secondTarget": [
+            {"targetId": 3148, "threeTarget": [{"targetId": 3149, "score": 79}]}
+        ]}]
+        assert rs.find_target_under_system(targets, 3144, 3149) is None
+        targets.append({"targetId": 4000, "secondTarget": [{"targetId": 3144}]})
+        assert rs.find_target_under_system(targets, 3144, 3149) is None
+
 
 class TestParseSummary:
     """报告摘要字段来源（FR-046）。"""

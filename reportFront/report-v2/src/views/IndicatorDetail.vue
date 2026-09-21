@@ -33,6 +33,7 @@ const parentRoute = computed(() => ({
   params: { systemId: parentSystemCode.value },
   query: reportQuery.value,
 }))
+const errorBackRoute = computed(() => reportQuery.value.reportId ? parentRoute.value : null)
 const indicator = computed(() => detail.value?.indicator || null)
 const hasActions = computed(() => Boolean(indicator.value?.actions?.length))
 const hasInterpretation = computed(() => Boolean(indicator.value?.interpretation))
@@ -95,10 +96,7 @@ watchEffect(() => {
 
 <template>
   <IndicatorDetailSkeleton v-if="state === 'loading'" />
-  <div v-else-if="state !== 'ready'" class="indicator-error-wrap">
-    <ReportErrorState :kind="errorKind" />
-    <RouterLink class="indicator-error-back" :to="parentRoute">返回系统详情</RouterLink>
-  </div>
+  <ReportErrorState v-else-if="state !== 'ready'" :kind="errorKind" :back-to="errorBackRoute" back-label="返回系统详情" />
 
   <main v-else class="app-shell indicator-detail-page" :data-indicator-code="indicator.indicator_code">
     <header class="indicator-detail-nav">
@@ -155,7 +153,10 @@ watchEffect(() => {
             </g>
           </svg>
           <div class="indicator-trend-labels">
-            <span v-for="(point, index) in chartPoints" :key="`${point.date}-${index}`">{{ point.date?.slice(5) || `第${index + 1}次` }}</span>
+            <time v-for="(point, index) in chartPoints" :key="`${point.date}-${index}`" :datetime="point.date">
+              <span>{{ point.date.slice(0, 4) }}</span>
+              <span>{{ point.date.slice(5) }}</span>
+            </time>
           </div>
         </div>
       </template>

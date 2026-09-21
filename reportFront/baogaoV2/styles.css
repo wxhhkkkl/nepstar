@@ -548,7 +548,7 @@ svg {
 .focus-card i {
     position: absolute;
     right: 16px;
-    top: 21px;
+    top: 10px;
     font: 700 29px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
     color: #d45c3a
 }

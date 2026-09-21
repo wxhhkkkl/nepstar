@@ -2773,6 +2773,9 @@ body {
 .indicator-trend-chart circle { fill: #fff; stroke: #4d7ed0; stroke-width: 2 }
 .indicator-trend-chart text { fill: #3c5f92; stroke: none; font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace }
 .indicator-trend-labels { display: flex; justify-content: space-between; gap: 8px; color: #8090a9; font-size: 10px }
+.indicator-trend-labels time { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; text-align: center }
+.indicator-trend-labels time:first-child { text-align: left }
+.indicator-trend-labels time:last-child { text-align: right }
 .indicator-first-record { margin: 0; padding: 30px 12px; border-radius: 15px; color: #788aa5; background: #f5f9fe; text-align: center; font-size: 13px }
 .indicator-actions { background: #edf5ff }
 .indicator-actions ul { margin: 0; padding: 0; list-style: none }
@@ -2923,6 +2926,137 @@ body {
     .report-v2 .lung-indicator-item {
         padding: 7px 8px 6px;
     }
+}
+
+/* V2.21 — 首页两列卡片中的肺功能：窄列改为纵向，避免子指标横向溢出。 */
+.report-v2 .two-grid .lung-card .lung-overview {
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.report-v2 .two-grid .lung-card .lung-gauge {
+    width: 104px;
+    height: 104px;
+}
+
+.report-v2 .two-grid .lung-card .lung-indicator-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.report-v2 .two-grid .lung-card .lung-indicator-item {
+    padding: 7px 6px 6px;
+}
+
+.report-v2 .two-grid .lung-card .lung-indicator-item > div {
+    display: block;
+}
+
+.report-v2 .two-grid .lung-card .lung-indicator-item span {
+    display: block;
+    min-height: 24px;
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.report-v2 .two-grid .lung-card .lung-indicator-item strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+.report-v2 .two-grid .lung-card .lung-indicator-item i {
+    margin-top: 6px;
+}
+
+/* V2.22 — 男性功能卡片沿用报告首页的浅蓝灰色系。 */
+.report-v2 .male-card {
+    min-height: 330px;
+    padding: 20px;
+    display: block;
+    color: #1d2d45;
+    background: linear-gradient(145deg, #eef5fc, #e7f0fa);
+}
+
+.report-v2 .male-card .card-index {
+    color: #69809e;
+}
+
+.report-v2 .male-card .card-mini-head {
+    margin-top: 18px;
+    align-items: center;
+    gap: 12px;
+}
+
+.report-v2 .male-card .card-mini-head h3 {
+    margin-top: 0;
+}
+
+.report-v2 .male-card .card-mini-head strong {
+    margin: 0;
+    color: #4e73ad;
+    font-size: 38px;
+}
+
+.report-v2 .male-card .card-mini-head p {
+    color: #65758e;
+}
+
+.report-v2 .male-metric-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.report-v2 .male-metric-item {
+    min-width: 0;
+    padding: 10px 12px 9px;
+    border: 1px solid rgba(81, 119, 169, .1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .78);
+}
+
+.report-v2 .male-metric-item > div {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.report-v2 .male-metric-item span {
+    min-width: 0;
+    overflow: hidden;
+    color: #40536f;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.report-v2 .male-metric-item strong {
+    flex: 0 0 auto;
+    margin: 0;
+    color: #4269a4;
+    font: 700 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.report-v2 .male-metric-item i {
+    display: block;
+    height: 4px;
+    margin-top: 7px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #e5ecf5;
+}
+
+.report-v2 .male-metric-item i b {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #86a9d2, #547fb9);
 }
 
 .detail-product-recommendation::before {

@@ -22,6 +22,13 @@ from ..models.old.inspect_base import inspect_base_table
 # 方案默认触发阈值：关联指标得分严格低于该值才展示方案。
 DEFAULT_PLAN_TRIGGER_SCORE_BELOW = 80
 
+# V2 将同一生殖系统下的男性/女性专项合并展示；这些源报告分支是同级节点。
+# 只允许在对应系统分支实际存在时，从同一父节点下查找登记的关联分支。
+RELATED_SYSTEM_BRANCH_IDS = {
+    3144: frozenset({3148}),
+    3152: frozenset({3155, 3161}),
+}
+
 
 def _t(table: str) -> str:
     """sa_* 表所在的库名限定（与 indicator_service 的做法一致）。"""
@@ -69,7 +76,7 @@ def walk_targets(first_targets: list[dict] | None) -> list[dict[str, Any]]:
 def find_target_under_system(
     first_targets: list[dict] | None, system_target_id: int, indicator_target_id: int
 ) -> dict | None:
-    """在指定系统子树中定位指标。展示层子指标可能是源报告的三级节点。"""
+    """在指定系统及其登记的同级分支中定位指标。"""
 
     def children(node: dict) -> list[dict]:
         return [
@@ -90,10 +97,33 @@ def find_target_under_system(
                 return nested
         return None
 
-    system = find(first_targets, system_target_id)
+    def find_with_parent(nodes: list[dict] | None, target_id: int, parent=None):
+        for node in nodes or []:
+            if not isinstance(node, dict):
+                continue
+            if node.get("targetId") == target_id:
+                return node, parent
+            nested = find_with_parent(children(node), target_id, node)
+            if nested[0] is not None:
+                return nested
+        return None, None
+
+    system, parent = find_with_parent(first_targets, system_target_id)
     if system is None or system_target_id == indicator_target_id:
         return None
-    return find(children(system), indicator_target_id)
+    node = find(children(system), indicator_target_id)
+    if node is not None:
+        return node
+
+    related_ids = RELATED_SYSTEM_BRANCH_IDS.get(system_target_id, frozenset())
+    if parent is None:
+        return None
+    for sibling in children(parent):
+        if sibling.get("targetId") in related_ids:
+            node = find(children(sibling), indicator_target_id)
+            if node is not None:
+                return node
+    return None
 
 
 def parse_summary(document: dict, meta: dict | None) -> dict[str, Any]:

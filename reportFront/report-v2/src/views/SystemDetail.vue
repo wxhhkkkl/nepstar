@@ -18,6 +18,7 @@ const legacySystemCodes = {
 }
 const currentSystemCode = computed(() => legacySystemCodes[currentId.value] || currentId.value)
 const reportQuery = reportRouteQueryFromLocation()
+const errorBackRoute = reportQuery.reportId ? { name: 'home', query: reportQuery } : null
 
 const state = ref('loading')
 const errorKind = ref('')
@@ -59,7 +60,7 @@ watchEffect(() => {
 
 <template>
   <SystemDetailSkeleton v-if="state === 'loading'" />
-  <ReportErrorState v-else-if="state !== 'ready'" :kind="errorKind" />
+  <ReportErrorState v-else-if="state !== 'ready'" :kind="errorKind" :back-to="errorBackRoute" back-label="返回报告首页" />
 
   <main v-else class="app-shell detail-v2" :data-system-id="system.id">
     <header class="top-nav detail-nav"><RouterLink class="round-button" :to="{ name: 'home', query: reportQuery }" aria-label="返回长寿指数报告"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg></RouterLink><div class="brand"><strong>{{ system.name }}详情</strong></div></header>

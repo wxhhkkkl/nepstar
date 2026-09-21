@@ -6,7 +6,7 @@ import { reportRouteQueryFromLocation } from '@/api/reportClient.js'
 const props = defineProps({ system: { type: Object, required: true } })
 const { element, isVisible } = useCardReveal()
 const reportQuery = reportRouteQueryFromLocation()
-const legacyIndexes = { cardio: '01', lung: '02', digest: '03', endocrine: '04', female: '05', immune: '07', bone: '08' }
+const legacyIndexes = { cardio: '01', lung: '02', digest: '03', endocrine: '04', female: '05', male: '06', immune: '07', bone: '08' }
 const indexLabel = legacyIndexes[props.system.id] ?? '00'
 const lungIndicators = props.system.id === 'lung'
   ? (props.system.indicators?.length
@@ -49,6 +49,17 @@ const lungIndicators = props.system.id === 'lung'
 
     <template v-else-if="system.id === 'female'">
       <div class="card-index">{{ indexLabel }} / FEMALE</div><div class="card-mini-head"><div><h3>{{ system.name }}</h3><p>周期与内分泌专项</p></div><strong>{{ system.score }}</strong></div><div class="cycle-visual" role="img" :aria-label="`${system.visualization.title}：${system.visualization.categories.map((name, index) => `${name}${system.visualization.series[index]}`).join('，')}`"><div class="cycle-orbit" aria-hidden="true"><div class="cycle-center"><span>稳定度</span><strong>{{ system.score }}%</strong></div><i v-for="angle in [0,72,144,216,288]" :key="angle" :style="{ '--a': `${angle}deg` }"></i></div><span v-for="(name, itemIndex) in system.visualization.categories" :key="name" class="cycle-metric" :class="`cycle-metric-${itemIndex + 1}`"><b>{{ name }}</b><em>{{ system.visualization.series[itemIndex] }}</em></span></div>
+    </template>
+
+    <template v-else-if="system.id === 'male'">
+      <div class="card-index">{{ indexLabel }} / MALE</div>
+      <div class="card-mini-head"><div><h3>{{ system.name }}</h3><p>男性专项功能</p></div><strong>{{ system.score }}</strong></div>
+      <div class="male-metric-list" aria-label="男性功能子级指标">
+        <div v-for="item in system.indicators" :key="item.indicator_code || item.name" class="male-metric-item">
+          <div><span>{{ item.name }}</span><strong>{{ item.score ?? '—' }}</strong></div>
+          <i><b :style="{ width: `${item.score ?? 0}%` }" /></i>
+        </div>
+      </div>
     </template>
 
     <template v-else-if="system.id === 'immune'">

@@ -86,4 +86,17 @@ describe('PlanEditDialog', () => {
     expect(payload.status).toBe(0);
     expect(payload.trigger_score_below).toBe(80);
   });
+
+  it('places the trigger explanation after the score and wraps it in parentheses', async () => {
+    const wrapper = mountDialog();
+    await flushPromises();
+    const triggerScore = wrapper.find('.trigger-score');
+    expect((wrapper.vm as any).form.trigger_score_below).toBe(80);
+    expect(triggerScore.find('.el-input-number').exists()).toBe(true);
+    expect(triggerScore.find('.trigger-score-hint').element.textContent).toBe('（指标得分低于该分数时，报告页显示方案）');
+    const children = Array.from(triggerScore.element.children);
+    expect(children.findIndex((node) => node.classList.contains('el-input-number'))).toBeLessThan(
+      children.findIndex((node) => node.classList.contains('trigger-score-hint')),
+    );
+  });
 });
