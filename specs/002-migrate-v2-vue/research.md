@@ -23,9 +23,9 @@
 
 ## Decision 2: Vue Router Hash 单页应用，并兼容旧地址
 
-**Decision**: 使用单个 `index.html` 挂载 Vue 应用，并通过 Vue Router 的 Hash history 管理 `/#/` 与 `/#/system/:systemId`。保留 `detail.html?id=<systemId>` 作为轻量兼容页，将合法系统 ID 转到对应详情路由；缺少 ID 时回到首页。
+**Decision**: 使用单个 `index.html` 挂载 Vue 应用，并通过 Vue Router 的 Hash history 管理 `/#/` 与 `/#/system/:systemId`。不保留独立的 `detail.html` 兼容页；旧链接不属于当前支持的入口。
 
-**Rationale**: 用户已明确批准使用 Vue Router，统一导航层更适合后续增加正式前端页面。Hash 模式不要求静态服务器配置 history fallback，适配当前静态目录和局域网运行方式；旧地址兼容页可保护既有入口、书签和验收路径。
+**Rationale**: 用户已明确批准使用 Vue Router，统一导航层更适合后续增加正式前端页面。Hash 模式不要求静态服务器配置 history fallback，适配当前静态目录和局域网运行方式；用户确认无需维护旧地址兼容入口。
 
 **Alternatives considered**:
 

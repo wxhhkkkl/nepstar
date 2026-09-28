@@ -114,8 +114,8 @@
 
 ### Implementation
 
-- [x] T035 [P] [US3] 实现 `reportFront/report-v2/src/components/AiConsultEntry.vue`，保持固定安全区和可访问名称，打开 `public/AI长寿咨询聊天页设计稿.png` 并为资源失败提供可见回退
-- [x] T036 [P] [US3] 实现 `reportFront/report-v2/src/components/SaveReportButton.vue`，下载 `public/长寿指数报告V2_手机长图.png`，提供约 1.8 秒反馈、重复点击保护与不可下载回退
+- [x] T035 [P] [US3] 实现 `reportFront/report-v2/src/components/AiConsultEntry.vue`，保持固定安全区和可访问名称，打开 `src/assets/ai-longevity-consult-chat-design.png` 并为资源失败提供可见回退
+- [x] T036 [P] [US3] 实现 `reportFront/report-v2/src/components/SaveReportButton.vue`，下载 `src/assets/longevity-report-v2-mobile.png`，提供约 1.8 秒反馈、重复点击保护与不可下载回退
 - [x] T037 [US3] 更新 `reportFront/report-v2/src/views/ReportHome.vue`，接入 `AiConsultEntry` 和 `SaveReportButton`，保持页脚安全空间但不产生异常大段留白
 - [x] T038 [US3] 运行 T033–T034 的组件与端到端测试，修正 `reportFront/report-v2/src/components/` 和 `src/views/ReportHome.vue` 直至全绿
 

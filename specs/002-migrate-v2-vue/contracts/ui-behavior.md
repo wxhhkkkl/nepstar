@@ -15,13 +15,9 @@
 | `/#/system/<unknown>` | Explicit unavailable state with home link |
 | unmatched route | Home or an explicit recoverable state; never a blank page |
 
-## Legacy URL compatibility
+## System detail navigation
 
-| Legacy URL | Required result |
-|---|---|
-| `/detail.html?id=<valid-id>` | Redirect to `/#/system/<valid-id>` |
-| `/detail.html` | Redirect to `/#/` |
-| `/detail.html?id=<unknown>` | Redirect to the unknown-system fallback or home without throwing |
+System detail pages are entered through Vue Router Hash routes: `/#/system/<system-id>`. No standalone `detail.html` compatibility URL is provided.
 
 ## Home behavior
 
@@ -53,7 +49,7 @@
 
 ## Save report
 
-- The save action points to the current static `长寿指数报告V2_手机长图.png`.
+- The save action imports `src/assets/longevity-report-v2-mobile.png` and downloads it with a stable English filename.
 - One activation initiates a browser download when supported.
 - The button and toast expose a temporary “已保存” state and then return to idle.
 - If download is unavailable, the user receives a visible fallback instead of a silent failure.
@@ -61,7 +57,7 @@
 ## AI consultation
 
 - The floating entry remains visible while scrolling.
-- Activation opens the existing `AI长寿咨询聊天页设计稿.png` asset.
+- Activation opens the imported `src/assets/ai-longevity-consult-chat-design.png` asset.
 - No chat UI, network request or AI service is implemented in this feature.
 
 ## Responsive and visual checks

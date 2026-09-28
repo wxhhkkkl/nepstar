@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     REPORT_AI_CONSULT_ENABLED: bool = True
     REPORT_AI_CONSULT_TITLE: str = "AI 长寿咨询"
     REPORT_AI_CONSULT_ENTRY_TYPE: str = "image"  # 现有 V2 入口打开的是设计稿图片
-    REPORT_AI_CONSULT_ENTRY_URL: str = "/AI长寿咨询聊天页设计稿.png"
+    REPORT_AI_CONSULT_ENTRY_URL: str = "/assets/ai-longevity-consult-chat-design.png"
     REPORT_SAVE_ENABLED: bool = False  # 保存报告按钮当前隐藏
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}

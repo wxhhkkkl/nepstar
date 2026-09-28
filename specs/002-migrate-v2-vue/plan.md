@@ -7,7 +7,7 @@
 
 将 `reportFront/report-v2` 从直接操作 DOM 的静态页面迁移为 Vue 3 + JavaScript 前端，同时保持当前首页、七类系统详情、68 分警示、重点系统排序、两项产品推荐、AI 咨询入口、保存长图、滚动恢复和响应式表现不变。
 
-采用 Vite 单页应用与 Vue Router Hash 路由：`index.html` 挂载统一 Vue 应用，报告首页与系统详情页分别由路由管理；旧 `detail.html?id=<systemId>` 保留为轻量兼容跳转入口。模拟报告数据迁移为 ES 模块，首页与详情共享同一数据源；不引入 Pinia、Axios、后台接口或 UI 组件库。现有 CSS 类名和视觉资源先原样保留，按业务区域拆成小型组件，以最低风险完成等价迁移。
+采用 Vite 单页应用与 Vue Router Hash 路由：`index.html` 挂载统一 Vue 应用，报告首页与系统详情页分别由路由管理，不保留独立 `detail.html` 跳转入口。模拟报告数据迁移为 ES 模块，首页与详情共享同一数据源；不引入 Pinia、Axios、后台接口或 UI 组件库。现有 CSS 类名和视觉资源先原样保留，按业务区域拆成小型组件，以最低风险完成等价迁移。
 
 ## Technical Context
 
@@ -18,8 +18,8 @@
 **Target Platform**: 现代手机、平板和桌面浏览器；通过 HTTP 服务访问  
 **Project Type**: 移动端优先的客户端路由单页 Web 前端  
 **Performance Goals**: 首屏 2 秒内显示完整警示与主要入口；交互无明显延迟  
-**Constraints**: 320/375/390/768/1440 像素视口无横向溢出；模拟数据模式零远程业务请求；旧详情 URL 可兼容访问；不修改范围外目录  
-**Scale/Scope**: 1 个 Vue 应用入口、1 个旧地址兼容入口、2 个当前业务路由、7 个可见系统、7 类图表、2 个推荐方案、约 5,300 行现有 HTML/CSS/JS
+**Constraints**: 320/375/390/768/1440 像素视口无横向溢出；模拟数据模式零远程业务请求；所有详情均由 Vue Router Hash 路由处理；不修改范围外目录
+**Scale/Scope**: 1 个 Vue 应用入口、2 个当前业务路由、7 个可见系统、7 类图表、2 个推荐方案、约 5,300 行现有 HTML/CSS/JS
 
 ## Constitution Check
 
@@ -41,7 +41,7 @@
 
 - [x] 设计文件只描述 V2 目录内的结构和契约。
 - [x] Vue Router 已获用户明确批准；Hash 路由无需静态服务器配置 history fallback。
-- [x] 旧 `detail.html?id=<systemId>` 保留兼容跳转，已有入口不会直接失效。
+- [x] 仅保留 Vue Router Hash 详情入口；独立 `detail.html` 兼容页已按用户要求移除。
 - [x] 共享模拟数据消除首页与详情的数据重复，不接入后台 API。
 - [x] 除已批准的 Vue Router 外，不使用 Pinia、Axios、UI 组件库或服务端渲染。
 - [x] 测试、响应式和资源回退均能映射到规格中的可验证要求。
@@ -76,14 +76,13 @@ reportFront/report-v2/
 ├── package-lock.json
 ├── .nvmrc                   # V2 独立 Node 版本，不影响 KH503
 ├── vite.config.js           # Vue 构建与测试配置
-├── public/
-│   ├── detail.html          # 原 URL 的静态兼容跳转页，构建时原样复制
-│   ├── AI长寿咨询聊天页设计稿.png
-│   ├── AI长寿咨询-卡通医生形象.png
-│   ├── 睡眠健康管理方案.png
-│   ├── 钙流失健康管理方案.png
-│   └── 长寿指数报告V2_手机长图.png
 ├── src/
+│   ├── assets/              # Vite 处理并输出到 dist/assets 的图片资源
+│   │   ├── ai-longevity-consult-chat-design.png
+│   │   ├── ai-longevity-doctor-avatar.png
+│   │   ├── sleep-health-management-plan.png
+│   │   ├── calcium-loss-health-management-plan.png
+│   │   └── longevity-report-v2-mobile.png
 │   ├── main.js
 │   ├── App.vue
 │   ├── router/
@@ -128,14 +127,14 @@ reportFront/report-v2/
 └── render.mjs              # 更新为面向构建后页面的长图渲染/验收脚本
 ```
 
-**Structure Decision**: 使用单个 Vite SPA 和 Vue Router Hash 路由。`index.html` 是唯一 Vue 应用入口，`/#/` 与 `/#/system/:systemId` 分别承载报告首页和系统详情；`public/detail.html` 是构建时原样复制的静态兼容页，仅负责把旧 `detail.html?id=<systemId>` 地址转换为新路由，不是第二个 Vue 应用入口。Hash 模式不依赖服务器 history fallback，适合当前局域网和静态部署方式。共享组件、数据和工具函数位于 `src/`。七张系统卡结构差异较大，首轮由 `SystemAtlas.vue` 保留各自既有 DOM，不强行抽象“万能卡片”。现有图片迁入 `public/` 保持稳定可下载 URL，现有 CSS 先移动到 `src/styles/` 并保持选择器与视觉输出，再按测试保护逐步整理。
+**Structure Decision**: 使用单个 Vite SPA 和 Vue Router Hash 路由。`index.html` 是唯一 Vue 应用入口，`/#/` 与 `/#/system/:systemId` 分别承载报告首页和系统详情，不提供单独的 `detail.html` 入口。Hash 模式不依赖服务器 history fallback，适合当前局域网和静态部署方式。共享组件、数据和工具函数位于 `src/`，图片由 `src/assets/` 导入并输出到 `dist/assets/`。七张系统卡结构差异较大，首轮由 `SystemAtlas.vue` 保留各自既有 DOM，不强行抽象“万能卡片”。现有 CSS 先移动到 `src/styles/` 并保持选择器与视觉输出，再按测试保护逐步整理。
 
 ## Phase 0: Research Decisions
 
 研究结果见 [research.md](research.md)。关键决策：
 
 1. 使用 Vue 3 单文件组件和 Composition API 的 `<script setup>` JavaScript 写法。
-2. 使用 Vue Router Hash 路由组织单页应用，并保留旧详情地址兼容跳转。
+2. 使用 Vue Router Hash 路由组织单页应用，不提供独立旧详情地址跳转页。
 3. 不使用全局状态库；模拟数据和少量浏览状态由模块、props 与 composable 管理。
 4. 先建立迁移前行为与截图基线，再按照 TDD 分块替换 DOM 脚本。
 5. V2 使用独立的现代 Node 环境，不改变 KH503 所需的 Node 12 环境。
@@ -149,7 +148,7 @@ reportFront/report-v2/
 ### Interface Contracts
 
 - [mock-report-data.md](contracts/mock-report-data.md)：模拟报告数据字段、约束和排序规则。
-- [ui-behavior.md](contracts/ui-behavior.md)：应用路由、旧地址兼容、导航、下载、AI 入口、动画与错误回退契约。
+- [ui-behavior.md](contracts/ui-behavior.md)：应用路由、导航、下载、AI 入口、动画与错误回退契约。
 
 ### Migration Sequence
 

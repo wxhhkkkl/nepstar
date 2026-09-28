@@ -99,31 +99,51 @@ WHERE NOT EXISTS (SELECT 1 FROM sa_indicator i WHERE i.ind_code = t.code);
 INSERT INTO sa_product (product_name, description, detail_html, cover_url, status, sort_order)
 SELECT '睡眠健康管理礼盒', '针对松果体节律偏弱，帮助建立稳定的睡眠节律与晚间恢复习惯。',
        '<p>睡眠节律管理与晚间恢复支持。</p>',
-       'http://192.168.110.176:5173/睡眠健康管理方案.png', 1, 1
+       'http://192.168.110.176:5173/assets/sleep-health-management-plan.png', 1, 1
 WHERE NOT EXISTS (SELECT 1 FROM sa_product WHERE product_name = '睡眠健康管理礼盒');
 
 INSERT INTO sa_product (product_name, description, detail_html, cover_url, status, sort_order)
 SELECT '钙流失健康管理礼盒', '针对骨量流失风险，提供钙营养、维生素 D 与日常负重活动的连续管理参考。',
        '<p>钙营养支持与骨量日常管理。</p>',
-       'http://192.168.110.176:5173/钙流失健康管理方案.png', 1, 2
+       'http://192.168.110.176:5173/assets/calcium-loss-health-management-plan.png', 1, 2
 WHERE NOT EXISTS (SELECT 1 FROM sa_product WHERE product_name = '钙流失健康管理礼盒');
 
-UPDATE sa_product SET cover_url = 'http://192.168.110.176:5173/睡眠健康管理方案.png', status = 1, sort_order = 1
+UPDATE sa_product SET cover_url = 'http://192.168.110.176:5173/assets/sleep-health-management-plan.png', status = 1, sort_order = 1
 WHERE product_name = '睡眠健康管理礼盒';
-UPDATE sa_product SET cover_url = 'http://192.168.110.176:5173/钙流失健康管理方案.png', status = 1, sort_order = 2
+UPDATE sa_product SET cover_url = 'http://192.168.110.176:5173/assets/calcium-loss-health-management-plan.png', status = 1, sort_order = 2
 WHERE product_name = '钙流失健康管理礼盒';
+
+UPDATE sa_product_image pi
+JOIN sa_product p ON p.id = pi.product_id
+SET pi.image_url = REPLACE(
+    REPLACE(pi.image_url, '睡眠健康管理方案.png', 'sleep-health-management-plan.png'),
+    '/sleep-health-management-plan.png', '/assets/sleep-health-management-plan.png'
+)
+WHERE p.product_name = '睡眠健康管理礼盒'
+  AND pi.image_url NOT LIKE '%/assets/sleep-health-management-plan.png'
+  AND (pi.image_url LIKE '%睡眠健康管理方案.png' OR pi.image_url LIKE '%/sleep-health-management-plan.png');
+
+UPDATE sa_product_image pi
+JOIN sa_product p ON p.id = pi.product_id
+SET pi.image_url = REPLACE(
+    REPLACE(pi.image_url, '钙流失健康管理方案.png', 'calcium-loss-health-management-plan.png'),
+    '/calcium-loss-health-management-plan.png', '/assets/calcium-loss-health-management-plan.png'
+)
+WHERE p.product_name = '钙流失健康管理礼盒'
+  AND pi.image_url NOT LIKE '%/assets/calcium-loss-health-management-plan.png'
+  AND (pi.image_url LIKE '%钙流失健康管理方案.png' OR pi.image_url LIKE '%/calcium-loss-health-management-plan.png');
 
 SET @sleep_product_id = (SELECT id FROM sa_product WHERE product_name = '睡眠健康管理礼盒' LIMIT 1);
 SET @bone_product_id = (SELECT id FROM sa_product WHERE product_name = '钙流失健康管理礼盒' LIMIT 1);
 
 INSERT INTO sa_product_image (product_id, image_url, sort_order)
-SELECT @sleep_product_id, 'http://192.168.110.176:5173/睡眠健康管理方案.png', 0
+SELECT @sleep_product_id, 'http://192.168.110.176:5173/assets/sleep-health-management-plan.png', 0
 FROM DUAL
 WHERE @sleep_product_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM sa_product_image WHERE product_id = @sleep_product_id);
 
 INSERT INTO sa_product_image (product_id, image_url, sort_order)
-SELECT @bone_product_id, 'http://192.168.110.176:5173/钙流失健康管理方案.png', 0
+SELECT @bone_product_id, 'http://192.168.110.176:5173/assets/calcium-loss-health-management-plan.png', 0
 FROM DUAL
 WHERE @bone_product_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM sa_product_image WHERE product_id = @bone_product_id);

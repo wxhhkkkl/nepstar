@@ -37,7 +37,6 @@ Expected development URLs:
 http://localhost:5173/#/
 http://localhost:5173/#/system/endocrine
 http://localhost:5173/#/system/bone
-http://localhost:5173/detail.html?id=endocrine  # legacy compatibility redirect
 ```
 
 For LAN access, use the IP printed by Vite after starting with `--host`.
@@ -72,7 +71,7 @@ For each implementation slice:
 - Other systems show no recommendation.
 - Unknown ID shows the unavailable state.
 - Refreshing a Hash detail URL still renders the selected system without server fallback configuration.
-- A legacy `detail.html?id=<systemId>` URL redirects to the matching Hash route.
+- System details are opened through Vue Router Hash routes; no standalone `detail.html` entry is provided.
 - Returning to home restores the prior scroll position.
 
 ### Responsive
@@ -93,6 +92,6 @@ Verified on 2026-09-15 with Node 24.19.0:
 
 - 27 Vitest unit/component tests passed.
 - 23 Playwright tests passed against the production preview.
-- `dist/index.html`, `dist/detail.html` and all five fixed PNG assets returned HTTP 200.
+- `dist/index.html` and the five imported PNG assets under `dist/assets/` are present after build.
 - The home long image remained 390×4442 and 1440×4246; endocrine and bone detail heights also matched the captured legacy geometry.
 - LAN startup command: `npm run dev -- --host 0.0.0.0`; if the shell is still on Node 12, use the modern Node executable documented in `reportFront/report-v2/README.md`.
