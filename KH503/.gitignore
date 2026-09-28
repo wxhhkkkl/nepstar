@@ -30,6 +30,11 @@ build/
 local.properties
 *.iml
 
+# Eclipse / Buildship（本地环境生成，随机器而变）
+.project
+.classpath
+.settings/
+
 # node.js
 #
 node_modules/

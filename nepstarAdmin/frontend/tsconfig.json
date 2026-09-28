@@ -13,7 +13,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      // 该包 package.json 的 exports 没写 types 条件，bundler 模式下解析不到自带声明，手动指过去
+      "@wangeditor/editor-for-vue": ["node_modules/@wangeditor/editor-for-vue/dist/src/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue", "src/**/*.json"]
