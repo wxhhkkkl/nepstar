@@ -5,7 +5,8 @@
  * 这里把 code/message 翻译成页面能用的错误种类，供 ReportErrorState 呈现（FR-019、SC-007）。
  */
 
-const BASE = import.meta.env?.VITE_API_BASE_URL || '/api/v1'
+const DEFAULT_API_BASE = 'https://nepstar.kangjia.online/api/v1'
+const BASE = (import.meta.env?.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/+$/, '')
 const DEFAULT_TIMEOUT_MS = 8000
 
 export const ERROR_KINDS = {
@@ -82,32 +83,68 @@ export function fetchIndicatorDetail(reportCode, indicatorCode, customerId, opti
   )
 }
 
+function locationHashParams(hash) {
+  // Hash history links commonly put business parameters after `#/`.
+  const queryStart = hash.indexOf('?')
+  return new URLSearchParams(queryStart >= 0 ? hash.slice(queryStart + 1) : '')
+}
+
+function locationQueryParams(search, hash) {
+  const params = new URLSearchParams(search)
+  // Read both `?params#/` and `#/?params` forms. The active hash-route query
+  // takes precedence when the same parameter appears in both places.
+  locationHashParams(hash).forEach((value, key) => params.set(key, value))
+  return params
+}
+
 /**
- * 从地址栏取报告参数。沿用既有报告链接的参数名（reportId / customerId），
- * 这样旧链接不需要改造就能打开新页面。
+ * Read both the app's legacy `customerId` and the live platform's `userId`.
+ * Both identify the report owner; API requests continue to use `customer_id`.
  */
 export function reportParamsFromLocation(
   search = globalThis.location?.search || '',
   hash = globalThis.location?.hash || '',
 ) {
+  const params = locationQueryParams(search, hash)
   const searchParams = new URLSearchParams(search)
-  // Hash history links commonly put business parameters after `#/`.
-  // Read both forms so old `?params#/` links and canonical `#/?params` links work.
-  const queryStart = hash.indexOf('?')
-  const hashParams = new URLSearchParams(queryStart >= 0 ? hash.slice(queryStart + 1) : '')
-  const getParam = (name) => searchParams.get(name) || hashParams.get(name)
+  const hashParams = locationHashParams(hash)
+  const getParam = (name) => {
+    const value = params.get(name)?.trim()
+    return value ? value : null
+  }
   const reportCode = getParam('reportId') || getParam('reportCode') || ''
-  const raw = getParam('customerId')
-  const customerId = raw === null || raw === '' ? null : Number(raw)
+  // Prefer identity values on the active hash route before either alias in
+  // the outer URL, so a stale outer customerId cannot override a hash userId.
+  const customerId = [
+    hashParams.get('customerId'), hashParams.get('userId'),
+    searchParams.get('customerId'), searchParams.get('userId'),
+  ]
+    .map((value) => value?.trim())
+    .filter((value) => value !== null)
+    .filter(Boolean)
+    .map(Number)
+    .find(Number.isFinite) ?? null
   return {
     reportCode,
-    customerId: Number.isFinite(customerId) ? customerId : null,
+    customerId,
   }
 }
 
-/** Keep report identity when navigating between Hash-router pages. */
-export function reportRouteQueryFromLocation() {
-  const { reportCode, customerId } = reportParamsFromLocation()
+/** Keep report identity and launch context when navigating between pages. */
+export function reportRouteQueryFromLocation(
+  search = globalThis.location?.search || '',
+  hash = globalThis.location?.hash || '',
+) {
+  const { reportCode, customerId } = reportParamsFromLocation(search, hash)
   if (!reportCode || customerId === null) return {}
-  return { reportId: reportCode, customerId: String(customerId) }
+
+  const passthrough = Object.fromEntries(locationQueryParams(search, hash))
+  delete passthrough.reportId
+  delete passthrough.reportCode
+  delete passthrough.customerId
+  delete passthrough.userId
+
+  // Use the platform's live parameter name in generated links. The parser
+  // still accepts customerId for existing bookmarks and manually shared URLs.
+  return { ...passthrough, reportId: reportCode, userId: String(customerId) }
 }

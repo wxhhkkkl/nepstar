@@ -6,6 +6,7 @@ import {
   ReportApiError,
   fetchIndicatorDetail,
   reportParamsFromLocation,
+  reportRouteQueryFromLocation,
 } from '@/api/reportClient.js'
 import ReportErrorState from '@/components/ReportErrorState.vue'
 import IndicatorDetailSkeleton from '@/components/IndicatorDetailSkeleton.vue'
@@ -23,9 +24,9 @@ const detail = ref(null)
 let requestVersion = 0
 
 const reportQuery = computed(() => {
-  const { reportCode, customerId } = reportParamsFromLocation()
-  if (!reportCode || customerId === null) return {}
-  return { reportId: reportCode, customerId: String(customerId) }
+  // Depend on the active route so launch context stays current after navigation.
+  route?.fullPath
+  return reportRouteQueryFromLocation()
 })
 const parentSystemCode = computed(() => detail.value?.system?.system_code || currentSystemCode.value)
 const parentRoute = computed(() => ({
