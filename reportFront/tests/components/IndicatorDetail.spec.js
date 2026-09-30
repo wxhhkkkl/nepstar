@@ -4,10 +4,20 @@ import IndicatorDetail from '@/views/IndicatorDetail.vue'
 
 vi.mock('@/api/reportClient.js', async (importOriginal) => {
   const actual = await importOriginal()
-  return { ...actual, fetchIndicatorDetail: vi.fn(), reportParamsFromLocation: vi.fn() }
+  return {
+    ...actual,
+    fetchIndicatorDetail: vi.fn(),
+    reportParamsFromLocation: vi.fn(),
+    reportRouteQueryFromLocation: vi.fn(),
+  }
 })
 
-const { fetchIndicatorDetail, reportParamsFromLocation, ReportApiError } = await import('@/api/reportClient.js')
+const {
+  fetchIndicatorDetail,
+  reportParamsFromLocation,
+  reportRouteQueryFromLocation,
+  ReportApiError,
+} = await import('@/api/reportClient.js')
 
 const payload = {
   report_code: 'R1',
@@ -26,6 +36,7 @@ const payload = {
 
 function mountDetail(props = {}, data = payload, error = null) {
   reportParamsFromLocation.mockReturnValue({ reportCode: 'R1', customerId: 1001 })
+  reportRouteQueryFromLocation.mockReturnValue({ reportId: 'R1', userId: '1001' })
   if (error) fetchIndicatorDetail.mockRejectedValue(error)
   else fetchIndicatorDetail.mockResolvedValue(data)
   return mount(IndicatorDetail, {
@@ -72,7 +83,7 @@ describe('IndicatorDetail', () => {
     const back = wrapper.findComponent(RouterLinkStub)
     expect(back.props('to')).toEqual({
       name: 'system-detail', params: { systemId: 'SYS_IMMUNE' },
-      query: { reportId: 'R1', customerId: '1001' },
+      query: { reportId: 'R1', userId: '1001' },
     })
   })
 

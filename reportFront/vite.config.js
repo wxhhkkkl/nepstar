@@ -19,7 +19,7 @@ export default defineConfig({
     },
   },
   server: {
-    // 取数层默认打同源 /api/v1，本地开发没有同源后端，转发到 uvicorn。
+    // 设置 VITE_API_BASE_URL=/api/v1 时，本地开发会将同源 API 转发到 uvicorn。
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',
