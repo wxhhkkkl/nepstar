@@ -4,33 +4,33 @@
 
 **范围**: 当前报告端 `reportFront/`（Vue 3 + JavaScript）、后端 `nepstarAdmin/backend/`、管理端 `nepstarAdmin/frontend/`。不编辑旧报告目录。所有新写入仅限 `nepstar`；`platform`、`kj_fastplus`、MongoDB 和其他库只读。
 
-**TDD 规则**: 各故事的测试任务先写并运行，确认红灯后才执行对应实现任务；实现后运行绿灯和相关回归。测试里的假签发者、假模型、假报告不得向真实服务发送健康数据。
+**TDD 规则**: 各故事的测试任务先写并运行，确认红灯后才执行对应实现任务；实现后运行绿灯和相关回归。测试里的匿名 guest、假模型、假报告不得向真实服务发送健康数据。
 
-**当前状态**: 仅需求、技术规划和独立 UI 原型已完成；以下任务均未执行。T001、T002 是生产集成与架构确认门槛；没有可信报告用户身份时，不得启用真实个人咨询。
+**当前状态**: 仅需求、技术规划和独立 UI 原型已完成；以下任务均未执行。用户已确认公开链接允许任何访问者在同意后匿名咨询，当前标签页刷新可恢复，关闭后不找回。T002 是架构确认门槛；真实模型的数据处理条件未落实前不得外发健康数据。
 
-## Phase 1: Setup（集成边界）
+## Phase 1: Setup（公开入口与架构边界）
 
-**Goal**: 把实施所需的真实身份来源、模型处理范围和测试替身写成可执行契约。
+**Goal**: 核对公开报告的现有定位逻辑，把匿名凭证、模型处理范围和测试替身落实成可执行契约。
 
-- [ ] T001 在 `specs/006-ai-longevity-consult/contracts/access-and-consult.md` 记录真实已登录入口的签发方、签名验证方式、主体/报告范围、一次性声明传递、撤销及刷新流程；确认上游能提供这些数据，裸 `reportId/userId` 不可兑换授权。
+- [ ] T001 在 `reportFront/tests/unit/report-client-params.spec.js` 与 `specs/006-ai-longevity-consult/contracts/access-and-consult.md` 核对公开报告链接的 `reportId/userId` 解析、报告归属校验和匿名聊天建立流程；报告链接可新建 guest，但不能凭链接读取已有聊天。
 - [ ] T002 在 `specs/006-ai-longevity-consult/research.md` 记录用户对现有 FastAPI 中新增模型通信、SSE、新 `nepstar` 表及所需 HTTP 依赖的架构确认，以及获准服务商的数据处理、密钥托管和告知版本；未确认时保持服务关闭。
-- [ ] T003 [P] 在 `nepstarAdmin/backend/tests/conftest.py` 增加隔离的报告只读源、已验证声明及模型替身 fixtures，禁止真实外部请求与真实数据库写入。
-- [ ] T004 [P] 在 `reportFront/tests/fixtures/aiConsult.js` 增加两名主体、两份报告、同意/失效/生成失败的前端测试数据，不复用截图原型的演示答案作为生产数据。
+- [ ] T003 [P] 在 `nepstarAdmin/backend/tests/conftest.py` 增加隔离的公开报告只读源、两个 guest 凭证及模型替身 fixtures，禁止真实外部请求与真实数据库写入。
+- [ ] T004 [P] 在 `reportFront/tests/fixtures/aiConsult.js` 增加两个匿名标签页、两份报告、同意/失效/生成失败的前端测试数据，不复用截图原型的演示答案作为生产数据。
 
-**Checkpoint**: T001、T002 落地且审阅后可实施架构改动；此前仅做本地假数据测试与设计。
+**Checkpoint**: T001 核实公开链接行为；T002 对新表与模型通信的架构变更完成确认。此前只做本地假数据测试与设计。
 
 ---
 
 ## Phase 2: Foundational（所有故事的共同前置）
 
-**Goal**: 建立只能写 `nepstar` 的业务通道、会话结构和每次请求都要验证的报告范围。
+**Goal**: 建立只能写 `nepstar` 的业务通道、匿名访客结构和每次聊天请求都要验证的报告绑定范围。
 
 - [ ] T005 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_storage_boundary.py` 先写失败测试：`NEPSTAR_DATABASE_URL` 缺失、库名不是 `nepstar` 或把旧库会话用于咨询写入时一律拒绝。
 - [ ] T006 在 `nepstarAdmin/backend/app/database.py` 与 `nepstarAdmin/backend/app/config.py` 建立显式绑定 `nepstar` 的咨询写会话及启动校验，并使 T005 转绿；既有 `get_db` 保持报告只读用途。
 - [ ] T007 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_schema_boundary.py` 先写失败测试：迁移 SQL 不得触及 `nepstar.sa_ai_consult_*` 之外的对象；启动配置不允许静默使用默认旧库。
 - [ ] T008 在 `nepstarAdmin/backend/app/models/new/sa_ai_consult.py` 和 `nepstarAdmin/backend/alembic/versions/006_ai_consult.py` 建立 settings、rule_version、consent、session、turn、generation、admin_audit 表与唯一约束；生成 SQL 后核对仅写 `nepstar`，使 T007 转绿。
-- [ ] T009 在 `nepstarAdmin/backend/tests/api/test_ai_consult_access.py` 先写失败测试：无声明、伪造、重放、过期、撤销、跨主体或跨报告拒绝，真实范围内的只读归属核对通过。
-- [ ] T010 在 `nepstarAdmin/backend/app/security/ai_consult_access.py` 和 `nepstarAdmin/backend/app/schemas/ai_consult.py` 实现 T001 确认的声明验证、短时授权与按主体/报告范围校验；使 T009 转绿，严禁用后台管理员 JWT 替代报告用户。
+- [ ] T009 在 `nepstarAdmin/backend/tests/api/test_ai_consult_access.py` 先写失败测试：有效公开链接可为两个独立 guest 建立聊天；仅凭链接、伪造/过期/撤销/跨报告凭证不得读另一 guest 的聊天。
+- [ ] T010 在 `nepstarAdmin/backend/app/security/ai_consult_access.py` 和 `nepstarAdmin/backend/app/schemas/ai_consult.py` 实现至少 256 位随机 guest 凭证、仅存摘要、绑定报告及每次聊天请求校验；使 T009 转绿，后台管理员 JWT 不可代替 guest 凭证。
 - [ ] T011 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_read_boundary.py` 先写失败测试：模型取数路径只可调用允许的 SELECT/find，不能执行 DML/DDL、任意 SQL 或访问任意 URL。
 - [ ] T012 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现只读报告适配与工具白名单，使 T011 转绿，并明确读连接和咨询写连接分离。
 
@@ -40,25 +40,25 @@
 
 ## Phase 3: User Story 1 — 从当前报告开始咨询（P1，首个可演示增量）
 
-**Goal**: 经真实访问授权和明确同意，从报告进入对应咨询欢迎页；只浏览欢迎页不触发模型和扣额。
+**Goal**: 从公开报告进入对应匿名咨询欢迎页，在明确同意后才能外发必要数据；只浏览欢迎页不触发模型和扣额。
 
-**Independent Test**: 从两份不同报告进入，核对报告日期、三个真实可问问题、同意状态和返回位置；裸链接无法读取私人会话或外发健康数据。
+**Independent Test**: 从两份不同公开报告进入，核对报告日期、三个真实可问问题、同意状态和返回位置；同链接的新 guest 无法读取其他访客的聊天，未同意不外发健康数据。
 
 ### Tests（先红）
 
-- [ ] T013 [P] [US1] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_bootstrap.py` 写失败契约测试，覆盖 `/access/exchange`、`/bootstrap`、`/consents`、`/sessions` 的授权、报告绑定、拒绝同意及零模型调用。
-- [ ] T014 [P] [US1] 在 `reportFront/tests/components/AiConsultWelcome.spec.js` 写失败组件/路由测试，覆盖欢迎、骨架屏、同意弹层、无凭证引导及返回原滚动位置。
+- [ ] T013 [P] [US1] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_bootstrap.py` 写失败契约测试，覆盖 `/guest-contexts`、`/bootstrap`、`/consents`、`/sessions` 的报告绑定、guest 隔离、拒绝同意及零模型调用。
+- [ ] T014 [P] [US1] 在 `reportFront/tests/components/AiConsultWelcome.spec.js` 写失败组件/路由测试，覆盖欢迎、骨架屏、同意弹层、`sessionStorage` 刷新恢复、guest 失效后新建及返回原滚动位置。
 
 ### Implementation
 
-- [ ] T015 [US1] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 实现声明兑换与统一授权依赖，按 `nepstarAdmin/backend/app/main.py` 注册路由；仅测试签发者走假声明。
+- [ ] T015 [US1] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 实现公开报告只读核对、`/guest-contexts` 建立与统一 guest 凭证依赖，按 `nepstarAdmin/backend/app/main.py` 注册路由；报告无效时不给 guest。
 - [ ] T016 [US1] 在 `nepstarAdmin/backend/app/services/ai_consult_consent.py` 与 `nepstarAdmin/backend/app/api/ai_consult.py` 实现版本化告知、同意/撤回及“未同意零外发”。
-- [ ] T017 [US1] 在 `nepstarAdmin/backend/app/services/ai_consult_sessions.py` 与 `nepstarAdmin/backend/app/api/ai_consult.py` 实现报告范围内 bootstrap、欢迎摘要及本人最近会话恢复；不因欢迎页加载调用模型。
-- [ ] T018 [US1] 在 `reportFront/src/views/AiConsult.vue`、`reportFront/src/router/index.js` 和 `reportFront/src/api/aiConsultClient.js` 实现真实路由、状态骨架屏、同意流程和授权失效页，沿用已评审 `ui/` 视觉结构。
+- [ ] T017 [US1] 在 `nepstarAdmin/backend/app/services/ai_consult_sessions.py` 与 `nepstarAdmin/backend/app/api/ai_consult.py` 实现报告范围内 bootstrap、欢迎摘要及当前 guest 会话恢复；不因欢迎页加载调用模型。
+- [ ] T018 [US1] 在 `reportFront/src/views/AiConsult.vue`、`reportFront/src/router/index.js` 和 `reportFront/src/api/aiConsultClient.js` 实现真实路由、状态骨架屏、同意流程、按报告隔离的 `sessionStorage` 凭证和失效后新建页，沿用已评审 `ui/` 视觉结构。
 - [ ] T019 [US1] 在 `reportFront/src/components/AiConsultEntry.vue` 与 `reportFront/src/views/ReportHome.vue` 将首页静态图片链接改为咨询路由，并使用 `reportFront/src/composables/useScrollRestoration.js` 恢复返回时阅读位置。
-- [ ] T020 [US1] 运行 `nepstarAdmin/backend/tests/api/test_ai_consult_bootstrap.py` 与 `reportFront/tests/components/AiConsultWelcome.spec.js`，把两报告、拒绝同意和裸链接的绿灯结果记录到 `specs/006-ai-longevity-consult/quickstart.md`。
+- [ ] T020 [US1] 运行 `nepstarAdmin/backend/tests/api/test_ai_consult_bootstrap.py` 与 `reportFront/tests/components/AiConsultWelcome.spec.js`，把两报告、两个 guest、拒绝同意和公开链接的绿灯结果记录到 `specs/006-ai-longevity-consult/quickstart.md`。
 
-**Checkpoint**: 当前报告欢迎页可独立演示；没有可信声明时只显示已验证入口提示。
+**Checkpoint**: 当前公开报告欢迎页可独立演示；仅凭报告链接不能读取其他 guest 的聊天。
 
 ---
 
@@ -113,25 +113,25 @@
 
 ## Phase 6: User Story 4 — 手机端连续和可恢复沟通（P1）
 
-**Goal**: 输入、渐进回答、停止、重试、私人历史、删除与跨报告隔离在手机上可靠运行。
+**Goal**: 输入、渐进回答、停止、重试、当前标签页历史、删除与跨报告隔离在手机上可靠运行。
 
-**Independent Test**: 在 320–430 px 及真机软键盘场景发送、断网、刷新、停止、删除、切换报告；无重复提问、额度误扣、晚到拼接或他人历史暴露。
+**Independent Test**: 在 320–430 px 及真机软键盘场景发送、断网、刷新、停止、删除、切换报告；无重复提问、额度误扣、晚到拼接或其他 guest 历史暴露。关闭标签页后仅凭链接不找回旧聊天。
 
 ### Tests（先红）
 
-- [ ] T038 [P] [US4] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_lifecycle.py` 写失败测试，覆盖幂等键、同轮 retry、stop、delete、授权范围、流中断和旧 generation 晚到丢弃。
-- [ ] T039 [P] [US4] 在 `reportFront/tests/e2e/ai-consult-mobile.spec.js` 写失败端到端测试，覆盖 320/360/375/390/414/430 px、键盘模拟、历史阅读位置、断网重试与跨报告切换。
+- [ ] T038 [P] [US4] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_lifecycle.py` 写失败测试，覆盖幂等键、同轮 retry、stop、delete、guest/报告范围、流中断和旧 generation 晚到丢弃。
+- [ ] T039 [P] [US4] 在 `reportFront/tests/e2e/ai-consult-mobile.spec.js` 写失败端到端测试，覆盖 320/360/375/390/414/430 px、键盘模拟、刷新保留凭证、无 `opener` 的独立标签页无旧聊天、断网重试与跨报告切换。
 
 ### Implementation
 
 - [ ] T040 [US4] 在 `nepstarAdmin/backend/app/services/ai_consult_sessions.py` 实现轮次唯一幂等键、attempt 状态机与 generation_epoch 比较；完成前后都防重复计账，使 T038 的并发断言转绿。
 - [ ] T041 [US4] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 完成历史分页、轮次读取、重试、停止、删除和失败恢复端点；删除即时撤销正文读取与后续写入。
 - [ ] T042 [US4] 在 `reportFront/src/api/aiConsultClient.js` 实现 fetch 事件流、AbortController、幂等键与 generation_id 过滤，超时和错误保持原问题。
-- [ ] T043 [US4] 在 `reportFront/src/views/AiConsult.vue` 实现输入、停止、重试、会话列表/新建、删除、阅读较早内容时的新回复提示及各异常页。
+- [ ] T043 [US4] 在 `reportFront/src/views/AiConsult.vue` 实现输入、停止、重试、当前标签页会话列表/新建、删除、阅读较早内容时的新回复提示及各异常页；主动打开新标签页时禁止继承 `opener`。
 - [ ] T044 [US4] 在 `nepstarAdmin/backend/app/services/ai_consult_retention.py` 实现 30 天过期、删除后 24 小时内在线正文清理和不含聊天正文的操作记录；用 `nepstarAdmin/backend/tests/unit/test_ai_consult_retention.py` 先确认红灯再转绿。
 - [ ] T045 [US4] 运行 `reportFront/tests/e2e/ai-consult-mobile.spec.js`，并将 iOS/Android 真机软键盘、安全区和返回位置的结果记录在 `specs/006-ai-longevity-consult/quickstart.md`。
 
-**Checkpoint**: 同一用户不同报告会话隔离；分享报告链接不能访问私人聊天。
+**Checkpoint**: 不同 guest 与不同报告的聊天隔离；分享报告链接可以看公开报告，但不能访问原访客的聊天。
 
 ---
 
@@ -144,7 +144,7 @@
 ### Tests（先红）
 
 - [ ] T046 [P] [US6] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_admin.py` 写失败测试，覆盖具体菜单路径/动作权限、规则版本、发布审计和密钥绝不回显。
-- [ ] T047 [P] [US6] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_usage.py` 写失败测试，覆盖每日成功问答、每分钟频率、失败不扣额、真实 token 用量和反馈汇总。
+- [ ] T047 [P] [US6] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_usage.py` 写失败测试，覆盖每 guest 每日成功问答、每分钟频率、全局成本/并发上限、失败不扣额、真实 token 用量和反馈汇总。
 - [ ] T048 [P] [US6] 在 `nepstarAdmin/frontend/src/views/health/__tests__/AiConsultSettings.spec.ts` 写失败测试，覆盖服务开关、额度、规则发布权限、冲突保存和不显示密钥。
 - [ ] T049 [P] [US6] 在 `nepstarAdmin/frontend/src/views/health/__tests__/AiConsultOverview.spec.ts` 写失败测试，覆盖完成率、耗时、失败原因和不显示私人正文。
 
@@ -152,7 +152,7 @@
 
 - [ ] T050 [US6] 在 `nepstarAdmin/backend/app/security/ai_consult_admin_permission.py` 和 `nepstarAdmin/backend/app/services/health_seed.py` 增加两页菜单与精确动作校验，不能直接沿用“拥有任一菜单即可”的通用判断。
 - [ ] T051 [US6] 在 `nepstarAdmin/backend/app/services/ai_consult_admin.py` 与 `nepstarAdmin/backend/app/api/ai_consult_admin.py` 实现配置、规则草稿/发布/回退、乐观锁和审计；密钥仅由服务端受保护配置提供。
-- [ ] T052 [US6] 在 `nepstarAdmin/backend/app/services/ai_consult_usage.py` 与 `nepstarAdmin/backend/app/api/ai_consult.py` 实现频率/成功额度、用量归集及完成回答的有用/无用反馈，使 T047 转绿。
+- [ ] T052 [US6] 在 `nepstarAdmin/backend/app/services/ai_consult_usage.py` 与 `nepstarAdmin/backend/app/api/ai_consult.py` 实现每 guest 频率/成功额度、全局成本/并发保护、用量归集及完成回答的有用/无用反馈，使 T047 转绿。
 - [ ] T053 [US6] 在 `nepstarAdmin/frontend/src/views/health/AiConsultSettings.vue`、`nepstarAdmin/frontend/src/api/aiConsult.ts` 和 `nepstarAdmin/frontend/src/router/index.ts` 实现配置和规则版本页面，使 T048 转绿。
 - [ ] T054 [US6] 在 `nepstarAdmin/frontend/src/views/health/AiConsultOverview.vue` 与 `nepstarAdmin/frontend/src/api/aiConsult.ts` 实现按日汇总与失败原因页面，使 T049 转绿。
 - [ ] T055 [US6] 在 `reportFront/src/views/AiConsult.vue` 渲染服务关闭、额度不足、维护、超时及反馈交互；运行 T046～T049 全套绿灯并记录到 `specs/006-ai-longevity-consult/quickstart.md`。
@@ -189,14 +189,14 @@
 - [ ] T061 在 `nepstarAdmin/backend/tests/integration/test_ai_consult_read_only.py` 用非 `nepstar` 只读账号与隔离测试库验证全链路，确认外部库 DML/DDL/回填/缓存回写次数均为 0。
 - [ ] T062 [P] 在 `nepstarAdmin/backend/tests/fixtures/ai_consult_cases.json` 建立至少 40 个报告依据样本与 20 个健康边界样本，跑通引用值/日期及危险内容审核，并记录到 `specs/006-ai-longevity-consult/quickstart.md`。
 - [ ] T063 在 `nepstarAdmin/backend/tests/api/test_ai_consult_perf.py` 验证 20 并发试点负载下的首段/完成与 60 秒超时路径，并将接口和移动端可见反馈的实测分位数记录到 `specs/006-ai-longevity-consult/quickstart.md`。
-- [ ] T064 在 `specs/006-ai-longevity-consult/quickstart.md` 汇总 SC-001～SC-010 验收、服务商数据处理评估、可信凭证上线、备份到期策略及有条件启用/回退步骤；未满足时保持生产服务关闭。
+- [ ] T064 在 `specs/006-ai-longevity-consult/quickstart.md` 汇总 SC-001～SC-010 验收、服务商数据处理评估、匿名凭证隔离、备份到期策略及有条件启用/回退步骤；未满足时保持生产服务关闭。
 
 ## Dependencies & Execution Order
 
 ```text
 Setup T001–T004
   └─ Foundation T005–T012
-       └─ US1 T013–T020（授权与欢迎页）
+       └─ US1 T013–T020（匿名凭证、同意与欢迎页）
             └─ US2 T021–T031（报告证据与基础回答）
                  ├─ US3 T032–T037（追问与行动建议）
                  └─ US4 T038–T045（会话恢复与手机交互）
@@ -205,7 +205,7 @@ Setup T001–T004
                            └─ Polish T061–T064（须合并所有所选故事）
 ```
 
-- T001、T002 是实际生产集成的硬门槛：可以独立做纯假数据测试和 UI 开发，但不能用这些工作替代真实身份、架构确认或服务商评估。
+- T001 核对已确认的公开报告流程，T002 为新表/通信的架构确认门槛；可以先做纯假数据测试和 UI 开发，但不能用这些工作替代架构确认或服务商评估。
 - 各故事可在依赖完成后独立运行本章的验收场景；US3、US4 在 US2 基础上分别验证，不要求先完成另一故事。US5 是 P2，可在 P1 验证后交付。
 - 同一故事内先完成并运行红灯测试，再依模型→服务→接口→页面顺序实现，最后运行绿灯与相关回归。
 
@@ -218,6 +218,6 @@ Setup T001–T004
 
 ## Implementation Strategy
 
-首个可演示增量为 Foundation + US1：用户从报告进入真实欢迎页，看见当前报告上下文，能确认告知并返回原位置；裸链接不得启动私人咨询。US2 加入有依据的基础回答后才能对外展示真实 AI 解读。随后完成 US3 与 US4 的安全及恢复能力，再完成 US6 的运营开关、额度和权限，最后补 US5 方案入口。每个增量按上方独立测试过关；上线还须完成 T061～T064。
+首个可演示增量为 Foundation + US1：访问者从公开报告进入匿名欢迎页，看见当前报告上下文，能确认告知并返回原位置；独立访客拿同一链接只能创建自己的聊天。US2 加入有依据的基础回答后才能对外展示真实 AI 解读。随后完成 US3 与 US4 的安全及恢复能力，再完成 US6 的运营开关、额度和权限，最后补 US5 方案入口。每个增量按上方独立测试过关；上线还须完成 T061～T064。
 
 实现时每个逻辑单元提交一次；不把 `reportFront/test-results/` 等既有未跟踪产物纳入本功能提交。

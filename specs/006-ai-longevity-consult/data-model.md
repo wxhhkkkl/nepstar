@@ -11,15 +11,15 @@
 | `kj_fastplus` | 现有辅助资料按需读取 | 只读 |
 | MongoDB `receive_report` | 原始指标树、当前及历史分数 | 只读 |
 
-## 1. 访问主体与报告范围
+## 1. `sa_ai_consult_guest`：匿名标签页与报告范围
 
-访问主体是可信上游签名声明中的稳定主体标识 `(issuer, subject)`，与链接中的 `userId/customerId` 分离。服务端验证声明后生成短时咨询授权，范围固定为 `(subject, report_code, customer_id)`；授权本身不由数据库里的报告号推导。首次兑换再次用只读源核对报告归属和就绪状态。授权过期/撤销/主体不一致时，对会话、历史、证据及生成接口统一拒绝。
+报告链接不要求登录。创建匿名上下文时服务端先用只读源核对报告编号、客户编号是否对应且报告已就绪，然后生成至少 256 位随机 `guest_token`。只向当前标签页返回一次明文；前端存于 `sessionStorage`，不得拼进 URL、埋点或日志。服务端仅保存加盐/HMAC 摘要，后续请求以 `Authorization: Bearer` 提交并恒时比较摘要。这个秘密保护聊天，**不**证明访问者是报告本人。
 
-不必在 `nepstar` 保存原始签名声明或用户真实姓名；数据库保存主体不可逆摘要（含应用侧稳定盐）、签发者标识和报告范围。临时授权及一次性声明的重放保护由服务端短期状态承担；若采用数据库记录，仍只在 `nepstar`。
+表字段：`id`、`token_digest`（唯一）、`report_code`、`customer_id`、`created_at`、`last_activity_at`、`expires_at`、`revoked_at`。`guest_token` 与报告范围一对一；换报告建新的上下文。凭报告链接、报告参数或后台管理员 JWT 均无法重新找回聊天；通常关闭标签页会失去凭证，但浏览器恢复该标签页可能保留会话。凭证过期/撤销时聊天不可再读取，但公开报告仍可继续访问。每个标签页的每份报告可在 `sessionStorage` 保存独立凭证以供同一标签页返回时恢复。
 
 ## 2. `sa_ai_consult_settings`
 
-单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`daily_success_limit`（建议默认 20）、`per_minute_limit`（默认 5）、`max_question_chars`（默认 2000）、`retention_days`（默认 30）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。范围校验：额度与字符限制必须为正，留存期符合已公布告知，模型必须在服务端允许名单内。凭据不入表。
+单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`daily_success_limit`（每 guest 建议默认 20）、`per_minute_limit`（每 guest 默认 5）、`global_daily_token_limit`、`max_concurrent_generations`、`max_question_chars`（默认 2000）、`retention_days`（暂建议最多 30）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。范围校验：额度与字符限制必须为正，留存期符合已公布告知，模型必须在服务端允许名单内。全局 token/并发限制防止匿名新建 guest 绕过单 guest 额度；凭据不入表。
 
 开关变更对**新生成**立即生效；正在进行的生成由停用策略明确终止并记为 `cancelled_by_admin`。`row_version` 用于防止两个管理员相互覆盖。
 
@@ -29,11 +29,11 @@
 
 ## 4. `sa_ai_consult_consent`
 
-`id`、`issuer`、`subject_hash`、`notice_version`、`provider_code`、`data_scope_hash`、`choice`（granted/withdrawn）、`decided_at`、`withdrawn_at`。只有与当前服务商、告知版本和处理范围一致的有效同意才可外发数据；改变任一项要求重新同意。撤回立即阻断新模型请求。索引 `(issuer, subject_hash, decided_at)`。
+`id`、`guest_id`、`notice_version`、`provider_code`、`data_scope_hash`、`choice`（granted/withdrawn）、`decided_at`、`withdrawn_at`。只有当前匿名访问者在当前报告、服务商、告知版本和处理范围下的有效同意才可外发数据；改变任一项要求重新同意。访客同意不代表报告本人同意。撤回立即阻断新模型请求。索引 `(guest_id, decided_at)`。
 
 ## 5. `sa_ai_consult_session`
 
-`id`（不含身份信息的随机 UUID）、`issuer`、`subject_hash`、`report_code`、`customer_id`、`report_date`、`source`（home/plan）、`source_plan_id`（可空）、`consent_id`、`title`、`status`（active/deleted/expired）、`created_at`、`last_activity_at`、`expires_at`、`deleted_at`、`generation_epoch`。索引 `(issuer, subject_hash, report_code, last_activity_at)` 以及 `expires_at`；绝不能仅凭 `report_code` 查询私人列表。
+`id`（不含身份信息的随机 UUID）、`guest_id`、`report_code`、`customer_id`、`report_date`、`source`（home/plan）、`source_plan_id`（可空）、`consent_id`、`title`、`status`（active/deleted/expired）、`created_at`、`last_activity_at`、`expires_at`、`deleted_at`、`generation_epoch`。索引 `(guest_id, report_code, last_activity_at)` 以及 `expires_at`；绝不能仅凭 `report_code` 查询聊天列表。
 
 报告切换新建/读取另一份报告的会话；不迁移旧会话消息。删除先将 `status=deleted`、递增 `generation_epoch`，所有后续读取和写回立即失败，清理任务再清除正文。
 
@@ -47,7 +47,7 @@
 
 每次实际模型尝试：`id`、`turn_id`、`attempt_number`、`generation_epoch`、`status`（queued/running/completed/failed/stopped/discarded）、`partial_text`（仅经分段校验且标记未完成）、`provider_request_id`、`model_code`、`prompt_tokens`、`completion_tokens`、`error_category`、`started_at`、`first_valid_chunk_at`、`finished_at`。唯一约束 `(turn_id, attempt_number)`。
 
-生成结果提交需比较 session 的 `generation_epoch` 与当前 attempt；不匹配时丢弃，避免停止、删除、重试或切报告后的晚到结果。实际服务用量按 generation 汇总；用户额度只按 completed turn 且 `(issuer, subject_hash, 业务日)` 计数，重试成功不重复计。
+生成结果提交需比较 session 的 `generation_epoch` 与当前 attempt；不匹配时丢弃，避免停止、删除、重试或切报告后的晚到结果。实际服务用量按 generation 汇总；匿名会话额度只按 completed turn 且 `(guest_id, 业务日)` 计数，重试成功不重复计。另设全局并发、总消耗和异常流量保护，因为新标签页可创建新 guest，不能按 guest_id 证明是同一真实用户。
 
 ## 8. `sa_ai_consult_admin_audit`
 
@@ -56,6 +56,7 @@
 ## 状态转换
 
 ```text
+guest: active → revoked | expired
 session: active → deleted | expired
 turn: accepted → generating → completed | failed | stopped
                   failed | stopped → generating（同一问题的新 attempt）
@@ -63,12 +64,12 @@ turn: accepted → generating → completed | failed | stopped
 generation: queued → running → completed | failed | stopped | discarded
 ```
 
-只有 `generation=completed` 且回答通过来源/健康内容校验，才可把 `turn` 置为 `completed`。服务调用已产生费用而用户停止/失败时，只记实际用量，不占用户成功问答额度。
+只有 `generation=completed` 且回答通过来源/健康内容校验，才可把 `turn` 置为 `completed`。服务调用已产生费用而访问者停止/失败时，只记实际用量，不占该匿名会话的成功问答额度。
 
 ## 数据保留和删除
 
 - 用户删除：立即设置 deleted、撤销生成和读取；在线正文在 24 小时内清除，操作审计仅留必要非正文信息。
-- 正常到期：最近活动起默认 30 天，过期按同样逻辑处理；告知变更与实际配置同步。
+- 正常到期：最近活动起最多 30 天，过期按同样逻辑处理；关闭标签页虽失去凭证，服务端仍按留存期清理；告知变更与实际配置同步。
 - 备份：最长 30 天到期，并在生产上线前验证恢复和到期清理流程。
 - 日志与指标：仅记录 request id、耗时、错误类别和用量，不记录问题正文、回答正文、姓名、电话及模型密钥。
 
