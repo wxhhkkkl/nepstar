@@ -71,14 +71,14 @@
 ### Tests（先红）
 
 - [ ] T021 [P] [US2] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_evidence.py` 写失败测试，覆盖当前报告指标树、维护文案、缺项/冲突、去身份化和按需检索。
-- [ ] T022 [P] [US2] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_history.py` 写失败测试，覆盖同客户同指标、当前报告时间上界、最多六次、无效日期和无历史。
+- [x] T022 [P] [US2] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_history.py` 写失败测试，覆盖同客户同指标、当前报告时间上界、最多六次、无效日期和无历史；纯替身回归已转绿。
 - [ ] T023 [P] [US2] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_answer.py` 写失败契约测试，覆盖引用已检索证据 ID、错误分数/日期与未知来源不作为完成答复。
 - [ ] T024 [P] [US2] 在 `reportFront/tests/components/AiConsultEvidence.spec.js` 写失败测试，覆盖依据展开、同份报告的系统/指标跳转和返回聊天位置。
 
 ### Implementation
 
 - [ ] T025 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_evidence.py` 组装按问题相关的报告事实、文案与路由证据；过滤姓名、电话、设备号及无关原始报告字段，使 T021 转绿。
-- [ ] T026 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现历史查询的当前报告时间上界及六次有效点；保留现有展示页趋势口径不变，使 T022 转绿。
+- [x] T026 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现历史查询的当前报告时间上界及至多六次有效点；最多扫描近期 60 份候选报告，数据不足时不补造。调用方须提供已核验报告的精确生成时间；尚未接到问答链路。现有展示页趋势口径未改，T022 已转绿。
 - [ ] T027 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_provider.py` 封装获准模型的服务端调用与受限工具参数；凭据只从服务端配置读取，测试使用 fake provider。
 - [ ] T028 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 实现服务端证据 ID、报告数值/日期校验及无证据时的不确定性表述；不把未校验模型原文作为已完成回答。
 - [ ] T029 [US2] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 实现基本提问与 accepted/status/delta/evidence/completed/error 事件，服务端保存生成状态，使 T023 转绿。

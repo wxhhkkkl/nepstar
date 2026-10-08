@@ -1,9 +1,10 @@
 """AI 咨询的报告取数白名单；外部 MySQL/MongoDB 只能走既有读取路径。"""
 
 import re
+from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, text
 from sqlalchemy.sql import visitors
 from sqlalchemy.sql.elements import TextClause
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +26,7 @@ _TEXT_SELECTS = tuple(
         r"SELECT report_code FROM inspect_base WHERE customer_id = :cid AND status = 1 AND \(:ex IS NULL OR report_code <> :ex\) ORDER BY inspect_date DESC LIMIT :n",
         r"SELECT pi.indicator_id, p.id, p.plan_name, p.description, p.trigger_score_below, p.sort_order FROM nepstar.sa_plan_indicator pi JOIN nepstar.sa_plan p ON p.id = pi.plan_id WHERE p.status = 1 AND pi.indicator_id IN :ids ORDER BY pi.indicator_id, p.sort_order, p.id",
         r"SELECT pp.plan_id, pr.id, pr.product_name, pr.cover_url FROM nepstar.sa_plan_product pp JOIN nepstar.sa_product pr ON pr.id = pp.product_id WHERE pr.status = 1 AND pp.plan_id IN :ids ORDER BY pp.plan_id, pp.sort_order, pr.id",
+        r"SELECT report_code, inspect_date, report_date, customer_id FROM inspect_base WHERE customer_id = :cid AND status = 1 AND inspect_date <= :cutoff AND report_date <= :report_time AND report_code <> :current_code ORDER BY inspect_date DESC, report_code DESC LIMIT :n",
     )
 )
 
@@ -96,6 +98,13 @@ def _report_view_service():
     from . import report_view_service
 
     return report_view_service
+
+
+def _report_source():
+    # 目标节点遍历沿用已验证的报告分支规则，避免把另一系统的同名指标混入历史。
+    from . import report_source
+
+    return report_source
 
 
 _REPORT_CODE = re.compile(r"[A-Za-z0-9-]{1,64}\Z")
@@ -177,3 +186,100 @@ async def read_report_tool(
             "description": item.get("description"),
         },
     }
+
+
+async def fetch_bounded_indicator_history(
+    read_db: AsyncSession,
+    bound_scope: Any,
+    *,
+    system_target_id: int,
+    indicator_target_id: int,
+    current_inspect_date: datetime,
+    current_report_timestamp: datetime,
+    current_score: int | None,
+    collection=None,
+) -> list[dict[str, Any]]:
+    """旧报告专用历史：仅在可信来源提供精确报告时间后调用，最多六个点。"""
+    report_code, customer_id = _scope(bound_scope)
+    report_date = getattr(bound_scope, "report_date", None)
+    if (
+        not isinstance(report_date, date)
+        or not isinstance(current_inspect_date, datetime)
+        or not isinstance(current_report_timestamp, datetime)
+        or current_report_timestamp.date() != report_date
+        or current_inspect_date > current_report_timestamp
+        or isinstance(system_target_id, bool)
+        or isinstance(indicator_target_id, bool)
+        or not isinstance(system_target_id, int)
+        or not isinstance(indicator_target_id, int)
+        or system_target_id <= 0
+        or indicator_target_id <= 0
+    ):
+        raise ReadBoundaryViolation("Invalid verified report history scope")
+
+    statement = text(
+        "SELECT report_code, inspect_date, report_date, customer_id FROM inspect_base "
+        "WHERE customer_id = :cid AND status = 1 AND inspect_date <= :cutoff "
+        "AND report_date <= :report_time AND report_code <> :current_code "
+        "ORDER BY inspect_date DESC, report_code DESC LIMIT :n"
+    )
+    rows = (
+        await ReadOnlyReportSession(read_db).execute(
+            statement,
+            {
+                "cid": customer_id,
+                "cutoff": current_inspect_date,
+                "report_time": current_report_timestamp,
+                "current_code": report_code,
+                "n": 60,
+            },
+        )
+    ).all()
+    candidates = []
+    for code, inspected_at, generated_at, row_customer_id in rows:
+        if (
+            row_customer_id != customer_id
+            or not isinstance(code, str)
+            or _REPORT_CODE.fullmatch(code) is None
+            or code == report_code
+            or not isinstance(inspected_at, datetime)
+            or not isinstance(generated_at, datetime)
+            or inspected_at > current_inspect_date
+            or generated_at > current_report_timestamp
+        ):
+            continue
+        candidates.append((code, inspected_at))
+
+    points = []
+    if candidates:
+        if collection is None:
+            from .. import mongo
+
+            collection = mongo.get_report_collection()
+        codes = [code for code, _ in candidates]
+        documents = await collection.find(
+            {"_id": {"$in": codes}}, {"ddsReportInfo.firstTarget": 1}
+        ).to_list(length=len(codes))
+        by_code = {doc.get("_id"): doc for doc in documents if isinstance(doc, dict)}
+        source = _report_source()
+        for code, inspected_at in candidates:
+            document = by_code.get(code)
+            if document is None:
+                continue
+            first_targets = (document.get("ddsReportInfo") or {}).get("firstTarget")
+            node = source.find_target_under_system(
+                first_targets, system_target_id, indicator_target_id
+            )
+            score = _score(node.get("score")) if node else None
+            if score is not None:
+                points.append(
+                    {"report_code": code, "date": inspected_at.date().isoformat(), "score": score}
+                )
+
+    score = _score(current_score)
+    if score is not None:
+        points.append(
+            {"report_code": report_code, "date": current_inspect_date.date().isoformat(), "score": score}
+        )
+    points.sort(key=lambda point: (point["date"], point["report_code"]))
+    return points[-6:]
