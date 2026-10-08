@@ -99,7 +99,8 @@ function locationQueryParams(search, hash) {
 
 /**
  * Read both the app's legacy `customerId` and the live platform's `userId`.
- * Both identify the report owner; API requests continue to use `customer_id`.
+ * Both locate the report; neither proves the visitor is its owner.
+ * API requests continue to use `customer_id`.
  */
 export function reportParamsFromLocation(
   search = globalThis.location?.search || '',
@@ -143,6 +144,8 @@ export function reportRouteQueryFromLocation(
   delete passthrough.reportCode
   delete passthrough.customerId
   delete passthrough.userId
+  // A chat credential belongs in the current tab's sessionStorage, never a shareable route.
+  delete passthrough.guest_token
 
   // Use the platform's live parameter name in generated links. The parser
   // still accepts customerId for existing bookmarks and manually shared URLs.

@@ -12,7 +12,7 @@
 
 **Goal**: 核对公开报告的现有定位逻辑，把匿名凭证、模型处理范围和测试替身落实成可执行契约。
 
-- [ ] T001 在 `reportFront/tests/unit/report-client-params.spec.js` 与 `specs/006-ai-longevity-consult/contracts/access-and-consult.md` 核对公开报告链接的 `reportId/userId` 解析、报告归属校验和匿名聊天建立流程；报告链接可新建 guest，但不能凭链接读取已有聊天。
+- [x] T001 在 `reportFront/tests/unit/report-client-params.spec.js` 与 `specs/006-ai-longevity-consult/contracts/access-and-consult.md` 核对公开报告链接的 `reportId/userId` 解析、报告归属校验和匿名聊天建立流程；报告链接可新建 guest，但不能凭链接读取已有聊天。
 - [ ] T002 在 `specs/006-ai-longevity-consult/research.md` 记录用户对现有 FastAPI 中新增模型通信、SSE、新 `nepstar` 表及所需 HTTP 依赖的架构确认，以及获准服务商的数据处理、密钥托管和告知版本；未确认时保持服务关闭。
 - [ ] T003 [P] 在 `nepstarAdmin/backend/tests/conftest.py` 增加隔离的公开报告只读源、两个 guest 凭证及模型替身 fixtures，禁止真实外部请求与真实数据库写入。
 - [ ] T004 [P] 在 `reportFront/tests/fixtures/aiConsult.js` 增加两个匿名标签页、两份报告、同意/失效/生成失败的前端测试数据，不复用截图原型的演示答案作为生产数据。

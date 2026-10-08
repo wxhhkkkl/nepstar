@@ -9,6 +9,16 @@ describe('report URL parameters', () => {
     })
   })
 
+  it('accepts the public report parameters from the outer query string', () => {
+    expect(reportParamsFromLocation(
+      '?reportId=KJ104NS0046271323111309530308550&userId=13790451&reportType=124&source=kjwx',
+      '#/',
+    )).toEqual({
+      reportCode: 'KJ104NS0046271323111309530308550',
+      customerId: 13790451,
+    })
+  })
+
   it('continues to accept customerId from existing report links', () => {
     expect(reportParamsFromLocation('', '#/?reportId=R1&customerId=11922495')).toEqual({
       reportCode: 'R1',
@@ -45,5 +55,16 @@ describe('report URL parameters', () => {
       .toBe(13790451)
     expect(reportParamsFromLocation('', '#/?reportId=R1&customerId=bad&userId=13790451').customerId)
       .toBe(13790451)
+  })
+
+  it('never carries an anonymous chat credential into a report route', () => {
+    expect(reportRouteQueryFromLocation(
+      '?reportId=R1&userId=13790451&source=kjwx&guest_token=secret',
+      '#/',
+    )).toEqual({
+      source: 'kjwx',
+      reportId: 'R1',
+      userId: '13790451',
+    })
   })
 })

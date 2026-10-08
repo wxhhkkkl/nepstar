@@ -4,7 +4,7 @@
 
 ## 匿名聊天建立
 
-`POST /guest-contexts`：输入 `{ "report_code": "...", "customer_id": 123 }`。后端先按现有公开报告规则核对二者对应、报告已就绪，再生成至少 256 位随机 `guest_token` 并仅保存其摘要。输出 `{ guest_token, expires_at, report_code, customer_id }`；凭证只返回本次，前端在当前标签页 `sessionStorage` 保存，不放入 URL 或持久化存储。无有效报告返回 404/409；频繁创建受服务端总量和速率限制。
+`POST /guest-contexts`：输入 `{ "report_code": "...", "customer_id": 123 }`。后端先按现有公开报告规则核对二者对应、报告已就绪，再生成至少 256 位随机 `guest_token` 并仅保存其摘要。输出 `{ guest_token, expires_at, report_code, customer_id }`；凭证只返回本次，前端在当前标签页 `sessionStorage` 保存，不放入 URL 或持久化存储。报告端内部跳转复制公开链接参数时须过滤 `guest_token`，且不得从 URL 读取此凭证。无有效报告返回 404/409；频繁创建受服务端总量和速率限制。
 
 同一标签页刷新时可继续携带已保存的凭证；另以公开链接独立打开的新标签页或其他设备创建新的匿名上下文。应用主动打开新标签页时使用 `noopener`，防止 `sessionStorage` 被 `opener` 复制；浏览器的“恢复标签页”行为可能保留该标签页会话，不能把关闭页面等同于立即删除服务端记录。若凭证已丢失/过期，允许继续查看公开报告，并可创建新的聊天，但不能凭报告链接取回旧聊天。
 
