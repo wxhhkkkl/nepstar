@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Planned — 产品需求、UI 原型与技术规划已完成；待架构批准及任务拆解
+**Status**: Tasks ready — 产品需求、UI 原型、技术规划与开发任务已完成；待架构确认后实施
 **Input**: 用户调用 `/speckit-specify`：分析首页目前打开静态图片的 AI 健康长寿咨询入口，设计通过 AI（例如 DeepSeek）结合检测问题进行解析回答的 AI Agent；当前阶段先设计产品与功能。
 
 ## User Scenarios & Testing *(mandatory)*
