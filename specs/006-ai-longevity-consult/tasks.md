@@ -79,7 +79,7 @@
 
 - [x] T025 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_evidence.py` 组装按问题相关的报告事实、维护文案与路由证据；模型上下文不含报告号、客户号、设备字段或路由，分数冲突不选边，T021 转绿。当前日期明确标为“报告日期”，实际检测日期和历史证据的问答集成仍在 T028/T029 验证。
 - [x] T026 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现历史查询的当前报告时间上界及至多六次有效点；最多扫描近期 60 份候选报告，数据不足时不补造。调用方须提供已核验报告的精确生成时间；尚未接到问答链路。现有展示页趋势口径未改，T022 已转绿。
-- [ ] T027 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_provider.py` 封装获准模型的服务端调用与受限工具参数；凭据只从服务端配置读取，测试使用 fake provider。
+- [ ] T027 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_provider.py` 封装获准模型的服务端调用与受限工具参数；凭据只从服务端配置读取，测试使用 fake provider。已建立默认拒绝外发的窄接口和服务层候选编排；真实提供方适配仍须完成数据处理评估与配置，不能勾选。
 - [x] T028 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 实现候选回答的服务端证据 ID、报告数值/日期校验及无证据时的不确定性表述；数值和日期由证据渲染，模型草稿不能夹带数值、日期或未知引用。结果仅为 `provenance_validated`，`is_completed=False`，仍须 T035 健康安全审核与 T029 状态持久化后才可发布。
 - [ ] T029 [US2] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 实现基本提问与 accepted/status/delta/evidence/completed/error 事件，服务端保存生成状态，使 T023 转绿。
 - [ ] T030 [US2] 在 `reportFront/src/views/AiConsult.vue` 与 `reportFront/src/api/aiConsultClient.js` 渲染可信依据、报告跳转与基础回答，使 T024 转绿。
@@ -103,7 +103,7 @@
 ### Implementation
 
 - [ ] T034 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 增加多轮上下文裁剪、事实来源标签、适量追问和行动建议输出规则，使 T032 转绿。
-- [ ] T035 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_safety.py` 增加输入优先分流、生成后健康内容校验及危险片段流出前拦截，避免靠页尾提示补救。候选规则与整段缓冲审核已实现，但尚未接入 SSE 路由；只有集成测试证实未审内容不会外发后才能勾选。
+- [ ] T035 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_safety.py` 增加输入优先分流、生成后健康内容校验及危险片段流出前拦截，避免靠页尾提示补救。候选规则与整段缓冲审核已接入未发布的服务层编排，但尚未接入 SSE 路由；只有集成测试证实未审内容不会外发后才能勾选。
 - [ ] T036 [US3] 在 `reportFront/src/views/AiConsult.vue` 渲染用户补充、追问、行动建议与求助提示，使 T033 转绿。
 - [x] T037 [US3] 在 `specs/006-ai-longevity-consult/quickstart.md` 记录 30 个本地健康边界用例的结果和人工审核待办；临床专业审核本身仍未完成，不能据此上线。
 
