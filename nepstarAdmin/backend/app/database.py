@@ -1,7 +1,10 @@
 """SQLAlchemy async engine and session configuration."""
 
+from functools import lru_cache
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -45,3 +48,45 @@ async def get_db() -> AsyncSession:
             yield session
         finally:
             await session.close()
+
+
+class AiConsultStorageConfigurationError(RuntimeError):
+    """AI 咨询写库目标未明确限定在 nepstar。"""
+
+
+def validate_ai_consult_database_url(raw_url: str) -> None:
+    """拒绝旧库、其他驱动及未指定库名的咨询写连接。"""
+    if not raw_url:
+        raise AiConsultStorageConfigurationError("AI consult requires NEPSTAR_DATABASE_URL")
+    try:
+        url = make_url(raw_url)
+    except ArgumentError as exc:
+        raise AiConsultStorageConfigurationError("Invalid AI consult database URL") from exc
+    if url.drivername != "mysql+aiomysql" or url.database != "nepstar" or not url.host:
+        raise AiConsultStorageConfigurationError("AI consult writes require mysql+aiomysql/nepstar")
+
+
+@lru_cache(maxsize=1)
+def _ai_consult_sessionmaker(raw_url: str) -> async_sessionmaker[AsyncSession]:
+    validate_ai_consult_database_url(raw_url)
+    consult_engine = create_async_engine(raw_url, echo=False, pool_size=5, max_overflow=10)
+    return async_sessionmaker(consult_engine, class_=AsyncSession, expire_on_commit=False)
+
+
+def get_ai_consult_sessionmaker() -> async_sessionmaker[AsyncSession]:
+    """咨询业务只用独立的 nepstar 写连接，不回退到通用 get_db。"""
+    return _ai_consult_sessionmaker(settings.NEPSTAR_DATABASE_URL)
+
+
+def ai_consult_storage_ready() -> bool:
+    """启动时仅检查连接目标；不尝试连接或写入数据库。"""
+    try:
+        get_ai_consult_sessionmaker()
+    except AiConsultStorageConfigurationError:
+        return False
+    return True
+
+
+async def get_ai_consult_db() -> AsyncSession:
+    async with get_ai_consult_sessionmaker()() as session:
+        yield session

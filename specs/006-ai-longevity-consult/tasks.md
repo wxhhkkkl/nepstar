@@ -6,18 +6,18 @@
 
 **TDD 规则**: 各故事的测试任务先写并运行，确认红灯后才执行对应实现任务；实现后运行绿灯和相关回归。测试里的匿名 guest、假模型、假报告不得向真实服务发送健康数据。
 
-**当前状态**: 仅需求、技术规划和独立 UI 原型已完成；以下任务均未执行。用户已确认公开链接允许任何访问者在同意后匿名咨询，当前标签页刷新可恢复，关闭后不找回。T002 是架构确认门槛；真实模型的数据处理条件未落实前不得外发健康数据。
+**当前状态**: T001 已完成；用户已确认公开链接匿名咨询和当前标签页刷新恢复，并在 2026-10-08 批准现有 FastAPI 流式接口与仅 `nepstar` 新表的架构。真实模型先保持关闭，服务商的数据处理条件未落实前不得外发健康数据。
 
 ## Phase 1: Setup（公开入口与架构边界）
 
 **Goal**: 核对公开报告的现有定位逻辑，把匿名凭证、模型处理范围和测试替身落实成可执行契约。
 
 - [x] T001 在 `reportFront/tests/unit/report-client-params.spec.js` 与 `specs/006-ai-longevity-consult/contracts/access-and-consult.md` 核对公开报告链接的 `reportId/userId` 解析、报告归属校验和匿名聊天建立流程；报告链接可新建 guest，但不能凭链接读取已有聊天。
-- [ ] T002 在 `specs/006-ai-longevity-consult/research.md` 记录用户对现有 FastAPI 中新增模型通信、SSE、新 `nepstar` 表及所需 HTTP 依赖的架构确认，以及获准服务商的数据处理、密钥托管和告知版本；未确认时保持服务关闭。
-- [ ] T003 [P] 在 `nepstarAdmin/backend/tests/conftest.py` 增加隔离的公开报告只读源、两个 guest 凭证及模型替身 fixtures，禁止真实外部请求与真实数据库写入。
+- [x] T002 在 `specs/006-ai-longevity-consult/research.md` 记录用户对现有 FastAPI 中新增流式通信与新 `nepstar` 表的架构确认；模型服务商、健康数据处理、密钥和告知版本仍是 T027/T064 的上线门槛，未确认前真实模型保持关闭。
+- [ ] T003 [P] 在 `nepstarAdmin/backend/tests/ai_consult_fixtures.py` 增加隔离的公开报告只读源、两个 guest 凭证及模型替身 fixtures；咨询测试用 `--noconftest` 避免现有公共夹具导入旧库连接，禁止真实外部请求与真实数据库写入。
 - [ ] T004 [P] 在 `reportFront/tests/fixtures/aiConsult.js` 增加两个匿名标签页、两份报告、同意/失效/生成失败的前端测试数据，不复用截图原型的演示答案作为生产数据。
 
-**Checkpoint**: T001 核实公开链接行为；T002 对新表与模型通信的架构变更完成确认。此前只做本地假数据测试与设计。
+**Checkpoint**: T001 已核实公开链接行为；T002 已记录新表与模型通信的架构批准。后续仍只用本地假数据测试，直到模型服务商条件另行确认。
 
 ---
 
@@ -25,10 +25,10 @@
 
 **Goal**: 建立只能写 `nepstar` 的业务通道、匿名访客结构和每次聊天请求都要验证的报告绑定范围。
 
-- [ ] T005 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_storage_boundary.py` 先写失败测试：`NEPSTAR_DATABASE_URL` 缺失、库名不是 `nepstar` 或把旧库会话用于咨询写入时一律拒绝。
-- [ ] T006 在 `nepstarAdmin/backend/app/database.py` 与 `nepstarAdmin/backend/app/config.py` 建立显式绑定 `nepstar` 的咨询写会话及启动校验，并使 T005 转绿；既有 `get_db` 保持报告只读用途。
-- [ ] T007 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_schema_boundary.py` 先写失败测试：迁移 SQL 不得触及 `nepstar.sa_ai_consult_*` 之外的对象；启动配置不允许静默使用默认旧库。
-- [ ] T008 在 `nepstarAdmin/backend/app/models/new/sa_ai_consult.py` 和 `nepstarAdmin/backend/alembic/versions/006_ai_consult.py` 建立 settings、rule_version、consent、session、turn、generation、admin_audit 表与唯一约束；生成 SQL 后核对仅写 `nepstar`，使 T007 转绿。
+- [x] T005 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_storage_boundary.py` 先写失败测试：`NEPSTAR_DATABASE_URL` 缺失、库名不是 `nepstar` 或把旧库会话用于咨询写入时一律拒绝。
+- [x] T006 在 `nepstarAdmin/backend/app/database.py` 与 `nepstarAdmin/backend/app/config.py` 建立显式绑定 `nepstar` 的咨询写会话及启动校验，并使 T005 转绿；既有 `get_db` 保持报告只读用途。
+- [x] T007 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_schema_boundary.py` 先写失败测试：迁移 SQL 不得触及 `nepstar.sa_ai_consult_*` 之外的对象；启动配置不允许静默使用默认旧库。
+- [x] T008 在 `nepstarAdmin/backend/app/models/new/sa_ai_consult.py` 和 `nepstarAdmin/backend/alembic/versions/006_ai_consult.py` 建立 settings、rule_version、consent、session、turn、generation、admin_audit 表与唯一约束；离线编译 SQL 后核对只涉及 `nepstar`，使 T007 转绿。迁移文件已编写但尚未对任何数据库执行。
 - [ ] T009 在 `nepstarAdmin/backend/tests/api/test_ai_consult_access.py` 先写失败测试：有效公开链接可为两个独立 guest 建立聊天；仅凭链接、伪造/过期/撤销/跨报告凭证不得读另一 guest 的聊天。
 - [ ] T010 在 `nepstarAdmin/backend/app/security/ai_consult_access.py` 和 `nepstarAdmin/backend/app/schemas/ai_consult.py` 实现至少 256 位随机 guest 凭证、仅存摘要、绑定报告及每次聊天请求校验；使 T009 转绿，后台管理员 JWT 不可代替 guest 凭证。
 - [ ] T011 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_read_boundary.py` 先写失败测试：模型取数路径只可调用允许的 SELECT/find，不能执行 DML/DDL、任意 SQL 或访问任意 URL。

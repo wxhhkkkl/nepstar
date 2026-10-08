@@ -21,7 +21,7 @@ from .api import (
     roles,
     users,
 )
-from .database import async_session
+from .database import ai_consult_storage_ready, async_session
 from .i18n import get_message
 from .services.health_seed import seed_health_menus
 from .services.organization_service import seed_root_org
@@ -113,6 +113,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.on_event("startup")
 async def startup_event():
     """Ensure root organization and admin role exist on application startup."""
+    if not ai_consult_storage_ready():
+        logger.warning("ai_consult_storage_unavailable")
     async with async_session() as db:
         await seed_root_org(db)
         await seed_health_menus(db)  # 健康管理菜单，须在 seed_admin_role 之前执行以便自动授权
