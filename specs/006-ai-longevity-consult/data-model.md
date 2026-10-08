@@ -19,7 +19,7 @@
 
 ## 2. `sa_ai_consult_settings`
 
-单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`daily_success_limit`（每 guest 建议默认 20）、`per_minute_limit`（每 guest 默认 5）、`global_daily_token_limit`、`max_concurrent_generations`、`max_question_chars`（默认 2000）、`retention_days`（暂建议最多 30）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。范围校验：额度与字符限制必须为正，留存期符合已公布告知，模型必须在服务端允许名单内。全局 token/并发限制防止匿名新建 guest 绕过单 guest 额度；凭据不入表。
+单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`notice_version`、`notice_text`、`data_scope_text`、`data_scope_hash`、`guest_create_limit_per_minute`、`guest_create_window_start`、`guest_create_count`、`daily_success_limit`（每 guest 建议默认 20）、`per_minute_limit`（每 guest 默认 5）、`global_daily_token_limit`、`max_concurrent_generations`、`max_question_chars`（默认 2000）、`retention_days`（暂建议最多 30）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。范围校验：额度与字符限制必须为正，留存期符合已公布告知，模型必须在服务端允许名单内。签发 guest 时在同一写事务中锁定这行并更新全站每分钟计数；未配置正数上限则拒绝签发。`data_scope_hash` 必须等于实际范围文案的 SHA-256，否则拒绝同意。全局 token/并发限制防止匿名新建 guest 绕过单 guest 额度；凭据不入表。
 
 开关变更对**新生成**立即生效；正在进行的生成由停用策略明确终止并记为 `cancelled_by_admin`。`row_version` 用于防止两个管理员相互覆盖。
 
@@ -29,7 +29,7 @@
 
 ## 4. `sa_ai_consult_consent`
 
-`id`、`guest_id`、`notice_version`、`provider_code`、`data_scope_hash`、`choice`（granted/withdrawn）、`decided_at`、`withdrawn_at`。只有当前匿名访问者在当前报告、服务商、告知版本和处理范围下的有效同意才可外发数据；改变任一项要求重新同意。访客同意不代表报告本人同意。撤回立即阻断新模型请求。索引 `(guest_id, decided_at)`。
+`id`、`guest_id`、`notice_version`、`notice_content_hash`、`provider_code`、`data_scope_hash`、`choice`（granted/withdrawn）、`decided_at`、`withdrawn_at`。只有当前匿名访问者在当前报告、服务商、告知版本、告知正文和处理范围下的最新一条有效同意才可外发数据；改变任一项要求重新同意。访客同意不代表报告本人同意。撤回写入更新的非授权记录，立即阻断新模型请求。索引 `(guest_id, decided_at)`。
 
 ## 5. `sa_ai_consult_session`
 

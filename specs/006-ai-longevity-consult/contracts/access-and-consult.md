@@ -12,7 +12,7 @@
 
 `GET /bootstrap?report_code=...`：返回报告日期、简短摘要、三个真实可问的问题、服务状态、当前告知版本、该 guest 是否已同意以及该 guest 剩余额度。只返回与凭证绑定的报告数据；服务未就绪返回明确状态，不显示示例报告。
 
-`POST /consents`：输入 `{ "notice_version": "...", "provider_code": "...", "accepted": true }`；仅在显示当前告知后接受。记录的是持有此 guest 凭证的访问者的选择，不声称是报告本人同意。`accepted=false` 记录拒绝/撤回并不外发；服务商或处理范围变化后要求新的同意。
+`POST /consents`：输入 `{ "report_code": "...", "notice_version": "...", "provider_code": "...", "accepted": true }`，并在 `Authorization` 头携带 guest 凭证；仅在显示当前告知后接受。服务端校验该凭证绑定的报告、当前服务商、告知版本、告知正文摘要与处理范围摘要。记录的是持有此 guest 凭证的访问者的选择，不声称是报告本人同意。`accepted=false` 记录拒绝/撤回并不外发；服务商、告知正文或处理范围变化后要求新的同意。
 
 ## 会话
 
@@ -48,4 +48,4 @@ event: error      data: {"code":"consult.provider_unavailable","retryable":true}
 
 证据项必须由服务端按当前报告读取生成，包含类型（报告事实/后台维护资料/用户补充）、真实检测日期、指标编码和当前报告路由。聊天中的证据读取仍按 guest 与绑定报告校验；打开公开指标页本身沿用报告公开访问规则。用户自述不可冒充检测依据。聊天历史查询不得仅凭 `report_code` 或 `customer_id`。
 
-稳定错误码至少包括：`consult.guest_token_required`、`consult.guest_token_expired`、`consult.consent_required`、`consult.report_unavailable`、`consult.session_not_found`、`consult.disabled`、`consult.rate_limited`、`consult.quota_exhausted`、`consult.capacity_reached`、`consult.provider_unavailable`、`consult.timeout`、`consult.unsafe_answer`。403/404 避免透露其他 guest 的会话是否存在；429 提供 `retry_after_seconds`。匿名会话额度不足不等于识别了真实用户。
+稳定错误码至少包括：`consult.guest_token_required`、`consult.guest_token_expired`、`consult.consent_required`、`consult.notice_changed`、`consult.report_unavailable`、`consult.session_not_found`、`consult.disabled`、`consult.rate_limited`、`consult.quota_exhausted`、`consult.capacity_reached`、`consult.provider_unavailable`、`consult.timeout`、`consult.unsafe_answer`。403/404 避免透露其他 guest 的会话是否存在；429 的 `data.retry_after_seconds` 与 `Retry-After` 响应头提供重试等待时间。匿名会话额度不足不等于识别了真实用户。

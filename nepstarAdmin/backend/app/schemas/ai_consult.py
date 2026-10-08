@@ -1,8 +1,15 @@
 """匿名咨询入口的请求结构。"""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictBool
 
 
 class GuestContextCreate(BaseModel):
     report_code: str = Field(min_length=1, max_length=64)
     customer_id: int = Field(gt=0)
+
+
+class ConsentCreate(BaseModel):
+    report_code: str = Field(min_length=1, max_length=64)
+    notice_version: str = Field(min_length=1, max_length=40)
+    provider_code: str = Field(min_length=1, max_length=50)
+    accepted: StrictBool
