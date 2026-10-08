@@ -23,3 +23,9 @@ class ConsultSessionCreate(BaseModel):
 
     report_code: str = Field(min_length=1, max_length=64)
     source: Literal["home"]
+
+
+class ConsultTurnCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question: str = Field(min_length=1, max_length=500)

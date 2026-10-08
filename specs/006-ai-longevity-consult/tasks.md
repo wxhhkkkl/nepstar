@@ -72,7 +72,7 @@
 
 - [x] T021 [P] [US2] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_evidence.py` 先确认缺少模块时红灯，再覆盖当前报告指标索引、维护文案、缺项/分数冲突、去身份化和按需检索；候选层测试已转绿。
 - [x] T022 [P] [US2] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_history.py` 写失败测试，覆盖同客户同指标、当前报告时间上界、最多六次、无效日期和无历史；纯替身回归已转绿。
-- [ ] T023 [P] [US2] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_answer.py` 写失败契约测试，覆盖引用已检索证据 ID、错误分数/日期与未知来源不作为完成答复。
+- [x] T023 [P] [US2] 在 `nepstarAdmin/backend/tests/api/test_ai_consult_answer.py` 补充候选 SSE 契约测试：已检索证据 ID 可回看，错误分数/日期、未知来源和危险文案只发错误事件；隔离测试已通过。
 - [ ] T024 [P] [US2] 在 `reportFront/tests/components/AiConsultEvidence.spec.js` 写失败测试，覆盖依据展开、同份报告的系统/指标跳转和返回聊天位置。
 
 ### Implementation
@@ -81,7 +81,7 @@
 - [x] T026 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现历史查询的当前报告时间上界及至多六次有效点；最多扫描近期 60 份候选报告，数据不足时不补造。调用方须提供已核验报告的精确生成时间；尚未接到问答链路。现有展示页趋势口径未改，T022 已转绿。
 - [ ] T027 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_provider.py` 封装获准模型的服务端调用与受限工具参数；凭据只从服务端配置读取，测试使用 fake provider。已建立默认拒绝外发的窄接口和服务层候选编排；真实提供方适配仍须完成数据处理评估与配置，不能勾选。
 - [x] T028 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 实现候选回答的服务端证据 ID、报告数值/日期校验及无证据时的不确定性表述；数值和日期由证据渲染，模型草稿不能夹带数值、日期或未知引用。结果仅为 `provenance_validated`，`is_completed=False`，仍须 T035 健康安全审核与 T029 状态持久化后才可发布。
-- [ ] T029 [US2] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 实现基本提问与 accepted/status/delta/evidence/completed/error 事件，服务端保存生成状态，使 T023 转绿。
+- [x] T029 [US2] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 实现候选提问 SSE 的 accepted/status/delta/evidence/completed/error 事件；仅在 `nepstar` 事务中保存已审核的完成结果后发送回答，幂等键复用已有轮次，同会话禁止并行生成。T023 已通过。问答开关默认关闭、路由未挂载主应用，真实模型、额度、恢复与完整生命周期仍待后续任务。
 - [ ] T030 [US2] 在 `reportFront/src/views/AiConsult.vue` 与 `reportFront/src/api/aiConsultClient.js` 渲染可信依据、报告跳转与基础回答，使 T024 转绿。
 - [ ] T031 [US2] 在 `specs/006-ai-longevity-consult/quickstart.md` 记录 T021～T030 的独立验证：旧报告无未来记录、冲突资料不补造、引用值可回看。
 
@@ -103,7 +103,7 @@
 ### Implementation
 
 - [ ] T034 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 增加多轮上下文裁剪、事实来源标签、适量追问和行动建议输出规则，使 T032 转绿。
-- [ ] T035 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_safety.py` 增加输入优先分流、生成后健康内容校验及危险片段流出前拦截，避免靠页尾提示补救。候选规则与整段缓冲审核已接入未发布的服务层编排，但尚未接入 SSE 路由；只有集成测试证实未审内容不会外发后才能勾选。
+- [ ] T035 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_safety.py` 增加输入优先分流、生成后健康内容校验及危险片段流出前拦截，避免靠页尾提示补救。候选规则已接入默认关闭的 SSE，假模型契约测试确认危险文案无 `delta`/`completed`；真实提供方接入及更全面的健康边界审查仍未完成。
 - [ ] T036 [US3] 在 `reportFront/src/views/AiConsult.vue` 渲染用户补充、追问、行动建议与求助提示，使 T033 转绿。
 - [x] T037 [US3] 在 `specs/006-ai-longevity-consult/quickstart.md` 记录 30 个本地健康边界用例的结果和人工审核待办；临床专业审核本身仍未完成，不能据此上线。
 

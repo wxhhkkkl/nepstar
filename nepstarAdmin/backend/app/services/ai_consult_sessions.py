@@ -146,17 +146,19 @@ async def list_guest_sessions(
 
 
 async def get_guest_session(
-    db: AsyncSession, guest: SAAiConsultGuest, report_code: str, session_id: str
+    db: AsyncSession, guest: SAAiConsultGuest, report_code: str, session_id: str,
+    *, lock: bool = False,
 ) -> SAAiConsultSession | None:
     current = datetime.now(UTC).replace(tzinfo=None)
-    result = await db.execute(
-        select(SAAiConsultSession).where(
-            SAAiConsultSession.id == session_id,
-            SAAiConsultSession.guest_id == guest.id,
-            SAAiConsultSession.report_code == report_code,
-            SAAiConsultSession.status == "active",
-            SAAiConsultSession.deleted_at.is_(None),
-            SAAiConsultSession.expires_at > current,
-        )
+    statement = select(SAAiConsultSession).where(
+        SAAiConsultSession.id == session_id,
+        SAAiConsultSession.guest_id == guest.id,
+        SAAiConsultSession.report_code == report_code,
+        SAAiConsultSession.status == "active",
+        SAAiConsultSession.deleted_at.is_(None),
+        SAAiConsultSession.expires_at > current,
     )
+    if lock:
+        statement = statement.with_for_update()
+    result = await db.execute(statement)
     return result.scalar_one_or_none()

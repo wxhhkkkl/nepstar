@@ -23,11 +23,11 @@
 | `GET /sessions/{session_id}?report_code=...` | — | 持有效 guest 凭证且报告范围匹配时读取轮次、答案、依据和未完成状态 |
 | `DELETE /sessions/{session_id}` | — | 立即撤销访问和后续生成；返回 204；重复删除仍为 204 |
 
-当前候选增量只实现 `source="home"` 的创建和前 20 条元信息读取；`plan` 因尚无发布/分数阈值复核而直接拒绝，游标分页、轮次、删除和模型问答尚未实现。创建前服务端重新核对报告日期和当前同意，查询同时限定 guest 与 report，排除删除/过期会话。候选接口另受默认关闭的 `AI_CONSULT_SESSIONS_ENABLED` 环境开关控制，且仍未挂载主应用；在会话创建额度和完整生命周期落实前不得开放。
+当前候选增量只实现 `source="home"` 的创建和前 20 条元信息读取；`plan` 因尚无发布/分数阈值复核而直接拒绝，游标分页、历史轮次读取和删除尚未实现。创建前服务端重新核对报告日期和当前同意，查询同时限定 guest 与 report，排除删除/过期会话。候选接口另受默认关闭的 `AI_CONSULT_SESSIONS_ENABLED` 环境开关控制，且仍未挂载主应用；在会话创建额度和完整生命周期落实前不得开放。
 
 ## 发送、重试和停止
 
-`POST /sessions/{session_id}/turns`：JSON `{ "question": "..." }`，请求头 `Idempotency-Key: <UUID>`；成功为 SSE。服务器先持久化/复用唯一用户问题，再启动模型尝试。空白问题、超过当前字符上限、服务关闭、频率/日额度不足、未同意或授权不符返回明确错误；重复 key 不创建第二条问题。
+`POST /sessions/{session_id}/turns?report_code=...`：JSON `{ "question": "..." }`，请求头 `Idempotency-Key: <UUID>`；成功为 SSE。`report_code` 仅用于再次核对匿名凭证与会话绑定，不扩大访问范围。服务器先持久化/复用唯一用户问题，再启动候选回答；同会话已有运行中生成时拒绝新的 key。空白问题、超过当前 500 字限制、服务关闭、未同意或授权不符返回明确错误；重复 key 不创建第二条问题。当前 `AI_CONSULT_ANSWERS_ENABLED` 默认关闭，真实模型与频率/日额度仍未接入，不能对外开放。
 
 `POST /sessions/{session_id}/turns/{turn_id}/retry`：对 failed/stopped 的同一问题发起新 generation；不增加用户问题条数。`POST /sessions/{session_id}/turns/{turn_id}/stop`：停止有效尝试并标记已校验的部分为“未完成”。`GET /sessions/{session_id}/turns/{turn_id}`：刷新后查询当前状态及已持久化结果。
 

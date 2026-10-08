@@ -1,7 +1,10 @@
-"""公开报告下的匿名咨询入口；真实模型与对话接口尚未启用。"""
+"""公开报告下的匿名咨询候选入口；真实模型与主应用接入尚未启用。"""
+
+import asyncio
+import json
 
 from fastapi import APIRouter, Header, HTTPException, Query, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -10,7 +13,12 @@ from ..database import (
     async_session,
     get_ai_consult_sessionmaker,
 )
-from ..schemas.ai_consult import ConsentCreate, ConsultSessionCreate, GuestContextCreate
+from ..schemas.ai_consult import (
+    ConsentCreate,
+    ConsultSessionCreate,
+    ConsultTurnCreate,
+    GuestContextCreate,
+)
 from ..schemas.response import ApiResponse
 from ..security.ai_consult_access import (
     GuestAccessConfigurationError,
@@ -26,6 +34,8 @@ from ..services.ai_consult_consent import (
     require_current_consent,
 )
 from ..services.ai_consult_entry_guard import GuestEntryDisabled, GuestRateLimited, reserve_guest_creation
+from ..services.ai_consult_pipeline import CandidateOutcome, prepare_answer_candidate
+from ..services.ai_consult_provider import default_provider
 from ..services.ai_consult_sessions import (
     ConsultReportDateUnavailable,
     build_welcome_context,
@@ -35,9 +45,17 @@ from ..services.ai_consult_sessions import (
     public_session,
     verified_report_date,
 )
+from ..services.ai_consult_turns import (
+    TurnConflict,
+    TurnInProgress,
+    finalize_turn,
+    start_turn,
+    valid_request_id,
+)
 
 
 router = APIRouter(prefix="/ai-consult", tags=["ai-consult"])
+answer_provider = default_provider  # 未获准外发真实健康信息前固定为禁用实现
 
 
 class _ConsentRequired(Exception):
@@ -311,3 +329,146 @@ async def get_session_detail(
         return _error(404, "consult.session_not_found")
     response.headers["Cache-Control"] = "no-store"
     return ApiResponse(message="ok", data={**public_session(item), "turns": []})
+
+
+def _sse_event(event: str, *, session_id: str, start, seq: int, **data) -> str:
+    payload = {
+        "session_id": session_id,
+        "turn_id": start.turn_id,
+        "generation_id": start.generation_id,
+        "seq": seq,
+        **data,
+    }
+    return f"event: {event}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+def _stream_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-store",
+        "X-Accel-Buffering": "no",
+        "Referrer-Policy": "no-referrer",
+    }
+
+
+@router.post("/sessions/{session_id}/turns")
+async def create_turn(
+    session_id: str,
+    req: ConsultTurnCreate,
+    report_code: str = Query(min_length=1, max_length=64),
+    authorization: str | None = Header(default=None),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+):
+    """候选 SSE：事务保存结果后才发送已校验的回答片段。"""
+    if not (
+        settings.AI_CONSULT_GUEST_ENABLED
+        and settings.AI_CONSULT_SESSIONS_ENABLED
+        and settings.AI_CONSULT_ANSWERS_ENABLED
+    ):
+        return _error(503, "consult.disabled")
+    if not authorization or not authorization.startswith("Bearer "):
+        return _error(401, "consult.guest_token_required")
+    if not valid_request_id(idempotency_key) or not req.question.strip():
+        return _error(400, "consult.invalid_question")
+    token = authorization.removeprefix("Bearer ")
+    try:
+        writer = get_ai_consult_sessionmaker()
+        async with writer() as db:
+            async with db.begin():
+                guest = await require_guest(db, token, report_code)
+                session = await get_guest_session(db, guest, report_code, session_id, lock=True)
+                if session is None:
+                    return _error(404, "consult.session_not_found")
+                consent = await require_current_consent(db, guest.id, lock=True)
+                if consent is None or consent.id != session.consent_id:
+                    return _error(403, "consult.consent_required")
+                started = await start_turn(db, session, idempotency_key, req.question)
+    except (GuestAccessConfigurationError, AiConsultStorageConfigurationError):
+        return _error(503, "consult.disabled")
+    except GuestAccessDenied:
+        return _error(403, "consult.guest_token_expired")
+    except TurnConflict:
+        return _error(409, "consult.idempotency_conflict")
+    except TurnInProgress:
+        return _error(409, "consult.in_progress")
+    except ValueError:
+        return _error(400, "consult.invalid_question")
+
+    async def events():
+        yield _sse_event("accepted", session_id=session_id, start=started, seq=1)
+        if started.replay:
+            if started.status == "completed" and started.answer and started.evidence:
+                yield _sse_event("delta", session_id=session_id, start=started, seq=2,
+                                 text=started.answer)
+                yield _sse_event("evidence", session_id=session_id, start=started, seq=3,
+                                 items=started.evidence)
+                yield _sse_event("completed", session_id=session_id, start=started, seq=4,
+                                 answer=started.answer, remaining_today=None)
+            else:
+                yield _sse_event("error", session_id=session_id, start=started, seq=2,
+                                 code="consult.in_progress" if started.status == "running"
+                                 else "consult.failed", retryable=started.status == "running")
+            return
+
+        yield _sse_event("status", session_id=session_id, start=started, seq=2,
+                         phase="reading_evidence")
+        yield _sse_event("status", session_id=session_id, start=started, seq=3,
+                         phase="answering")
+        try:
+            async with async_session() as read_db:
+                outcome = await prepare_answer_candidate(
+                    read_db, session, req.question, provider=answer_provider
+                )
+        except asyncio.CancelledError:
+            outcome = CandidateOutcome("interrupted", "", [], "system")
+            try:
+                await _finish(outcome)
+            except Exception:
+                pass
+            raise
+        except Exception:
+            outcome = CandidateOutcome("report_unavailable", "", [], "system")
+
+        try:
+            completed = await _finish(outcome)
+        except (GuestAccessDenied, TurnConflict, _ConsentRequired):
+            yield _sse_event("error", session_id=session_id, start=started, seq=4,
+                             code="consult.access_changed", retryable=False)
+            return
+        except Exception:
+            yield _sse_event("error", session_id=session_id, start=started, seq=4,
+                             code="consult.storage_unavailable", retryable=True)
+            return
+        if not completed:
+            code = {
+                "provider_unavailable": "consult.provider_unavailable",
+                "report_unavailable": "consult.report_unavailable",
+                "insufficient_evidence": "consult.insufficient_evidence",
+                "emergency": "consult.urgent_help",
+                "clinical_boundary": "consult.clinical_boundary",
+                "longevity_boundary": "consult.longevity_boundary",
+                "private_input": "consult.private_input",
+            }.get(outcome.state, "consult.unsafe_answer")
+            yield _sse_event("error", session_id=session_id, start=started, seq=4,
+                             code=code, message=outcome.text,
+                             retryable=code in {"consult.provider_unavailable", "consult.report_unavailable"})
+            return
+        yield _sse_event("delta", session_id=session_id, start=started, seq=4,
+                         text=outcome.text)
+        yield _sse_event("evidence", session_id=session_id, start=started, seq=5,
+                         items=outcome.evidence)
+        yield _sse_event("completed", session_id=session_id, start=started, seq=6,
+                         answer=outcome.text, remaining_today=None)
+
+    async def _finish(outcome: CandidateOutcome) -> bool:
+        async with writer() as db:
+            async with db.begin():
+                guest = await require_guest(db, token, report_code)
+                session = await get_guest_session(db, guest, report_code, session_id, lock=True)
+                if session is None:
+                    raise TurnConflict("Session no longer available")
+                consent = await require_current_consent(db, guest.id, lock=True)
+                if consent is None or consent.id != session.consent_id:
+                    raise _ConsentRequired()
+                return await finalize_turn(db, session, started, outcome)
+
+    return StreamingResponse(events(), media_type="text/event-stream", headers=_stream_headers())
