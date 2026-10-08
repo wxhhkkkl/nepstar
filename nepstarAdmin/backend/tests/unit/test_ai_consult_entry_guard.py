@@ -146,3 +146,15 @@ async def test_latest_withdrawal_blocks_an_earlier_grant():
     db.consent = withdrawn
     assert await require_current_consent(db, guest.id) is None
     assert "ORDER BY" in str(db.statements[-1])
+
+
+@pytest.mark.asyncio
+async def test_session_creation_can_lock_notice_settings_against_concurrent_withdrawal():
+    from app.services.ai_consult_consent import record_consent, require_current_consent
+
+    db = FakeDb(settings=ready_settings())
+    guest = SimpleNamespace(id=23)
+    db.consent = await record_consent(db, guest, notice_version="v1", provider_code="fake-provider", accepted=True)
+    db.statements.clear()
+    assert await require_current_consent(db, guest.id, lock=True) is db.consent
+    assert db.statements[0]._for_update_arg is not None

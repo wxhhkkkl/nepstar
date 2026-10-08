@@ -87,9 +87,15 @@ async def record_consent(
     return consent
 
 
-async def require_current_consent(db: AsyncSession, guest_id: int) -> SAAiConsultConsent | None:
+async def require_current_consent(
+    db: AsyncSession, guest_id: int, *, lock: bool = False
+) -> SAAiConsultConsent | None:
     """只认该 guest 最新决定；服务商、处理范围或告知变更后必须重新同意。"""
-    settings_result = await db.execute(select(SAAiConsultSettings).where(SAAiConsultSettings.id == 1))
+    settings_query = select(SAAiConsultSettings).where(SAAiConsultSettings.id == 1)
+    if lock:
+        # 同意/撤回写入也锁此行；会话插入事务完成前不会错过并发撤回。
+        settings_query = settings_query.with_for_update()
+    settings_result = await db.execute(settings_query)
     config = settings_result.scalar_one_or_none()
     if not _notice_ready(config):
         return None

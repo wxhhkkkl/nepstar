@@ -20,8 +20,10 @@
 | --- | --- | --- |
 | `POST /sessions` | `{report_code, source: "home"\|"plan", plan_id?}` | 创建绑定 guest 凭证和公开报告的会话；方案 ID 在服务端重新验证发布与 `< 阈值` |
 | `GET /sessions?report_code=...` | 分页游标 | 仅该 guest、仅绑定报告的标题和时间，不含其他访问者聊天 |
-| `GET /sessions/{session_id}` | — | 持有效 guest 凭证且报告范围匹配时读取轮次、答案、依据和未完成状态 |
+| `GET /sessions/{session_id}?report_code=...` | — | 持有效 guest 凭证且报告范围匹配时读取轮次、答案、依据和未完成状态 |
 | `DELETE /sessions/{session_id}` | — | 立即撤销访问和后续生成；返回 204；重复删除仍为 204 |
+
+当前候选增量只实现 `source="home"` 的创建和前 20 条元信息读取；`plan` 因尚无发布/分数阈值复核而直接拒绝，游标分页、轮次、删除和模型问答尚未实现。创建前服务端重新核对报告日期和当前同意，查询同时限定 guest 与 report，排除删除/过期会话。候选接口另受默认关闭的 `AI_CONSULT_SESSIONS_ENABLED` 环境开关控制，且仍未挂载主应用；在会话创建额度和完整生命周期落实前不得开放。
 
 ## 发送、重试和停止
 

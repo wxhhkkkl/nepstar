@@ -1,6 +1,6 @@
 """公开报告下的匿名咨询入口；真实模型与对话接口尚未启用。"""
 
-from fastapi import APIRouter, Header, HTTPException, Response
+from fastapi import APIRouter, Header, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +10,7 @@ from ..database import (
     async_session,
     get_ai_consult_sessionmaker,
 )
-from ..schemas.ai_consult import ConsentCreate, GuestContextCreate
+from ..schemas.ai_consult import ConsentCreate, ConsultSessionCreate, GuestContextCreate
 from ..schemas.response import ApiResponse
 from ..security.ai_consult_access import (
     GuestAccessConfigurationError,
@@ -23,12 +23,25 @@ from ..services.ai_consult_consent import (
     ConsentUnavailable,
     load_notice_state,
     record_consent,
+    require_current_consent,
 )
 from ..services.ai_consult_entry_guard import GuestEntryDisabled, GuestRateLimited, reserve_guest_creation
-from ..services.ai_consult_sessions import build_welcome_context
+from ..services.ai_consult_sessions import (
+    ConsultReportDateUnavailable,
+    build_welcome_context,
+    get_guest_session,
+    list_guest_sessions,
+    new_home_session,
+    public_session,
+    verified_report_date,
+)
 
 
 router = APIRouter(prefix="/ai-consult", tags=["ai-consult"])
+
+
+class _ConsentRequired(Exception):
+    pass
 
 
 def _error(status_code: int, message: str, *, retry_after_seconds: int | None = None) -> JSONResponse:
@@ -203,3 +216,98 @@ async def create_consent(
             "decided_at": consent.decided_at.isoformat() + "Z",
         },
     )
+
+
+@router.post("/sessions")
+async def create_session(
+    req: ConsultSessionCreate,
+    response: Response,
+    authorization: str | None = Header(default=None),
+):
+    """只为当前 guest 和当前已验证报告建首页会话；方案来源尚不接受。"""
+    if not settings.AI_CONSULT_GUEST_ENABLED or not settings.AI_CONSULT_SESSIONS_ENABLED:
+        return _error(503, "consult.disabled")
+    if not authorization or not authorization.startswith("Bearer "):
+        return _error(401, "consult.guest_token_required")
+    token = authorization.removeprefix("Bearer ")
+    try:
+        writer = get_ai_consult_sessionmaker()
+        async with writer() as lookup_db:
+            guest = await require_guest(lookup_db, token, req.report_code)
+        async with async_session() as read_db:
+            home = await load_public_report_home(read_db, guest.report_code, guest.customer_id)
+        report_date = verified_report_date(home, guest.report_code)
+        async with writer() as write_db:
+            async with write_db.begin():
+                # 报告读取之后重新检查凭证；同意写入与此处锁同一配置行。
+                guest = await require_guest(write_db, token, req.report_code)
+                consent = await require_current_consent(write_db, guest.id, lock=True)
+                if consent is None:
+                    raise _ConsentRequired()
+                item = new_home_session(guest, consent, report_date)
+                write_db.add(item)
+    except (GuestAccessConfigurationError, AiConsultStorageConfigurationError):
+        return _error(503, "consult.disabled")
+    except GuestAccessDenied:
+        return _error(403, "consult.guest_token_expired")
+    except HTTPException as exc:
+        return _error(exc.status_code, str(exc.detail))
+    except ConsultReportDateUnavailable:
+        return _error(503, "consult.report_unavailable")
+    except _ConsentRequired:
+        return _error(403, "consult.consent_required")
+
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return ApiResponse(message="ok", data=public_session(item))
+
+
+@router.get("/sessions")
+async def get_sessions(
+    response: Response,
+    report_code: str = Query(min_length=1, max_length=64),
+    authorization: str | None = Header(default=None),
+):
+    """只列当前匿名访客在这一份报告里的有效会话。"""
+    if not settings.AI_CONSULT_GUEST_ENABLED or not settings.AI_CONSULT_SESSIONS_ENABLED:
+        return _error(503, "consult.disabled")
+    if not authorization or not authorization.startswith("Bearer "):
+        return _error(401, "consult.guest_token_required")
+    try:
+        writer = get_ai_consult_sessionmaker()
+        async with writer() as db:
+            guest = await require_guest(db, authorization.removeprefix("Bearer "), report_code)
+            items = await list_guest_sessions(db, guest, report_code)
+    except (GuestAccessConfigurationError, AiConsultStorageConfigurationError):
+        return _error(503, "consult.disabled")
+    except GuestAccessDenied:
+        return _error(403, "consult.guest_token_expired")
+    response.headers["Cache-Control"] = "no-store"
+    return ApiResponse(message="ok", data={"sessions": [public_session(item) for item in items]})
+
+
+@router.get("/sessions/{session_id}")
+async def get_session_detail(
+    session_id: str,
+    response: Response,
+    report_code: str = Query(min_length=1, max_length=64),
+    authorization: str | None = Header(default=None),
+):
+    """会话主键不足以授权；SQL 同时限定 guest、报告、状态与有效期。"""
+    if not settings.AI_CONSULT_GUEST_ENABLED or not settings.AI_CONSULT_SESSIONS_ENABLED:
+        return _error(503, "consult.disabled")
+    if not authorization or not authorization.startswith("Bearer "):
+        return _error(401, "consult.guest_token_required")
+    try:
+        writer = get_ai_consult_sessionmaker()
+        async with writer() as db:
+            guest = await require_guest(db, authorization.removeprefix("Bearer "), report_code)
+            item = await get_guest_session(db, guest, report_code, session_id)
+    except (GuestAccessConfigurationError, AiConsultStorageConfigurationError):
+        return _error(503, "consult.disabled")
+    except GuestAccessDenied:
+        return _error(403, "consult.guest_token_expired")
+    if item is None:
+        return _error(404, "consult.session_not_found")
+    response.headers["Cache-Control"] = "no-store"
+    return ApiResponse(message="ok", data={**public_session(item), "turns": []})
