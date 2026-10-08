@@ -334,6 +334,13 @@ body {
     color: #657a84
 }
 
+.immune-card .immune-map {
+    justify-self: end;
+    width: min(190px, 100%);
+    height: auto;
+    aspect-ratio: 1
+}
+
 .immune-map .network {
     stroke: rgba(61, 123, 130, .28)
 }
@@ -1124,10 +1131,73 @@ body {
     font-weight: 500
 }
 
-.detail-radar-wrap .detail-chart-values,
-.detail-network-wrap .detail-chart-values {
+.detail-radar-wrap .detail-chart-values {
     grid-template-columns: 1fr 1fr;
     margin: 0
+}
+
+.detail-network-wrap {
+    grid-template-columns: minmax(0, 43%) minmax(0, 1fr);
+    gap: 10px
+}
+
+.detail-network {
+    justify-self: center;
+    width: 100%;
+    max-width: 165px;
+    height: auto
+}
+
+.detail-network-values {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px
+}
+
+.detail-network-item {
+    min-width: 0;
+    min-height: 54px;
+    padding: 9px 10px;
+    border: 1px solid rgba(81, 140, 146, .12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .82)
+}
+
+.detail-network-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px
+}
+
+.detail-network-item-head span {
+    min-width: 0;
+    color: #405869;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35
+}
+
+.detail-network-item-head strong {
+    flex: none;
+    color: #447d82;
+    font: 700 17px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace
+}
+
+.detail-network-item>i {
+    display: block;
+    height: 4px;
+    margin-top: 7px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: rgba(81, 140, 146, .12)
+}
+
+.detail-network-item>i b {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #6ca5aa
 }
 
 .detail-network .links {
@@ -1154,7 +1224,17 @@ body {
 
 .detail-network .network-score {
     fill: #447d82;
-    font-size: 18px
+    font-size: 32px
+}
+
+@media(max-width:340px) {
+    .detail-network-wrap {
+        grid-template-columns: 1fr
+    }
+
+    .detail-network {
+        width: 150px
+    }
 }
 
 .detail-vertical-bars {
@@ -1213,8 +1293,7 @@ body {
 
 @media(max-width:374px) {
 
-    .detail-radar-wrap,
-    .detail-network-wrap {
+    .detail-radar-wrap {
         grid-template-columns: 1fr
     }
 
@@ -2295,7 +2374,7 @@ body {
 }
 
 .detail-v2 .detail-network .network-score {
-    font-size: 20px
+    font-size: 32px
 }
 
 .detail-v2 .detail-vertical-bars {
