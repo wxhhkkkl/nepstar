@@ -10,7 +10,7 @@
 
 ## 启动与同意
 
-`GET /bootstrap?report_code=...`：返回报告日期、简短摘要、三个真实可问的问题、服务状态、当前告知版本、该 guest 是否已同意以及该 guest 剩余额度。只返回与凭证绑定的报告数据；服务未就绪返回明确状态，不显示示例报告。
+`GET /bootstrap?report_code=...`：携带 `Authorization: Bearer <guest_token>`，从凭证绑定的报告读取日期、总分和可见系统，返回简短事实摘要、三个依据真实报告生成的可问问题、服务状态、当前告知版本/正文/服务商/处理范围、该 guest 最新的同意状态及剩余额度。只返回必要字段，不复制报告编号、姓名、设备信息或完整指标树。候选阶段真实模型与额度统计未实现，分别返回 `service_status: "unavailable"` 和 `remaining_today: null`，不伪装为可咨询或虚构额度；服务未就绪时不显示示例报告。
 
 `POST /consents`：输入 `{ "report_code": "...", "notice_version": "...", "provider_code": "...", "accepted": true }`，并在 `Authorization` 头携带 guest 凭证；仅在显示当前告知后接受。服务端校验该凭证绑定的报告、当前服务商、告知版本、告知正文摘要与处理范围摘要。记录的是持有此 guest 凭证的访问者的选择，不声称是报告本人同意。`accepted=false` 记录拒绝/撤回并不外发；服务商、告知正文或处理范围变化后要求新的同意。
 

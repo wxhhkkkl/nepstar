@@ -18,8 +18,14 @@ from ..security.ai_consult_access import (
     build_guest_context,
     require_guest,
 )
-from ..services.ai_consult_consent import ConsentMismatch, ConsentUnavailable, record_consent
+from ..services.ai_consult_consent import (
+    ConsentMismatch,
+    ConsentUnavailable,
+    load_notice_state,
+    record_consent,
+)
 from ..services.ai_consult_entry_guard import GuestEntryDisabled, GuestRateLimited, reserve_guest_creation
+from ..services.ai_consult_sessions import build_welcome_context
 
 
 router = APIRouter(prefix="/ai-consult", tags=["ai-consult"])
@@ -52,9 +58,21 @@ async def verify_public_report(db: AsyncSession, report_code: str, customer_id: 
         raise HTTPException(status_code=503, detail="consult.report_unavailable") from exc
 
 
+async def load_public_report_home(db: AsyncSession, report_code: str, customer_id: int) -> dict:
+    """用既有只读报告聚合核对归属并取得真实欢迎上下文。"""
+    from ..services import report_source, report_view_service
+
+    try:
+        return await report_view_service.build_home(db, report_code, customer_id)
+    except report_view_service.ReportViewError as exc:
+        raise HTTPException(status_code=exc.code, detail="consult.report_unavailable") from exc
+    except report_source.ReportSourceUnavailableError as exc:
+        raise HTTPException(status_code=503, detail="consult.report_unavailable") from exc
+
+
 @router.post("/guest-contexts")
 async def create_guest_context(req: GuestContextCreate, response: Response):
-    """创建独立 guest；路由暂不挂到主应用，待限流和告知流程完成。"""
+    """创建独立 guest；路由暂不挂到主应用，待会话隔离和上线评估完成。"""
     if not settings.AI_CONSULT_GUEST_ENABLED:
         return _error(503, "consult.disabled")
     try:
@@ -88,6 +106,57 @@ async def create_guest_context(req: GuestContextCreate, response: Response):
             "expires_at": guest.expires_at.isoformat() + "Z",
             "report_code": guest.report_code,
             "customer_id": guest.customer_id,
+        },
+    )
+
+
+@router.get("/bootstrap")
+async def get_bootstrap(
+    report_code: str,
+    response: Response,
+    authorization: str | None = Header(default=None),
+):
+    """返回当前 guest 可查看的真实报告摘要与告知；不创建会话或调用模型。"""
+    if not settings.AI_CONSULT_GUEST_ENABLED:
+        return _error(503, "consult.disabled")
+    if not authorization or not authorization.startswith("Bearer "):
+        return _error(401, "consult.guest_token_required")
+    token = authorization.removeprefix("Bearer ")
+    try:
+        write_sessionmaker = get_ai_consult_sessionmaker()
+        async with write_sessionmaker() as write_db:
+            guest = await require_guest(write_db, token, report_code)
+            notice_config, consent_granted = await load_notice_state(write_db, guest.id)
+    except (GuestAccessConfigurationError, AiConsultStorageConfigurationError):
+        return _error(503, "consult.disabled")
+    except GuestAccessDenied:
+        return _error(403, "consult.guest_token_expired")
+
+    async with async_session() as read_db:
+        try:
+            home = await load_public_report_home(read_db, guest.report_code, guest.customer_id)
+        except HTTPException as exc:
+            return _error(exc.status_code, str(exc.detail))
+
+    context = build_welcome_context(home)
+    notice = None
+    if notice_config is not None:
+        notice = {
+            "version": notice_config.notice_version,
+            "text": notice_config.notice_text,
+            "provider_code": notice_config.provider_code,
+            "data_scope_text": notice_config.data_scope_text,
+        }
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return ApiResponse(
+        message="ok",
+        data={
+            **context,
+            "notice": notice,
+            "consent_status": "granted" if consent_granted else "required",
+            "service_status": "unavailable",  # 模型接入和上线评估尚未完成
+            "remaining_today": None,  # 额度统计未实现，不伪造数字
         },
     )
 

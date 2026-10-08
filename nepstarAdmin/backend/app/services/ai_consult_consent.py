@@ -101,3 +101,19 @@ async def require_current_consent(db: AsyncSession, guest_id: int) -> SAAiConsul
     )
     consent = consent_result.scalar_one_or_none()
     return consent if consent_is_current(consent, config, guest_id) else None
+
+
+async def load_notice_state(db: AsyncSession, guest_id: int) -> tuple[SAAiConsultSettings | None, bool]:
+    """给欢迎页读取当前完整告知与最新选择；不返回旧版本的部分告知。"""
+    settings_result = await db.execute(select(SAAiConsultSettings).where(SAAiConsultSettings.id == 1))
+    config = settings_result.scalar_one_or_none()
+    if not _notice_ready(config):
+        return None, False
+    consent_result = await db.execute(
+        select(SAAiConsultConsent)
+        .where(SAAiConsultConsent.guest_id == guest_id)
+        .order_by(SAAiConsultConsent.decided_at.desc(), SAAiConsultConsent.id.desc())
+        .limit(1)
+    )
+    consent = consent_result.scalar_one_or_none()
+    return config, consent_is_current(consent, config, guest_id)
