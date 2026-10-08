@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "mysql+aiomysql://root:root@localhost:3306/smart_admin"
     CONFIG_DATABASE_URL: str = ""
     NEPSTAR_DATABASE_URL: str = ""  # 系统表所在库；AI 咨询写会话要求显式指向 nepstar
+    AI_CONSULT_TOKEN_HMAC_KEY: str = ""  # 匿名聊天凭证摘要密钥；未配置时禁止签发/读取聊天
+    AI_CONSULT_GUEST_ENABLED: bool = False  # 匿名入口默认关闭，限流与告知流程完整后再启用
     # 部署辅助信息，应用运行时不读取；声明出来是为了让含这些键的 .env 通过 extra 校验
     SERVER_IP: str = ""
     SERVER_USER: str = ""

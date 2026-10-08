@@ -15,7 +15,7 @@
 
 报告链接不要求登录。创建匿名上下文时服务端先用只读源核对报告编号、客户编号是否对应且报告已就绪，然后生成至少 256 位随机 `guest_token`。只向当前标签页返回一次明文；前端存于 `sessionStorage`，不得拼进 URL、埋点或日志。服务端仅保存加盐/HMAC 摘要，后续请求以 `Authorization: Bearer` 提交并恒时比较摘要。这个秘密保护聊天，**不**证明访问者是报告本人。
 
-表字段：`id`、`token_digest`（唯一）、`report_code`、`customer_id`、`created_at`、`last_activity_at`、`expires_at`、`revoked_at`。`guest_token` 与报告范围一对一；换报告建新的上下文。凭报告链接、报告参数或后台管理员 JWT 均无法重新找回聊天；通常关闭标签页会失去凭证，但浏览器恢复该标签页可能保留会话。凭证过期/撤销时聊天不可再读取，但公开报告仍可继续访问。每个标签页的每份报告可在 `sessionStorage` 保存独立凭证以供同一标签页返回时恢复。
+表字段：`id`、`token_digest`（唯一）、`report_code`、`customer_id`、`created_at`、`last_activity_at`、`expires_at`、`revoked_at`。用户已确认签发后最长 30 天有效；到期或撤销时服务端拒绝，且不因活动续期。`guest_token` 与报告范围一对一；换报告建新的上下文。凭报告链接、报告参数或后台管理员 JWT 均无法重新找回聊天；通常关闭标签页会失去凭证，但浏览器恢复该标签页可能保留会话。凭证过期/撤销时聊天不可再读取，但公开报告仍可继续访问。每个标签页的每份报告可在 `sessionStorage` 保存独立凭证以供同一标签页返回时恢复。
 
 ## 2. `sa_ai_consult_settings`
 
