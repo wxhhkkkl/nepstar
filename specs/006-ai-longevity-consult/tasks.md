@@ -97,15 +97,15 @@
 
 ### Tests（先红）
 
-- [ ] T032 [P] [US3] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_safety.py` 写失败测试，覆盖急症优先、诊断/处方/停药拒绝、最多三个行动、生活信息来源标记及寿命承诺拦截。
+- [x] T032 [P] [US3] 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_safety.py` 先确认模块缺失时红灯，再覆盖急症优先、诊断/处方/停药拒绝、最多三个行动、生活信息来源标记及寿命承诺拦截；30 个本地用例已转绿。
 - [ ] T033 [P] [US3] 在 `reportFront/tests/components/AiConsultConversation.spec.js` 写失败测试，覆盖追问、用户补充来源标签与清晰的未完成/专业帮助提示。
 
 ### Implementation
 
 - [ ] T034 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 增加多轮上下文裁剪、事实来源标签、适量追问和行动建议输出规则，使 T032 转绿。
-- [ ] T035 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_safety.py` 增加输入优先分流、生成后健康内容校验及危险片段流出前拦截，避免靠页尾提示补救。
+- [ ] T035 [US3] 在 `nepstarAdmin/backend/app/services/ai_consult_safety.py` 增加输入优先分流、生成后健康内容校验及危险片段流出前拦截，避免靠页尾提示补救。候选规则与整段缓冲审核已实现，但尚未接入 SSE 路由；只有集成测试证实未审内容不会外发后才能勾选。
 - [ ] T036 [US3] 在 `reportFront/src/views/AiConsult.vue` 渲染用户补充、追问、行动建议与求助提示，使 T033 转绿。
-- [ ] T037 [US3] 在 `specs/006-ai-longevity-consult/quickstart.md` 记录至少 20 个代表性健康边界用例的结果与人工审核待办。
+- [x] T037 [US3] 在 `specs/006-ai-longevity-consult/quickstart.md` 记录 30 个本地健康边界用例的结果和人工审核待办；临床专业审核本身仍未完成，不能据此上线。
 
 **Checkpoint**: 多轮回答可独立验收，异常健康内容不会先于校验暴露给用户。
 
