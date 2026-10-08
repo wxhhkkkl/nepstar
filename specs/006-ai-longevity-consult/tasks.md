@@ -80,7 +80,7 @@
 - [x] T025 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_evidence.py` 组装按问题相关的报告事实、维护文案与路由证据；模型上下文不含报告号、客户号、设备字段或路由，分数冲突不选边，T021 转绿。当前日期明确标为“报告日期”，实际检测日期和历史证据的问答集成仍在 T028/T029 验证。
 - [x] T026 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现历史查询的当前报告时间上界及至多六次有效点；最多扫描近期 60 份候选报告，数据不足时不补造。调用方须提供已核验报告的精确生成时间；尚未接到问答链路。现有展示页趋势口径未改，T022 已转绿。
 - [ ] T027 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_provider.py` 封装获准模型的服务端调用与受限工具参数；凭据只从服务端配置读取，测试使用 fake provider。
-- [ ] T028 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 实现服务端证据 ID、报告数值/日期校验及无证据时的不确定性表述；不把未校验模型原文作为已完成回答。
+- [x] T028 [US2] 在 `nepstarAdmin/backend/app/services/ai_consult_answer.py` 实现候选回答的服务端证据 ID、报告数值/日期校验及无证据时的不确定性表述；数值和日期由证据渲染，模型草稿不能夹带数值、日期或未知引用。结果仅为 `provenance_validated`，`is_completed=False`，仍须 T035 健康安全审核与 T029 状态持久化后才可发布。
 - [ ] T029 [US2] 在 `nepstarAdmin/backend/app/api/ai_consult.py` 实现基本提问与 accepted/status/delta/evidence/completed/error 事件，服务端保存生成状态，使 T023 转绿。
 - [ ] T030 [US2] 在 `reportFront/src/views/AiConsult.vue` 与 `reportFront/src/api/aiConsultClient.js` 渲染可信依据、报告跳转与基础回答，使 T024 转绿。
 - [ ] T031 [US2] 在 `specs/006-ai-longevity-consult/quickstart.md` 记录 T021～T030 的独立验证：旧报告无未来记录、冲突资料不补造、引用值可回看。
