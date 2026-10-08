@@ -31,8 +31,8 @@
 - [x] T008 在 `nepstarAdmin/backend/app/models/new/sa_ai_consult.py` 和 `nepstarAdmin/backend/alembic/versions/006_ai_consult.py` 建立 settings、rule_version、consent、session、turn、generation、admin_audit 表与唯一约束；离线编译 SQL 后核对只涉及 `nepstar`，使 T007 转绿。迁移文件已编写但尚未对任何数据库执行。
 - [ ] T009 在 `nepstarAdmin/backend/tests/api/test_ai_consult_access.py` 先写失败测试：有效公开链接可为两个独立 guest 建立聊天；仅凭链接、伪造/过期/撤销/跨报告凭证不得读另一 guest 的聊天。
 - [ ] T010 在 `nepstarAdmin/backend/app/security/ai_consult_access.py` 和 `nepstarAdmin/backend/app/schemas/ai_consult.py` 实现至少 256 位随机 guest 凭证、仅存摘要、绑定报告及每次聊天请求校验；使 T009 转绿，后台管理员 JWT 不可代替 guest 凭证。
-- [ ] T011 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_read_boundary.py` 先写失败测试：模型取数路径只可调用允许的 SELECT/find，不能执行 DML/DDL、任意 SQL 或访问任意 URL。
-- [ ] T012 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现只读报告适配与工具白名单，使 T011 转绿，并明确读连接和咨询写连接分离。
+- [x] T011 在 `nepstarAdmin/backend/tests/unit/test_ai_consult_read_boundary.py` 先写失败测试：候选取数工具只接受固定名称和报告范围；MySQL 仅允许现有报告服务的固定 SELECT，禁止 DML/DDL、任意 SQL、URL 参数。MongoDB 仍通过既有固定 `find_one/find` 路径读取；真实模型尚未接入。
+- [x] T012 在 `nepstarAdmin/backend/app/services/ai_consult_sources.py` 实现候选只读报告适配与工具白名单；只投影必要报告事实，旧展示页包含未来记录的趋势暂不传给 AI。读连接与 `nepstar` 咨询写连接分离，实际模型接入仍需 T021～T029。
 
 **Checkpoint**: 用只读外部数据源账号、独立 `nepstar` 测试库验证 T005～T012；任何写库目标不明时不得进入真实数据开发。
 
