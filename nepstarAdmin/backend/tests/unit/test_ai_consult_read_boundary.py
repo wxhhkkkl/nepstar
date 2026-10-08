@@ -94,7 +94,10 @@ async def test_only_named_tools_and_bound_report_scope_can_reach_sources(monkeyp
         "report": {"report_code": "R1", "report_date": "2026-10-08", "total_score": 82,
                    "serial_number": "SECRET", "actual_age": 48},
         "systems": [
-            {"system_code": "SYS_LUNG", "name": "肺功能", "score": 80, "recommendation": {"products": ["SECRET"]}},
+            {"system_code": "SYS_LUNG", "name": "肺功能", "score": 80,
+             "indicators": [{"indicator_code": "SYS_LUNG_SLEEP", "name": "呼吸睡眠", "score": 90,
+                             "description": "不在索引中外发"}],
+             "recommendation": {"products": ["SECRET"]}},
             {"system_code": "SYS_BAD", "name": "异常", "score": 102},
         ],
     })
@@ -102,7 +105,8 @@ async def test_only_named_tools_and_bound_report_scope_can_reach_sources(monkeyp
         "report_code": "R1",
         "system": {"system_code": "SYS_LUNG", "name": "肺功能"},
         "indicator": {"indicator_code": "SYS_LUNG_SLEEP", "name": "呼吸睡眠", "score": 98,
-                      "description": "测试描述", "trend": [{"date": "2026-12-01", "score": 99}],
+                      "description": "测试描述", "interpretation": "测试解读",
+                      "status_text": "保持关注", "trend": [{"date": "2026-12-01", "score": 99}],
                       "customer_id": 1001},
     })
     monkeypatch.setattr(
@@ -124,10 +128,15 @@ async def test_only_named_tools_and_bound_report_scope_can_reach_sources(monkeyp
         db, scope, "indicator", indicator_code="SYS_LUNG_SLEEP"
     )
     assert home == {"report_code": "R1", "report_date": "2026-10-08", "total_score": 82,
-                    "systems": [{"system_code": "SYS_LUNG", "name": "肺功能", "score": 80}]}
+                    "systems": [{"system_code": "SYS_LUNG", "name": "肺功能", "score": 80,
+                                 "indicators": [{"indicator_code": "SYS_LUNG_SLEEP",
+                                                 "name": "呼吸睡眠", "score": 90}]},
+                                {"system_code": "SYS_BAD", "name": "异常", "score": None,
+                                 "indicators": []}]}
     assert detail == {"report_code": "R1", "system": {"system_code": "SYS_LUNG", "name": "肺功能"},
                       "indicator": {"indicator_code": "SYS_LUNG_SLEEP", "name": "呼吸睡眠",
-                                    "score": 98, "description": "测试描述"}}
+                                    "score": 98, "description": "测试描述",
+                                    "interpretation": "测试解读", "status_text": "保持关注"}}
     assert isinstance(home_loader.await_args.args[0], ai_consult_sources.ReadOnlyReportSession)
     assert detail_loader.await_args.args[1:] == ("R1", "SYS_LUNG_SLEEP", 1001)
 
@@ -169,4 +178,5 @@ async def test_non_finite_scores_are_omitted_without_exposing_raw_data(monkeypat
         FakeReadDb(), SimpleNamespace(report_code="R1", customer_id=1001), "home"
     )
     assert result["total_score"] is None
-    assert result["systems"] == []
+    assert result["systems"] == [{"system_code": "SYS_LUNG", "name": "肺功能",
+                                   "score": None, "indicators": []}]

@@ -160,9 +160,38 @@ async def read_report_tool(
         for item in data.get("systems") or []:
             if not isinstance(item, dict):
                 continue
-            score = _score(item.get("score"))
-            if score is not None and item.get("system_code") and item.get("name"):
-                systems.append({"system_code": item["system_code"], "name": item["name"], "score": score})
+            system_code = item.get("system_code")
+            if not isinstance(system_code, str) or _INDICATOR_CODE.fullmatch(system_code) is None:
+                continue
+            if not isinstance(item.get("name"), str) or not item["name"]:
+                continue
+            indicators = []
+            for child in item.get("indicators") or []:
+                if not isinstance(child, dict):
+                    continue
+                indicator_code = child.get("indicator_code")
+                if (
+                    not isinstance(indicator_code, str)
+                    or _INDICATOR_CODE.fullmatch(indicator_code) is None
+                    or not isinstance(child.get("name"), str)
+                    or not child["name"]
+                ):
+                    continue
+                indicators.append(
+                    {
+                        "indicator_code": indicator_code,
+                        "name": child["name"],
+                        "score": _score(child.get("score")),
+                    }
+                )
+            systems.append(
+                {
+                    "system_code": system_code,
+                    "name": item["name"],
+                    "score": _score(item.get("score")),
+                    "indicators": indicators,
+                }
+            )
         return {
             "report_code": report_code,
             "report_date": report.get("report_date"),
@@ -175,7 +204,7 @@ async def read_report_tool(
     if data.get("report_code") != report_code or item.get("indicator_code") != indicator_code:
         raise ReadBoundaryViolation("Indicator scope mismatch")
     system = data.get("system") or {}
-    # 旧展示页趋势含当前报告之后的记录，AI 的历史上界尚未实现，故此处不复制 trend。
+    # 旧展示页趋势含当前报告之后的记录；AI 仅能使用独立的时间上界查询。
     return {
         "report_code": report_code,
         "system": {"system_code": system.get("system_code"), "name": system.get("name")},
@@ -184,6 +213,8 @@ async def read_report_tool(
             "name": item.get("name"),
             "score": _score(item.get("score")),
             "description": item.get("description"),
+            "interpretation": item.get("interpretation"),
+            "status_text": item.get("status_text"),
         },
     }
 
