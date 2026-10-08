@@ -1039,7 +1039,7 @@ svg {
     min-height: 292px;
     padding: 22px;
     display: grid;
-    grid-template-columns: 122px 1fr;
+    grid-template-columns: 148px 1fr;
     align-items: center;
     color: #fff;
     background: #0a2630

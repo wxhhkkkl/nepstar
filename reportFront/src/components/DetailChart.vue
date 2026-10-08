@@ -7,7 +7,14 @@ const viz = computed(() => props.system.visualization)
 const linePoints = computed(() => buildLinePoints(viz.value.series ?? []))
 const linePath = computed(() => linePoints.value.map((point, index) => `${index ? 'L' : 'M'}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' '))
 const radarPoints = computed(() => buildRadarPoints(viz.value.series ?? []).map(({ x, y }) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' '))
-const networkNodes = [[100, 24], [165, 62], [165, 138], [100, 176], [35, 138], [35, 62]]
+const networkNodes = computed(() => {
+  const count = Math.min(viz.value.categories?.length ?? 0, viz.value.series?.length ?? 0)
+  return Array.from({ length: count }, (_, index) => {
+    const angle = (index * 2 * Math.PI) / count
+    return [100 + 76 * Math.sin(angle), 100 - 76 * Math.cos(angle)]
+  })
+})
+const networkOutline = computed(() => networkNodes.value.map(([x, y]) => `${x},${y}`).join(' '))
 const average = computed(() => {
   const values = viz.value.series ?? []
   return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0
@@ -38,7 +45,23 @@ const average = computed(() => {
     </template>
 
     <template v-else-if="viz.type === 'network'">
-      <div class="detail-network-wrap"><svg class="detail-network" viewBox="0 0 200 200" aria-hidden="true"><g class="links"><path v-for="node in networkNodes" :key="node.join('-')" :d="`M100 100L${node[0]} ${node[1]}`" /><path d="M100 24L165 62L165 138L100 176L35 138L35 62Z" /></g><circle class="center" cx="100" cy="100" r="31" /><g v-for="(node, index) in networkNodes" :key="index"><circle :cx="node[0]" :cy="node[1]" r="13" /><text :x="node[0]" :y="node[1] + 3">{{ viz.series[index] }}</text></g><text class="network-score" x="100" y="105">{{ average }}</text></svg><div class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name"><small>{{ name }}</small><strong>{{ viz.series[index] }}</strong></span></div></div>
+      <div class="detail-network-wrap">
+        <svg class="detail-network" viewBox="0 0 200 200" aria-hidden="true">
+          <g class="links">
+            <path v-for="(node, index) in networkNodes" :key="index" :d="`M100 100L${node[0]} ${node[1]}`" />
+            <polygon v-if="networkNodes.length > 2" :points="networkOutline" />
+          </g>
+          <circle class="center" cx="100" cy="100" r="31" />
+          <circle v-for="(node, index) in networkNodes" :key="index" :cx="node[0]" :cy="node[1]" r="13" />
+          <text class="network-score" x="100" y="105">{{ average }}</text>
+        </svg>
+        <div class="detail-network-values">
+          <div v-for="(name, index) in viz.categories" :key="name" class="detail-network-item">
+            <div class="detail-network-item-head"><span>{{ name }}</span><strong>{{ viz.series[index] }}</strong></div>
+            <i><b :style="{ width: `${viz.series[index]}%` }"></b></i>
+          </div>
+        </div>
+      </div>
     </template>
 
     <div v-else-if="viz.type === 'vertical-bars'" class="detail-vertical-bars"><article v-for="(name, index) in viz.categories" :key="name"><strong>{{ viz.series[index] }}</strong><i><b :style="{ height: `${viz.series[index]}%` }"></b></i><span>{{ name }}</span></article></div>
