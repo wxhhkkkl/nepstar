@@ -1,0 +1,71 @@
+{
+  "measured_on": "2026-10-10",
+  "environment": "headless_chrome_mobile_emulation_loopback_proxy_real_vue_fastapi_local_nepstar_real_deepseek_synthetic_reports",
+  "viewport": {
+    "width": 414,
+    "height": 740
+  },
+  "timing_method": "send_click_capture_to_visible_dom_after_two_animation_frames",
+  "browser_background_throttling_disabled": true,
+  "api_response_mocking": false,
+  "automatic_question_retries": 0,
+  "status": "passed",
+  "stage": "complete",
+  "real_report_sent": false,
+  "remote_database_used": false,
+  "deployment_proxy_measured": false,
+  "model_calls": 20,
+  "release_accepted": false,
+  "scenario": "success",
+  "provider_fault_injected": false,
+  "source_fault_injected": false,
+  "samples": 20,
+  "question_requests": 20,
+  "browser_completed_count": 20,
+  "proxy_question_in_flight_peak": 20,
+  "browser_latency_ms": {
+    "feedback_ms": {
+      "p50_ms": 22,
+      "p95_ms": 30.2,
+      "p99_ms": 31.6
+    },
+    "accepted_ms": {
+      "p50_ms": 625.6,
+      "p95_ms": 747.5,
+      "p99_ms": 748
+    },
+    "answer_ms": {
+      "p50_ms": 2608.8,
+      "p95_ms": 2973.9,
+      "p99_ms": 3397.3
+    },
+    "completed_ms": {
+      "p50_ms": 2608.8,
+      "p95_ms": 2973.9,
+      "p99_ms": 3397.3
+    }
+  },
+  "browser_version": "155.0.8059.39",
+  "external_requests_blocked": 0,
+  "proxy_requests_blocked": 0,
+  "current_turn_reads": 0,
+  "local_streaming_proxy_measured": true,
+  "mobile_emulation_measured": true,
+  "physical_device_measured": false,
+  "provider_invocations": 20,
+  "provider_cancelled_count": 0,
+  "source_cancelled_count": 0,
+  "server_provider_in_flight_peak": 20,
+  "server_provider_concurrency_measured": true,
+  "persisted_policy_unchanged": true,
+  "saved_question_count": 20,
+  "saved_attempt_count": 20,
+  "completed_attempt_count": 20,
+  "timeout_attempt_count": 0,
+  "unavailable_attempt_count": 0,
+  "running_attempt_count": 0,
+  "saved_answer_count": 20,
+  "prompt_tokens": 11100,
+  "completion_tokens": 1579,
+  "unknown_usage_reserved_tokens": 0
+}

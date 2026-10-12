@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import RecommendationCard from '@/components/RecommendationCard.vue'
 import { toReportViewModel } from '@/data/reportAdapter.js'
-import { reportAssets } from '@/data/report.js'
 import { reportDto } from '../fixtures/reportDto.js'
 
 const report = toReportViewModel(reportDto)
@@ -24,11 +23,23 @@ describe('RecommendationCard', () => {
     expect(mount(RecommendationCard, { props: { system: system('SYS_CARDIO') }, global: { stubs: { RouterLink: true } } }).html()).toBe('<!--v-if-->')
   })
 
-  it('uses the English-named consultation image on the detail page', () => {
-    const wrapper = mount(RecommendationCard, {
-      props: { system: system('SYS_ENDOCRINE'), variant: 'detail' },
-      global: { stubs: { RouterLink: true } },
-    })
-    expect(wrapper.get('.detail-product-action').attributes('href')).toBe(reportAssets.aiConsultImage)
+  it('opens AI consultation from the detail page and preserves the system as its return target', () => {
+    const originalUrl = window.location.href
+    window.history.replaceState({}, '', '/#/system/SYS_ENDOCRINE?reportId=R1&userId=1001')
+    try {
+      const wrapper = mount(RecommendationCard, {
+        props: { system: system('SYS_ENDOCRINE'), variant: 'detail' },
+        global: { stubs: { RouterLink: { props: ['to'], template: '<a :data-name="to.name" :data-report="to.query.reportId" :data-user="to.query.userId" :data-plan="to.query.planId" :data-indicator="to.query.indicatorCode" :data-return-system="to.query.returnSystem"><slot /></a>' } } },
+      })
+      const destination = wrapper.get('.detail-product-action')
+      expect(destination.attributes('data-name')).toBe('ai-consult')
+      expect(destination.attributes('data-report')).toBe('R1')
+      expect(destination.attributes('data-user')).toBe('1001')
+      expect(destination.attributes('data-plan')).toBe('1')
+      expect(destination.attributes('data-indicator')).toBe('SYS_ENDOCRINE_PINEAL')
+      expect(destination.attributes('data-return-system')).toBe('SYS_ENDOCRINE')
+    } finally {
+      window.history.replaceState({}, '', originalUrl)
+    }
   })
 })

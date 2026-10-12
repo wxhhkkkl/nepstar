@@ -85,6 +85,25 @@
           </div>
         </el-form-item>
 
+        <el-form-item v-if="aiSettingsMenuId !== null" label="AI 咨询设置权限">
+          <div class="ai-permission-options">
+            <p class="tree-hint">勾选“AI 咨询设置”菜单后默认可查看；编辑和发布需分别授权。</p>
+            <el-checkbox-group v-model="aiSettingsExtraActions">
+              <el-checkbox value="edit">编辑设置与规则草稿</el-checkbox>
+              <el-checkbox value="publish">发布与回退规则</el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </el-form-item>
+
+        <el-form-item v-if="aiOverviewMenuId !== null" label="AI 咨询对话权限">
+          <div class="ai-permission-options">
+            <p class="tree-hint">概览查看权限不包含聊天正文；完整问答需要单独授权。</p>
+            <el-checkbox-group v-model="aiOverviewExtraActions">
+              <el-checkbox value="conversation">查看会话完整对话（含健康信息）</el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </el-form-item>
+
         <!-- Data permission: org tree -->
         <el-form-item :label="$t('role.dataScope')">
           <div class="tree-box">
@@ -118,12 +137,14 @@ import { ElMessage, type FormInstance, type FormRules, type TreeInstance } from 
 import { Plus } from '@element-plus/icons-vue'
 import { useAppStore } from '@/stores/app'
 import api from '@/api/client'
+import { buildRoleMenuPermissions, findRoleMenuId } from './roleMenuPermissions'
 
 const { t } = useI18n()
 const appStore = useAppStore()
 
 interface MenuNode {
   id: number
+  route_path?: string
   name_zh: string
   name_en: string
   name_es: string
@@ -165,6 +186,11 @@ const rules: FormRules = {
 
 const rawMenuData = ref<MenuNode[]>([])
 const orgTree = ref<OrgNode[]>([])
+const aiSettingsExtraActions = ref<string[]>([])
+const aiOverviewExtraActions = ref<string[]>([])
+const existingMenuActions = ref<Record<number, string>>({})
+const aiSettingsMenuId = computed(() => findRoleMenuId(rawMenuData.value, '/health/ai-consult-settings'))
+const aiOverviewMenuId = computed(() => findRoleMenuId(rawMenuData.value, '/health/ai-consult-overview'))
 
 function addMenuLabels(nodes: MenuNode[]): MenuNode[] {
   return nodes.map(n => ({
@@ -232,6 +258,9 @@ function onOrgCheck(data: any) {
 function openCreate() {
   editingId.value = null
   form.value = { role_name: '', role_code: '', data_scope: 'self' }
+  aiSettingsExtraActions.value = []
+  aiOverviewExtraActions.value = []
+  existingMenuActions.value = {}
   dialogVisible.value = true
   resetTrees()
 }
@@ -246,11 +275,21 @@ async function openEdit(row: any) {
   dialogVisible.value = true
   try {
     const r = await api.get(`/roles/${row.id}`)
+    existingMenuActions.value = Object.fromEntries(
+      (r.data.menu_permissions || []).map((permission: any) => [permission.menu_id, permission.actions]),
+    )
+    const settingsActions = (existingMenuActions.value[aiSettingsMenuId.value ?? -1] || '').split(',')
+    aiSettingsExtraActions.value = ['edit', 'publish'].filter(action => settingsActions.includes(action))
+    const overviewActions = (existingMenuActions.value[aiOverviewMenuId.value ?? -1] || '').split(',').map(action => action.trim())
+    aiOverviewExtraActions.value = overviewActions.includes('conversation') ? ['conversation'] : []
     setTimeout(() => {
       permTreeRef.value?.setCheckedKeys((r.data.menu_permissions || []).map((p: any) => p.menu_id))
       orgTreeRef.value?.setCheckedKeys(r.data.org_ids || [])
     }, 0)
   } catch {
+    existingMenuActions.value = {}
+    aiSettingsExtraActions.value = []
+    aiOverviewExtraActions.value = []
     resetTrees()
   }
 }
@@ -264,10 +303,9 @@ async function submitForm() {
     const orgIds = (orgTreeRef.value?.getCheckedKeys() || []) as number[]
     const payload = {
       ...form.value,
-      menu_permissions: menuIds.map(menu_id => ({
-        menu_id,
-        actions: 'view,add,edit,delete,export,import',
-      })),
+      menu_permissions: buildRoleMenuPermissions(
+        menuIds, rawMenuData.value, existingMenuActions.value, aiSettingsExtraActions.value, aiOverviewExtraActions.value,
+      ),
       org_ids: orgIds,
     }
     if (editingId.value) {
@@ -330,6 +368,7 @@ onMounted(() => {
 .tree-hint {
   color: #94a3b8; font-size: 12px; margin: 0 0 6px 4px;
 }
+.ai-permission-options { width: 100%; }
 :deep(.tree-box .el-tree) { background: transparent; }
 :deep(.tree-box .el-tree-node__content) {
   height: auto; padding: 4px 6px; border-radius: 6px;

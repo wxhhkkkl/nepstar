@@ -37,6 +37,16 @@ async def get_current_user(
     return user
 
 
+async def require_system_admin(
+    user: SAUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SAUser:
+    """Restrict role and user administration to active system administrators."""
+    if not await is_admin(user.id, db):
+        raise HTTPException(status_code=403, detail="No permission")
+    return user
+
+
 async def check_permission(
     request: Request,
     user: SAUser = Depends(get_current_user),

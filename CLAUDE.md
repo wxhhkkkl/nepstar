@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Current feature plan: specs/005-single-indicator-detail/plan.md
+Current feature plan: specs/006-ai-longevity-consult/plan.md
 (research.md, data-model.md, quickstart.md, and contracts/ live alongside it)
 <!-- SPECKIT END -->
 

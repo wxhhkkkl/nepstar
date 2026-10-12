@@ -18,6 +18,7 @@ const MESSAGES = {
   [ERROR_KINDS.ROUTE_NOT_FOUND]: { eyebrow: 'PAGE NOT FOUND', title: '页面未找到', detail: '链接地址可能有误，或页面已调整。', hint: '请核对链接后重新打开', visual: 'route' },
   [ERROR_KINDS.UNAVAILABLE]: { eyebrow: 'SERVICE UNAVAILABLE', title: '报告服务暂时不可用', detail: '报告数据暂时无法读取，请稍后重试。', hint: '稍后刷新即可重新尝试', visual: 'service' },
   [ERROR_KINDS.NETWORK]: { eyebrow: 'CONNECTION INTERRUPTED', title: '网络连接失败', detail: '报告暂时无法加载，请检查网络后重试。', hint: '如果网络已恢复，点击按钮继续查看报告', visual: 'network' },
+  [ERROR_KINDS.TIMEOUT]: { eyebrow: 'REQUEST TIMED OUT', title: '报告加载超时', detail: '报告服务响应较慢，请稍后重试。', hint: '点击按钮重新获取报告', visual: 'network' },
 }
 
 const message = computed(
@@ -27,6 +28,7 @@ const retryable = computed(
   () =>
     props.kind === ERROR_KINDS.UNAVAILABLE ||
     props.kind === ERROR_KINDS.NETWORK ||
+    props.kind === ERROR_KINDS.TIMEOUT ||
     props.kind === ERROR_KINDS.NOT_READY ||
     !MESSAGES[props.kind],
 )

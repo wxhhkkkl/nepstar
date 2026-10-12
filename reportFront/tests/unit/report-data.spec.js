@@ -19,7 +19,8 @@ describe('report view model contract', () => {
 
   it('associates recommendations only with the systems that returned one', () => {
     const recommended = report.systems.filter(({ recommendation }) => recommendation)
-    expect(recommended.map(({ id }) => id)).toEqual(['SYS_ENDOCRINE', 'SYS_BONE'])
+    expect(recommended.map(({ systemCode }) => systemCode)).toEqual(['SYS_ENDOCRINE', 'SYS_BONE'])
+    expect(recommended.map(({ id }) => id)).toEqual(['endocrine', 'bone'])
     expect(recommended[0].recommendation.title).toContain('睡眠健康')
     expect(recommended[1].recommendation.title).toContain('钙流失健康')
   })

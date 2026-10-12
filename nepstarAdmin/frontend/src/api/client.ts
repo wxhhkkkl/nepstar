@@ -1,10 +1,7 @@
 import axios from 'axios';
 import router from '@/router';
 
-const apiBaseURL = import.meta.env.VITE_API_BASE_URL
-  || (import.meta.env.PROD
-    ? '/api/v1'
-    : `${window.location.protocol}//${window.location.hostname}:8000/api/v1`);
+const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 const api = axios.create({
   baseURL: apiBaseURL,

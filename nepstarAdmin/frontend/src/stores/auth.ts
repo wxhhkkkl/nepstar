@@ -5,9 +5,8 @@ import api from '@/api/client';
 interface UserInfo {
   id: number;
   username: string;
-  realName: string;
-  langPref: string;
-  mustChangePwd: boolean;
+  real_name: string;
+  lang_pref: string;
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -29,7 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUserInfo() {
     const res = await api.get('/auth/me');
     user.value = res.data.user;
-    roles.value = res.data.roles?.map((r: any) => r.roleCode) || [];
+    roles.value = res.data.roles?.map((r: any) => r.role_code) || [];
     menus.value = res.data.menus || [];
     permissions.value = res.data.permissions || {};
   }

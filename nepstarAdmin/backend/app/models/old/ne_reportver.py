@@ -3,7 +3,7 @@
 import logging
 
 from sqlalchemy import MetaData, Table
-from sqlalchemy.exc import NoSuchTableError
+from sqlalchemy.exc import NoSuchTableError, SQLAlchemyError
 
 from ...database import sync_engine
 
@@ -13,4 +13,10 @@ try:
     ne_reportver_table = Table("ne_reportver", MetaData(), autoload_with=sync_engine, keep_existing=True)
 except NoSuchTableError:
     logger.warning("Old system table 'ne_reportver' not found — report features will be unavailable.")
+    ne_reportver_table = None
+except SQLAlchemyError as exc:
+    logger.warning(
+        "Old system table 'ne_reportver' metadata source unavailable; report features may be unavailable (%s).",
+        type(exc).__name__,
+    )
     ne_reportver_table = None

@@ -1,0 +1,29 @@
+{
+  "measured_on": "2026-10-10",
+  "environment": "ephemeral_loopback_fastapi_local_nepstar_real_deepseek_synthetic_reports",
+  "status": "passed",
+  "samples": 20,
+  "question_requests": 20,
+  "model_calls": 20,
+  "outcomes": {"completed": 20},
+  "client_in_flight_peak": 20,
+  "server_provider_in_flight_peak": 20,
+  "latency_ms": {
+    "accepted": {"p50_ms": 232.8, "p95_ms": 403.5, "p99_ms": 422.01},
+    "delta": {"p50_ms": 1330.65, "p95_ms": 1526.83, "p99_ms": 1731.79},
+    "completed": {"p50_ms": 1330.88, "p95_ms": 1527.1, "p99_ms": 1732.22}
+  },
+  "http_p95_targets_met": {"accepted": true, "delta": true, "completed": true},
+  "saved_question_count": 20,
+  "saved_attempt_count": 20,
+  "completed_attempt_count": 20,
+  "prompt_tokens": 11100,
+  "completion_tokens": 1564,
+  "persisted_policy_unchanged": true,
+  "real_report_sent": false,
+  "remote_database_used": false,
+  "deployment_proxy_measured": false,
+  "mobile_visible_latency_measured": false,
+  "timeout_latency_ms": null,
+  "release_accepted": false
+}

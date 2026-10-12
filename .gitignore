@@ -17,6 +17,8 @@ venv/
 env/
 .eggs/
 build/
+# 后端一键部署的独立环境、进程记录与私有日志
+nepstarAdmin/backend/.deploy/
 
 # Node
 node_modules/

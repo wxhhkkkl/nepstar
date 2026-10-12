@@ -8,12 +8,12 @@ const report = toReportViewModel(reportDto)
 describe('report data selectors', () => {
   it('filters systems for the current profile', () => {
     expect(getVisibleSystems(report).map(({ id }) => id)).toEqual([
-      'SYS_ENDOCRINE', 'SYS_LUNG', 'SYS_BONE', 'SYS_CARDIO', 'SYS_DIGEST', 'SYS_FEMALE', 'SYS_IMMUNE',
+      'endocrine', 'lung', 'bone', 'cardio', 'digest', 'female', 'immune',
     ])
   })
 
   it('returns the same shared object and null for unknown ids', () => {
-    expect(getSystemById(report, 'SYS_BONE')).toBe(report.systems.find(({ id }) => id === 'SYS_BONE'))
+    expect(getSystemById(report, 'bone')).toBe(report.systems.find(({ systemCode }) => systemCode === 'SYS_BONE'))
     expect(getSystemById(report, 'unknown')).toBeNull()
   })
 
@@ -24,7 +24,7 @@ describe('report data selectors', () => {
       .filter((e) => e.type === 'system-group' || e.type === 'system')
       .flatMap((e) => e.systemIds ?? [e.systemId])
     expect(ids).toEqual([
-      'SYS_IMMUNE', 'SYS_FEMALE', 'SYS_DIGEST', 'SYS_CARDIO', 'SYS_BONE', 'SYS_LUNG', 'SYS_ENDOCRINE',
+      'immune', 'female', 'digest', 'cardio', 'bone', 'lung', 'endocrine',
     ])
   })
 
@@ -32,20 +32,20 @@ describe('report data selectors', () => {
     expect(
       buildHomeFlow(report).map((e) => `${e.type}:${e.systemId ?? e.systemIds.join(',')}`),
     ).toEqual([
-      'system-group:SYS_ENDOCRINE,SYS_LUNG',
-      'recommendation:SYS_ENDOCRINE',
-      'system:SYS_BONE',
-      'recommendation:SYS_BONE',
-      'system:SYS_CARDIO',
-      'system:SYS_DIGEST',
-      'system:SYS_FEMALE',
-      'system:SYS_IMMUNE',
+      'system-group:endocrine,lung',
+      'recommendation:endocrine',
+      'system:bone',
+      'recommendation:bone',
+      'system:cardio',
+      'system:digest',
+      'system:female',
+      'system:immune',
     ])
   })
 
   it('omits recommendation entries for systems without one', () => {
     const types = buildHomeFlow(report).filter((e) => e.type === 'recommendation')
-    expect(types.map((e) => e.systemId)).toEqual(['SYS_ENDOCRINE', 'SYS_BONE'])
+    expect(types.map((e) => e.systemId)).toEqual(['endocrine', 'bone'])
   })
 
   it('derives score warning from the configured threshold', () => {

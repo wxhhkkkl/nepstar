@@ -7,7 +7,8 @@
 
 const DEFAULT_API_BASE = 'https://nepstar.kangjia.online/api/v1'
 const BASE = (import.meta.env?.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/+$/, '')
-const DEFAULT_TIMEOUT_MS = 8000
+// 本地/远程数据源首次建连可能比常规请求慢；给首页聚合接口留出连接时间。
+const DEFAULT_TIMEOUT_MS = 15000
 
 export const ERROR_KINDS = {
   NOT_FOUND: 'not_found',
@@ -17,6 +18,7 @@ export const ERROR_KINDS = {
   ROUTE_NOT_FOUND: 'route_not_found',
   UNAVAILABLE: 'unavailable',
   NETWORK: 'network',
+  TIMEOUT: 'timeout',
 }
 
 const MESSAGE_TO_KIND = {
@@ -46,7 +48,10 @@ async function request(path, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
       signal: controller.signal,
     })
   } catch (error) {
-    throw new ReportApiError(ERROR_KINDS.NETWORK, String(error?.message || error))
+    const kind = controller.signal.aborted
+      ? ERROR_KINDS.TIMEOUT
+      : ERROR_KINDS.NETWORK
+    throw new ReportApiError(kind, String(error?.message || error))
   } finally {
     clearTimeout(timer)
   }
@@ -99,7 +104,8 @@ function locationQueryParams(search, hash) {
 
 /**
  * Read both the app's legacy `customerId` and the live platform's `userId`.
- * Both identify the report owner; API requests continue to use `customer_id`.
+ * Both locate the report; neither proves the visitor is its owner.
+ * API requests continue to use `customer_id`.
  */
 export function reportParamsFromLocation(
   search = globalThis.location?.search || '',
@@ -143,6 +149,8 @@ export function reportRouteQueryFromLocation(
   delete passthrough.reportCode
   delete passthrough.customerId
   delete passthrough.userId
+  // A chat credential belongs in the current tab's sessionStorage, never a shareable route.
+  delete passthrough.guest_token
 
   // Use the platform's live parameter name in generated links. The parser
   // still accepts customerId for existing bookmarks and manually shared URLs.

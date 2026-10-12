@@ -1,0 +1,28 @@
+{
+  "measured_on": "2026-10-10",
+  "environment": "ephemeral_loopback_fastapi_local_nepstar_waiting_fake_provider",
+  "status": "passed",
+  "scenario": "provider_timeout",
+  "samples": 1,
+  "question_requests": 1,
+  "model_calls": 0,
+  "provider_invocations": 1,
+  "provider_cancelled_count": 1,
+  "outcomes": {"consult.provider_unavailable": 1},
+  "error_latency_ms": {
+    "consult.provider_unavailable": {"p50_ms": 20106.46, "p95_ms": 20106.46, "p99_ms": 20106.46}
+  },
+  "saved_question_count": 1,
+  "saved_attempt_count": 1,
+  "unavailable_attempt_count": 1,
+  "completed_attempt_count": 0,
+  "running_attempt_count": 0,
+  "saved_answer_count": 0,
+  "unknown_usage_reserved_tokens": 16384,
+  "persisted_policy_unchanged": true,
+  "real_report_sent": false,
+  "remote_database_used": false,
+  "deployment_proxy_measured": false,
+  "mobile_visible_latency_measured": false,
+  "release_accepted": false
+}

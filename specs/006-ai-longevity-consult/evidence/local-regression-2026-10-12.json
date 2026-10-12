@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-12",
+  "scope": "local code, isolated regression, temporary browser servers, temporary production builds",
+  "results": {
+    "backend_ai_and_local_boundary": { "passed": 674, "failed": 0 },
+    "report_frontend_vitest": { "passed": 156, "failed": 0 },
+    "admin_frontend_vitest": { "passed": 63, "failed": 0 },
+    "mobile_chrome_mock_e2e": { "passed": 35, "failed": 0 },
+    "integration_guards_only": { "passed": 6, "deselected_real_environment_tests": 2 },
+    "node_browser_proxy_guards": { "passed": 5, "failed": 0 },
+    "admin_typecheck": "passed",
+    "admin_temporary_production_build": "passed",
+    "report_temporary_production_build": "passed"
+  },
+  "report_build_api_base": "https://nepstar.kangjia.online/api/v1",
+  "boundaries": {
+    "real_database_connections": 0,
+    "real_model_requests": 0,
+    "migrations_executed": false,
+    "env_or_persistent_config_changed": false,
+    "persistent_services_restarted": false,
+    "repository_dist_overwritten": false,
+    "git_committed_or_pushed": false,
+    "production_deployed": false,
+    "physical_device_tested_in_this_run": false,
+    "production_proxy_tested": false,
+    "real_mysql_races_tested": false
+  },
+  "remaining_release_task_ids": ["T061", "T063", "T065"],
+  "notes": [
+    "No raw credentials, report identities, questions or answers are recorded here.",
+    "Loopback/browser tests required an approved sandbox escalation; business responses stayed synthetic.",
+    "Legacy UTC deprecation and admin bundle warnings remain non-blocking.",
+    "Local mock success is not production permission, privacy approval or clinical validation."
+  ]
+}

@@ -6,10 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
 from ..schemas.response import ApiResponse
 from ..schemas.user import UserCreate, UserUpdate
-from ..security.rbac import get_current_user
+from ..security.rbac import get_current_user, require_system_admin
 from ..services import user_service
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(require_system_admin)])
 
 
 @router.get("")

@@ -1,0 +1,167 @@
+"""匿名访问者的版本化告知与同意；此模块不会外发报告或调用模型。"""
+
+import hashlib
+import re
+from datetime import UTC, datetime
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..models.new.sa_ai_consult import SAAiConsultConsent, SAAiConsultSettings
+from .ai_consult_entry_guard import public_maintenance_text
+
+
+_HASH = re.compile(r"[a-fA-F0-9]{64}\Z")
+CONSULT_RETENTION_NOTICE = (
+    "咨询问题和 AI 回答会与本次报告关联保存在系统后台，不设自动清理；"
+    "每次进入 AI 咨询都会开启新对话，报告页面不提供查看以往咨询的入口。"
+)
+
+
+class ConsentUnavailable(Exception):
+    """当前告知或服务商配置不完整。"""
+
+
+class ConsentMismatch(Exception):
+    """客户端同意的并非当前公布的服务商/告知版本。"""
+
+
+async def consult_processing_allowed(
+    db: AsyncSession, guest_id: int, *, lock: bool = False,
+) -> bool:
+    """可选选择模式不要求 grant，但兼容接口的明确撤回不能被忽略。
+
+    此检查不是正式告知或有效授权的证明。生产开放仍须独立完成发布门槛。
+    写事务和旧 consent 接口按同一 settings 行锁串行化，且只认最新决定。
+    """
+    if lock:
+        result = await db.execute(
+            select(SAAiConsultSettings)
+            .where(SAAiConsultSettings.id == 1)
+            .with_for_update()
+        )
+        if result.scalar_one_or_none() is None:
+            return False
+    result = await db.execute(
+        select(SAAiConsultConsent)
+        .where(SAAiConsultConsent.guest_id == guest_id)
+        .order_by(SAAiConsultConsent.decided_at.desc(), SAAiConsultConsent.id.desc())
+        .limit(1)
+    )
+    choice = result.scalar_one_or_none()
+    return choice is None or (choice.choice == "granted" and choice.withdrawn_at is None)
+
+
+def _notice_ready(config: SAAiConsultSettings | None) -> bool:
+    return bool(
+        config
+        and config.enabled
+        and config.provider_code
+        and config.notice_version
+        and config.notice_text
+        and config.notice_text.strip()
+        and config.data_scope_text
+        and config.data_scope_text.strip()
+        and config.data_scope_hash
+        and _HASH.fullmatch(config.data_scope_hash)
+        and hashlib.sha256(config.data_scope_text.encode("utf-8")).hexdigest() == config.data_scope_hash.lower()
+    )
+
+
+def public_data_scope_text(config: SAAiConsultSettings) -> str:
+    """把永久留存和不展示历史的规则纳入用户实际确认的文案。"""
+    base_text = (config.data_scope_text or "").strip()
+    return f"{base_text}\n\n{CONSULT_RETENTION_NOTICE}"
+
+
+def _effective_scope_hash(config: SAAiConsultSettings) -> str:
+    return hashlib.sha256(public_data_scope_text(config).encode("utf-8")).hexdigest()
+
+
+def consent_is_current(consent: SAAiConsultConsent | None, config: SAAiConsultSettings | None, guest_id: int) -> bool:
+    """调用方必须提供该 guest 的最新一条同意记录；旧授权不得越过撤回。"""
+    return bool(
+        _notice_ready(config)
+        and consent
+        and consent.guest_id == guest_id
+        and consent.choice == "granted"
+        and consent.withdrawn_at is None
+        and consent.notice_version == config.notice_version
+        and consent.notice_content_hash == hashlib.sha256(config.notice_text.encode("utf-8")).hexdigest()
+        and consent.provider_code == config.provider_code
+        and consent.data_scope_hash == _effective_scope_hash(config)
+    )
+
+
+async def record_consent(
+    db: AsyncSession,
+    guest,
+    *,
+    notice_version: str,
+    provider_code: str,
+    accepted: bool,
+    now: datetime | None = None,
+) -> SAAiConsultConsent:
+    """在 nepstar 写事务中记录决定；拒绝和撤回均产生最新的非授权记录。"""
+    result = await db.execute(
+        select(SAAiConsultSettings)
+        .where(SAAiConsultSettings.id == 1)
+        .with_for_update()
+    )
+    config = result.scalar_one_or_none()
+    if not _notice_ready(config):
+        raise ConsentUnavailable()
+    if notice_version != config.notice_version or provider_code != config.provider_code:
+        raise ConsentMismatch()
+    decided_at = now or datetime.now(UTC).replace(tzinfo=None)
+    consent = SAAiConsultConsent(
+        guest_id=guest.id,
+        notice_version=config.notice_version,
+        notice_content_hash=hashlib.sha256(config.notice_text.encode("utf-8")).hexdigest(),
+        provider_code=config.provider_code,
+        data_scope_hash=_effective_scope_hash(config),
+        choice="granted" if accepted else "withdrawn",
+        decided_at=decided_at,
+        withdrawn_at=None if accepted else decided_at,
+    )
+    db.add(consent)
+    return consent
+
+
+async def require_current_consent(
+    db: AsyncSession, guest_id: int, *, lock: bool = False
+) -> SAAiConsultConsent | None:
+    """只认该 guest 最新决定；服务商、处理范围或告知变更后必须重新同意。"""
+    settings_query = select(SAAiConsultSettings).where(SAAiConsultSettings.id == 1)
+    if lock:
+        # 同意/撤回写入也锁此行；会话插入事务完成前不会错过并发撤回。
+        settings_query = settings_query.with_for_update()
+    settings_result = await db.execute(settings_query)
+    config = settings_result.scalar_one_or_none()
+    if not _notice_ready(config):
+        return None
+    consent_result = await db.execute(
+        select(SAAiConsultConsent)
+        .where(SAAiConsultConsent.guest_id == guest_id)
+        .order_by(SAAiConsultConsent.decided_at.desc(), SAAiConsultConsent.id.desc())
+        .limit(1)
+    )
+    consent = consent_result.scalar_one_or_none()
+    return consent if consent_is_current(consent, config, guest_id) else None
+
+
+async def load_notice_state(db: AsyncSession, guest_id: int) -> tuple[SAAiConsultSettings | None, bool, str | None]:
+    """给欢迎页读取当前完整告知与最新选择；不返回旧版本的部分告知。"""
+    settings_result = await db.execute(select(SAAiConsultSettings).where(SAAiConsultSettings.id == 1))
+    config = settings_result.scalar_one_or_none()
+    maintenance_text = public_maintenance_text(config)
+    if not _notice_ready(config):
+        return None, False, maintenance_text
+    consent_result = await db.execute(
+        select(SAAiConsultConsent)
+        .where(SAAiConsultConsent.guest_id == guest_id)
+        .order_by(SAAiConsultConsent.decided_at.desc(), SAAiConsultConsent.id.desc())
+        .limit(1)
+    )
+    consent = consent_result.scalar_one_or_none()
+    return config, consent_is_current(consent, config, guest_id), maintenance_text

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f9fc">
+  <title>AI 长寿顾问 · 交互设计预览</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/><path d="M20 2v4M18 4h4"/></symbol>
+    <symbol id="i-report" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24"><path d="M4 18V5m0 13h16M7 14l4-5 4 2 5-6"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M19 4C10 3 3 6 5 14s16 7 14-10ZM5 20 15 10"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="3"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-like" viewBox="0 0 24 24"><path d="M7 10v11H3V10h4Zm0 0 5-7c3 0 3 3 1 7h6a2 2 0 0 1 2 2l-2 7a3 3 0 0 1-3 2H7"/></symbol>
+    <symbol id="i-retry" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-1.5 6M20 4v7h-7"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></symbol>
+  </svg>
+
+  <aside class="design-sidebar" aria-label="设计预览控制">
+    <a class="design-brand" href="../product-design.md"><span>NEPSTAR</span><i></i>PRODUCT DESIGN</a>
+    <p class="design-kicker">REPORT COMPANION / 01</p>
+    <h1>让每一个健康问题，<br>都有一个好的开始。</h1>
+    <p class="design-description">AI 长寿顾问 · 移动端交互设计<br>延续报告端的轻盈、清晰与从容。</p>
+    <nav class="view-tabs" aria-label="切换页面状态">
+      <button data-view="welcome" class="active"><span>01</span><b>开始咨询</b><small>Welcome</small></button>
+      <button data-view="chat"><span>02</span><b>连续对话</b><small>Conversation</small></button>
+      <button data-view="error"><span>03</span><b>中断与恢复</b><small>Recovery</small></button>
+    </nav>
+    <div class="extra-views"><button data-view="loading">加载状态</button><button data-action="consent">首次使用说明</button></div>
+    <div class="design-note"><span class="note-dot"></span><p>可交互设计预览<br><small>使用示例数据，未连接真实报告或 AI 服务。</small></p></div>
+    <a class="board-link" href="./board.html">查看三屏设计总览 <span>↗</span></a>
+  </aside>
+
+  <div class="phone-stage">
+    <div class="app" id="app">
+      <header class="topbar">
+        <button class="icon-button back-button" data-action="back" aria-label="返回"><svg><use href="#i-back"/></svg></button>
+        <div class="topbar-title"><strong>AI 长寿顾问</strong><span>理解健康，陪你向前</span></div>
+        <span class="topbar-space" aria-hidden="true"></span>
+      </header>
+
+      <button class="report-strip" data-action="report" aria-label="查看当前示例报告">
+        <span class="report-symbol"><svg><use href="#i-report"/></svg></span>
+        <span class="report-label"><b>已关联本次报告</b><small>2026.10.08<span>·</span>示例报告</small></span>
+        <svg class="strip-arrow"><use href="#i-down"/></svg>
+      </button>
+
+      <main class="content" id="content" aria-label="咨询内容"></main>
+      <button class="new-reply" id="new-reply" hidden>有新回复 <svg><use href="#i-down"/></svg></button>
+
+      <footer class="composer-area">
+        <form class="composer" id="composer">
+          <label class="sr-only" for="question">输入你的健康问题</label>
+          <textarea id="question" rows="1" maxlength="2000" placeholder="有什么健康问题想问我？" enterkeyhint="send"></textarea>
+          <button class="send-button" id="send-button" type="submit" aria-label="发送问题" disabled><svg><use href="#i-send"/></svg></button>
+        </form>
+        <button class="disclaimer" data-action="consent"><svg><use href="#i-shield"/></svg>AI 回答仅作健康管理参考</button>
+      </footer>
+      <div class="toast" id="toast" role="status" hidden></div>
+      <div class="modal-backdrop" id="modal" hidden><section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="sheet-handle"></div><div class="sheet-heading"><h2 id="sheet-title"></h2><button class="icon-button" data-action="close" aria-label="关闭"><svg><use href="#i-close"/></svg></button></div><div id="sheet-body"></div></section></div>
+    </div>
+    <p class="stage-caption">MOBILE WEB <span>390 × 844</span><i></i>交互设计预览</p>
+  </div>
+
+  <template id="welcome-template">
+    <section class="welcome">
+      <p class="eyebrow">A LITTLE CLARITY. A BETTER YOU.</p>
+      <div class="welcome-hero">
+        <h2>读懂身体，<br>更好地生活。</h2>
+        <div class="portrait"><div class="portrait-halo"></div><img src="../../../reportFront/src/assets/ai-longevity-doctor-avatar.png" alt="AI 顾问形象"><span class="portrait-badge"><svg><use href="#i-spark"/></svg>AI</span></div>
+      </div>
+      <p class="welcome-copy">你好，我是你的 AI 长寿顾问。<br>一起看懂指标，找到适合你的下一步。</p>
+      <div class="suggestions-heading"><span>可以从这里开始</span><i></i></div>
+      <div class="suggestions">
+        <button class="suggestion" data-question="帮我看懂这份报告"><span class="suggestion-icon blue"><svg><use href="#i-report"/></svg></span><span><b>帮我看懂这份报告</b><small>梳理结果，了解身体的信号</small></span><svg class="suggestion-arrow"><use href="#i-chevron"/></svg></button>
+        <button class="suggestion" data-question="哪些指标值得关注？"><span class="suggestion-icon lavender"><svg><use href="#i-trend"/></svg></span><span><b>哪些指标值得关注？</b><small>看看本次结果和历史变化</small></span><svg class="suggestion-arrow"><use href="#i-chevron"/></svg></button>
+        <button class="suggestion" data-question="我可以从哪里开始改善？"><span class="suggestion-icon sage"><svg><use href="#i-leaf"/></svg></span><span><b>我可以从哪里开始改善？</b><small>从容易坚持的小行动开始</small></span><svg class="suggestion-arrow"><use href="#i-chevron"/></svg></button>
+      </div>
+    </section>
+  </template>
+
+  <template id="error-template">
+    <div class="chat-date">今天 · 09:41</div>
+    <div class="user-message">这份报告有哪些指标值得关注？</div>
+    <section class="error-card">
+      <div class="connection-art" aria-hidden="true"><span class="connection-orbit"></span><svg viewBox="0 0 120 110"><path class="cloud-fill" d="M31 78a20 20 0 0 1-2-40 29 29 0 0 1 55-3 22 22 0 0 1 7 43"/><path class="cloud-line" d="M31 78a20 20 0 0 1-2-40 29 29 0 0 1 55-3 22 22 0 0 1 7 43"/><path class="connection-dash" d="M39 58a33 33 0 0 1 42 0M46 69a23 23 0 0 1 28 0"/><circle cx="60" cy="82" r="3"/><path class="connection-break" d="m43 96 34-45"/></svg><i class="connection-dot one"></i><i class="connection-dot two"></i></div>
+      <p class="eyebrow">LET’S RECONNECT</p>
+      <h2>连接暂时中断</h2>
+      <p>你的问题已保留。<br>网络恢复后，我们继续聊。</p>
+      <button class="primary-button" data-action="retry"><svg><use href="#i-retry"/></svg>重新发送</button>
+      <small>重试不会重复发送你的问题</small>
+    </section>
+  </template>
+
+  <template id="loading-template">
+    <div class="skeleton" aria-label="正在加载咨询页面" role="status"><div class="skeleton-heading"></div><div class="skeleton-heading short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><p>正在准备你的咨询空间…</p></div>
+  </template>
+  <script type="module" src="./prototype.js"></script>
+</body>
+</html>
