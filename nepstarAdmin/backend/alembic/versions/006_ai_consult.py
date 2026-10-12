@@ -168,6 +168,7 @@ def upgrade() -> None:
         sa.Column("partial_text", sa.Text()),
         sa.Column("provider_request_id", sa.String(100)),
         sa.Column("model_code", sa.String(100)),
+        sa.Column("budget_tokens", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("prompt_tokens", sa.Integer()),
         sa.Column("completion_tokens", sa.Integer()),
         sa.Column("error_category", sa.String(50)),
@@ -177,6 +178,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("turn_id", "attempt_number", name="uk_ai_generation_attempt"),
         sa.ForeignKeyConstraint(["turn_id"], ["nepstar.sa_ai_consult_turn.id"]),
+    )
+    op.create_index(
+        "idx_ai_generation_started", "sa_ai_consult_generation", ["started_at"], schema=SCHEMA
     )
     _create(
         "sa_ai_consult_admin_audit",
@@ -193,6 +197,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     _assert_nepstar_target()
     op.drop_table("sa_ai_consult_admin_audit", schema=SCHEMA)
+    op.drop_index("idx_ai_generation_started", table_name="sa_ai_consult_generation", schema=SCHEMA)
     op.drop_table("sa_ai_consult_generation", schema=SCHEMA)
     op.drop_index("idx_ai_turn_session_sequence", table_name="sa_ai_consult_turn", schema=SCHEMA)
     op.drop_table("sa_ai_consult_turn", schema=SCHEMA)

@@ -22,8 +22,8 @@ TABLES = {
 }
 
 
-def load_migration():
-    spec = importlib.util.spec_from_file_location("ai_consult_migration", MIGRATION)
+def load_migration(path=MIGRATION):
+    spec = importlib.util.spec_from_file_location("ai_consult_migration", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -42,16 +42,60 @@ class FakeBind:
 
 
 @pytest.mark.parametrize("url_database,current_database", [("platform", "platform"), ("nepstar", "platform")])
-def test_migration_rejects_any_non_nepstar_target_before_ddl(monkeypatch, url_database, current_database):
-    migration = load_migration()
+@pytest.mark.parametrize("path", [MIGRATION, MIGRATION.with_name("007_ai_consult_source_indicator.py"), MIGRATION.with_name("008_ai_consult_optional_consent.py")])
+@pytest.mark.parametrize("direction", ["upgrade", "downgrade"])
+def test_migration_rejects_any_non_nepstar_target_before_ddl(monkeypatch, url_database, current_database, path, direction):
+    migration = load_migration(path)
     created = []
     monkeypatch.setattr(migration.op, "get_bind", lambda: FakeBind(url_database, current_database))
     monkeypatch.setattr(migration.op, "create_table", lambda *args, **kwargs: created.append(args[0]))
+    monkeypatch.setattr(migration.op, "add_column", lambda *args, **kwargs: created.append(args[0]))
+    monkeypatch.setattr(migration.op, "alter_column", lambda *args, **kwargs: created.append(args[0]))
+    monkeypatch.setattr(migration.op, "drop_table", lambda *args, **kwargs: created.append(args[0]))
+    monkeypatch.setattr(migration.op, "drop_column", lambda *args, **kwargs: created.append(args[0]))
 
     with pytest.raises(RuntimeError):
-        migration.upgrade()
+        getattr(migration, direction)()
 
     assert created == []
+
+
+def test_optional_consent_migration_only_changes_nullability_in_nepstar(monkeypatch):
+    migration = load_migration(MIGRATION.with_name("008_ai_consult_optional_consent.py"))
+    changes = []
+    monkeypatch.setattr(migration.op, "get_bind", lambda: FakeBind("nepstar", "nepstar"))
+    monkeypatch.setattr(migration.op, "alter_column", lambda *args, **kwargs: changes.append((args, kwargs)))
+    migration.upgrade()
+    assert migration.revision == "008" and migration.down_revision == "007"
+    assert len(changes) == 1
+    args, options = changes[0]
+    assert args == ("sa_ai_consult_session", "consent_id")
+    assert options["schema"] == "nepstar"
+    assert options["nullable"] is True and options["existing_nullable"] is False
+    from app.models.new.sa_ai_consult import SAAiConsultSession
+    assert SAAiConsultSession.__table__.c.consent_id.nullable is True
+
+
+@pytest.mark.parametrize("null_count,allowed", [(0, True), (1, False)])
+def test_optional_consent_downgrade_never_discards_existing_sessions(monkeypatch, null_count, allowed):
+    migration = load_migration(MIGRATION.with_name("008_ai_consult_optional_consent.py"))
+    bind = FakeBind("nepstar", "nepstar")
+    queries, changes = [], []
+    def count(statement):
+        queries.append(str(statement))
+        return SimpleNamespace(scalar_one=lambda: null_count)
+    bind.execute = count
+    monkeypatch.setattr(migration.op, "get_bind", lambda: bind)
+    monkeypatch.setattr(migration.op, "alter_column", lambda *args, **kwargs: changes.append((args, kwargs)))
+    if allowed:
+        migration.downgrade()
+        assert changes[0][1]["nullable"] is False
+        assert changes[0][1]["schema"] == "nepstar"
+    else:
+        with pytest.raises(RuntimeError, match="without consent"):
+            migration.downgrade()
+        assert changes == []
+    assert queries == ["SELECT COUNT(*) FROM nepstar.sa_ai_consult_session WHERE consent_id IS NULL"]
 
 
 def test_migration_creates_only_explicit_nepstar_consult_objects(monkeypatch):
@@ -97,6 +141,15 @@ def test_migration_columns_match_the_consult_models(monkeypatch):
     monkeypatch.setattr(migration.op, "create_index", lambda *args, **kwargs: None)
 
     migration.upgrade()
+
+    # The latest model includes the indicator column introduced by 007.
+    followup = load_migration(MIGRATION.with_name("007_ai_consult_source_indicator.py"))
+    def capture_add_column(table, column, **kwargs):
+        assert table == "sa_ai_consult_session"
+        assert kwargs["schema"] == "nepstar"
+        captured[table].add(column.name)
+    monkeypatch.setattr(followup.op, "add_column", capture_add_column)
+    followup.upgrade()
 
     model_tables = {
         value.__table__.name: value.__table__

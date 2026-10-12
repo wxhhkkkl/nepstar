@@ -2464,6 +2464,11 @@ body {
     line-height: 1.35
 }
 
+.detail-v2[data-system-id="lung"] .detail-direct-list strong small {
+    display: inline;
+    white-space: nowrap
+}
+
 .detail-v2 .detail-conclusion p {
     font-size: 16px;
     line-height: 1.75

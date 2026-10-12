@@ -7,7 +7,7 @@ never write, update, or delete records in this table.
 import logging
 
 from sqlalchemy import MetaData, Table
-from sqlalchemy.exc import NoSuchTableError
+from sqlalchemy.exc import NoSuchTableError, SQLAlchemyError
 
 from ...database import sync_engine
 
@@ -17,4 +17,10 @@ try:
     customer_table = Table("customer", MetaData(), autoload_with=sync_engine, keep_existing=True)
 except NoSuchTableError:
     logger.warning("旧系统 'customer' 表未找到 — 客户管理功能不可用。")
+    customer_table = None
+except SQLAlchemyError as exc:
+    logger.warning(
+        "旧系统 'customer' 元数据源不可用 — 客户管理功能暂不可用（%s）。",
+        type(exc).__name__,
+    )
     customer_table = None

@@ -42,7 +42,7 @@ def home():
     }
 
 
-def sleep_detail(score=90, description="呼吸睡眠是睡眠期间的呼吸质量。"):
+def sleep_detail(score=90, description="呼吸睡眠是睡眠期间的呼吸质量。", actions=None):
     return {
         "report_code": "R1",
         "system": {"system_code": "SYS_LUNG", "name": "肺功能"},
@@ -53,6 +53,7 @@ def sleep_detail(score=90, description="呼吸睡眠是睡眠期间的呼吸质�
             "description": description,
             "interpretation": "关注睡眠期间的呼吸节律。",
             "status_text": "保持关注",
+            "actions": actions or [],
             "phone": "13800001111",
         },
     }
@@ -161,4 +162,93 @@ async def test_metric_name_containing_contact_information_is_never_sent_or_fetch
     reader = FakeReader(source)
     bundle = await prepare_report_evidence(None, scope(), "哪些指标值得优先关注？", reader=reader)
     assert "13800001111" not in str(bundle.for_model())
+    assert reader.calls == [("home", None, "R1", 1001)]
+
+
+@pytest.mark.asyncio
+async def test_admin_actions_are_only_collected_for_advice_questions_and_never_sent_to_model():
+    from app.services.ai_consult_evidence import prepare_report_evidence
+
+    actions = [
+        "规律作息",
+        "请联系 13800001111 咨询",
+        "适量活动",
+        "减少久坐",
+        "均衡饮食",
+        "保证充足睡眠",
+    ]
+    reader = FakeReader(home(), {"SYS_LUNG_SLEEP": sleep_detail(actions=actions)})
+
+    bundle = await prepare_report_evidence(
+        None, scope(), "呼吸睡眠我可以做哪些日常调整？", reader=reader,
+    )
+
+    assert [item["text"] for item in bundle.actions] == ["规律作息", "适量活动", "减少久坐"]
+    assert all(item["route"].startswith("#/system/SYS_LUNG/indicator/SYS_LUNG_SLEEP?")
+               for item in bundle.actions)
+    model_payload = str(bundle.for_model())
+    assert "规律作息" not in model_payload
+    assert "适量活动" not in model_payload
+    assert "13800001111" not in model_payload
+
+    ordinary = await prepare_report_evidence(
+        None, scope(), "呼吸睡眠这项指标是什么意思？", reader=reader,
+    )
+    assert ordinary.actions == []
+
+
+@pytest.mark.asyncio
+async def test_prior_user_context_is_clipped_to_two_safe_messages_for_the_same_indicator():
+    from app.services.ai_consult_evidence import prepare_report_evidence
+
+    reader = FakeReader(home(), {"SYS_LUNG_SLEEP": sleep_detail()})
+    prior = [
+        {"indicator_code": "SYS_LUNG_SLEEP", "text": "我最近每天睡得比较晚"},
+        {"indicator_code": "SYS_LUNG_SLEEP", "text": "白天偶尔会觉得疲惫"},
+        {"indicator_code": "SYS_LUNG_SLEEP", "text": "第三条较早的补充"},
+        {"indicator_code": "SYS_LUNG_VC", "text": "另一个指标的上下文不能混入"},
+        {"indicator_code": "SYS_LUNG_SLEEP", "text": "联系电话13800001111"},
+        {"indicator_code": "SYS_LUNG_SLEEP", "text": "这个情况怎么改善？"},
+    ]
+
+    bundle = await prepare_report_evidence(
+        None,
+        scope(),
+        "这个情况怎么改善？",
+        context_indicator_code="SYS_LUNG_SLEEP",
+        prior_user_context=prior,
+        reader=reader,
+    )
+
+    assert bundle.user_context == [
+        {"source_type": "user_supplement", "text": "我最近每天睡得比较晚"},
+        {"source_type": "user_supplement", "text": "白天偶尔会觉得疲惫"},
+    ]
+    assert bundle.for_model()["user_context"] == bundle.user_context
+    assert "第三条较早的补充" not in str(bundle.for_model())
+    assert "13800001111" not in str(bundle.for_model())
+    assert all("text" not in item for item in bundle.for_client()["citations"])
+
+
+@pytest.mark.asyncio
+async def test_global_or_explicit_system_questions_do_not_inherit_a_single_indicator_anchor():
+    from app.services.ai_consult_evidence import prepare_report_evidence
+
+    source = home()
+    source["systems"][0]["indicators"].append(
+        {"indicator_code": "SYS_LUNG_EXTRA", "name": "第三项", "score": 70}
+    )
+    reader = FakeReader(source)
+
+    priority = await prepare_report_evidence(
+        None, scope(), "哪些指标值得优先关注？", context_indicator_code="SYS_LUNG_SLEEP", reader=reader,
+    )
+    assert [fact["metric"] for fact in priority.facts] == ["肺活量", "第三项", "呼吸睡眠"]
+    assert all(call[0] == "home" for call in reader.calls)
+
+    reader = FakeReader(home())
+    system = await prepare_report_evidence(
+        None, scope(), "肺功能整体怎么样？", context_indicator_code="SYS_LUNG_SLEEP", reader=reader,
+    )
+    assert [fact["metric"] for fact in system.facts] == ["肺功能"]
     assert reader.calls == [("home", None, "R1", 1001)]

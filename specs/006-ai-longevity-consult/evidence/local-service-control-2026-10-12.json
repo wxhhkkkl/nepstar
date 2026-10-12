@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-12",
+  "scope": "authorized local isolated runtime restart and admin control",
+  "validation": {
+    "backend_ai_and_local_boundary_passed": 707,
+    "targeted_local_startup_and_control_passed": 108,
+    "new_service_state_route_registered": true,
+    "local_backend_health": "passed",
+    "admin_5175_proxy_health": "passed",
+    "report_5173_proxy_health": "passed",
+    "paused_startup_does_not_enable_storage": "passed",
+    "admin_saved_daily_limit_20_accepted": true,
+    "notice_rules_credentials_and_provider_checks_retained": true
+  },
+  "observed_local_settings": {
+    "before_restart": {"enabled": false, "row_version": 8},
+    "first_health_after_restart": {"ai_enabled": false},
+    "later_observation": {"enabled": true, "row_version": 9, "daily_success_limit": 20},
+    "latest_service_audit_action": "service.resume",
+    "last_health": {"mode": "local_ai_isolated", "ai_enabled": true},
+    "agent_changed_settings_or_invoked_resume": false
+  },
+  "boundaries": {
+    "persistent_local_backend_restarted": true,
+    "listener": "127.0.0.1:8000",
+    "write_target": "127.0.0.1:3306/nepstar",
+    "report_and_configuration_sources": "read-only",
+    "dotenv_changed": false,
+    "agent_initiated_model_requests": 0,
+    "schema_migrations_executed": false,
+    "production_deployed": false,
+    "git_committed_or_pushed": false,
+    "repository_dist_overwritten": false,
+    "authenticated_ui_toggle_by_agent": false
+  }
+}

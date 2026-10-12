@@ -24,6 +24,7 @@ def validated(text):
         "我突然一侧手臂无力",
         "我说话突然含糊不清",
         "家人昏迷了怎么办",
+        "我家人刚刚开始抽搐",
     ],
 )
 def test_urgent_symptoms_take_priority_over_report_scores_and_model(question):
@@ -71,7 +72,7 @@ def test_longevity_guarantee_requests_get_no_promise(question):
 
 @pytest.mark.parametrize(
     "question",
-    ["肺功能分数是什么意思", "历史趋势怎么看", "睡眠怎么改善", "胸痛有哪些常见原因"],
+    ["肺功能分数是什么意思", "历史趋势怎么看", "睡眠怎么改善", "胸痛有哪些常见原因", "抽搐通常有哪些原因？"],
 )
 def test_non_urgent_explanatory_questions_remain_eligible(question):
     from app.services.ai_consult_safety import assess_input
@@ -107,8 +108,11 @@ async def test_input_guard_does_not_invoke_supplier_for_urgent_or_prescription_r
     "unsafe_text",
     [
         "你的分数很好，无需就医。",
+        "这个结果不需要去医院。",
         "建议停药，观察几天。",
         "你已经确诊糖尿病。",
+        "你就是糖尿病。",
+        "请自行把药量减半。",
         "保证你延寿十年。",
         "请先购买我们的产品。",
         "每天服用 20mg 药物。",
@@ -140,6 +144,17 @@ async def test_safe_candidate_waits_for_full_review_and_action_limit():
     )
     assert too_many.approved is False
     assert too_many.route == "unsafe_output"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("action", ["不需要去医院", "请自行调整用药"])
+async def test_dangerous_maintained_action_is_rejected_before_any_visible_text(action):
+    from app.services.ai_consult_safety import guarded_candidate
+
+    supplier = AsyncMock(return_value=validated("可以结合报告中的指标理解结果。"))
+    result = await guarded_candidate("肺功能分数是什么意思", supplier, actions=[action])
+    assert result.approved is False
+    assert result.route == "unsafe_output"
 
 
 @pytest.mark.asyncio

@@ -1,9 +1,9 @@
 <script setup>
-import { nextTick, onMounted, ref } from 'vue'
-import { ReportApiError, fetchReportHome, reportParamsFromLocation } from '@/api/reportClient.js'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { ReportApiError, fetchReportHome, reportParamsFromLocation, reportRouteQueryFromLocation } from '@/api/reportClient.js'
 import { toReportViewModel } from '@/data/reportAdapter.js'
 import { reportAssets } from '@/data/report.js'
-import { restoreHomeScroll } from '@/composables/useScrollRestoration.js'
+import { restoreHomeScroll, saveHomeScroll } from '@/composables/useScrollRestoration.js'
 import AiConsultEntry from '@/components/AiConsultEntry.vue'
 import ReportHomeSkeleton from '@/components/ReportHomeSkeleton.vue'
 import ReportProfile from '@/components/ReportProfile.vue'
@@ -18,6 +18,10 @@ const ASSETS = reportAssets
 const state = ref('loading')
 const errorKind = ref('')
 const report = ref(null)
+const aiConsultRoute = computed(() => ({
+  name: 'ai-consult',
+  query: reportRouteQueryFromLocation(),
+}))
 
 async function load() {
   const { reportCode, customerId } = reportParamsFromLocation()
@@ -50,9 +54,10 @@ onMounted(load)
     <ReportProfile :report="report" />
     <AiConsultEntry
       v-if="report.aiConsult?.enabled"
-      :href="report.aiConsult.entry_url || report.assets.aiConsultImage"
+      :to="aiConsultRoute"
       :avatar="report.assets.aiDoctorAvatar"
       :title="report.aiConsult.title"
+      @navigate="saveHomeScroll"
     />
     <SystemAtlas :report="report" />
     <footer>

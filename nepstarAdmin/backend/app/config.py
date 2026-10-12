@@ -8,9 +8,18 @@ class Settings(BaseSettings):
     CONFIG_DATABASE_URL: str = ""
     NEPSTAR_DATABASE_URL: str = ""  # 系统表所在库；AI 咨询写会话要求显式指向 nepstar
     AI_CONSULT_TOKEN_HMAC_KEY: str = ""  # 匿名聊天凭证摘要密钥；未配置时禁止签发/读取聊天
-    AI_CONSULT_GUEST_ENABLED: bool = False  # 匿名入口默认关闭，限流与告知流程完整后再启用
-    AI_CONSULT_SESSIONS_ENABLED: bool = False  # 会话候选接口独立关闭，模型接入前不对外使用
-    AI_CONSULT_ANSWERS_ENABLED: bool = False  # 问答事件流独立关闭，运营保护完成前不得开放
+    # 未设置时由 nepstar.settings.enabled（默认 False）控制；显式 false 为部署硬禁用。
+    # true 仅允许后台启用，不会自动开启。上线审批与配置验收仍须独立完成。
+    AI_CONSULT_GUEST_ENABLED: bool | None = None
+    AI_CONSULT_SESSIONS_ENABLED: bool | None = None
+    AI_CONSULT_ANSWERS_ENABLED: bool | None = None
+    AI_CONSULT_OPERATIONS_READY: bool | None = None
+    AI_CONSULT_PROVIDER: str = "disabled"  # 仅支持显式配置的 openai_compatible；默认绝不外发
+    AI_CONSULT_PROVIDER_BASE_URL: str = ""
+    AI_CONSULT_PROVIDER_API_KEY: str = ""  # 仅从服务端环境读取，不入库、不回显
+    AI_CONSULT_PROVIDER_MODEL: str = ""
+    AI_CONSULT_PROVIDER_ALLOWED_HOSTS: str = ""  # 精确主机名白名单，逗号分隔；不支持通配符
+    AI_CONSULT_PROVIDER_TIMEOUT_SECONDS: float = 20.0
     # 部署辅助信息，应用运行时不读取；声明出来是为了让含这些键的 .env 通过 extra 校验
     SERVER_IP: str = ""
     SERVER_USER: str = ""
@@ -44,8 +53,8 @@ class Settings(BaseSettings):
     REPORT_LIFE_EXPECTANCY_BASE: float = 86.8  # 健康预期寿命基准年寿（FR-045）
     REPORT_AI_CONSULT_ENABLED: bool = True
     REPORT_AI_CONSULT_TITLE: str = "AI 长寿咨询"
-    REPORT_AI_CONSULT_ENTRY_TYPE: str = "image"  # 现有 V2 入口打开的是设计稿图片
-    REPORT_AI_CONSULT_ENTRY_URL: str = "/assets/ai-longevity-consult-chat-design.png"
+    REPORT_AI_CONSULT_ENTRY_TYPE: str = "route"
+    REPORT_AI_CONSULT_ENTRY_URL: str = "/ai-consult"
     REPORT_SAVE_ENABLED: bool = False  # 保存报告按钮当前隐藏
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}

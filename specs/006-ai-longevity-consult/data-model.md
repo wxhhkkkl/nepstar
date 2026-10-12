@@ -1,6 +1,6 @@
 # Data Model: AI 长寿咨询
 
-本文件定义拟实施的 `nepstar` 业务表。所有外部报告数据仍实时只读取得；迁移文件已编写，但尚未在任何数据库创建表或执行迁移。迁移必须显式限定 `nepstar`，并以只读账号验证外部源不可写。
+本文件定义当前 `nepstar` 业务模型与迁移；实例是否应用迁移须单独核对，不能从源码推断。2026-10-12 本轮仅离线回归，未执行任何数据库迁移。外部报告源严格只读，所有迁移必须显式限定 `nepstar`。
 
 ## 来源边界
 
@@ -15,11 +15,11 @@
 
 报告链接不要求登录。创建匿名上下文时服务端先用只读源核对报告编号、客户编号是否对应且报告已就绪，然后生成至少 256 位随机 `guest_token`。只向当前标签页返回一次明文；前端存于 `sessionStorage`，不得拼进 URL、埋点或日志。服务端仅保存加盐/HMAC 摘要，后续请求以 `Authorization: Bearer` 提交并恒时比较摘要。这个秘密保护聊天，**不**证明访问者是报告本人。
 
-表字段：`id`、`token_digest`（唯一）、`report_code`、`customer_id`、`created_at`、`last_activity_at`、`expires_at`、`revoked_at`。用户已确认签发后最长 30 天有效；到期或撤销时服务端拒绝，且不因活动续期。`guest_token` 与报告范围一对一；换报告建新的上下文。凭报告链接、报告参数或后台管理员 JWT 均无法重新找回聊天；通常关闭标签页会失去凭证，但浏览器恢复该标签页可能保留会话。凭证过期/撤销时聊天不可再读取，但公开报告仍可继续访问。每个标签页的每份报告可在 `sessionStorage` 保存独立凭证以供同一标签页返回时恢复。
+表字段：`id`、`token_digest`（唯一）、`report_code`、`customer_id`、`created_at`、`last_activity_at`、`expires_at`、`revoked_at`。匿名访问凭证最长 30 天有效；到期或撤销时服务端拒绝，且不因活动续期。该期限仅限制访问，不能触发会话、问题或回答的删除。`guest_token` 与报告范围一对一；换报告建新的上下文。会话 ID 仅留在当前页面内存，不写进 URL 或浏览器存储；刷新、离开后再进入和独立新标签页均创建空白新会话，不能凭报告链接找回历史。
 
 ## 2. `sa_ai_consult_settings`
 
-单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`notice_version`、`notice_text`、`data_scope_text`、`data_scope_hash`、`guest_create_limit_per_minute`、`guest_create_window_start`、`guest_create_count`、`daily_success_limit`（每 guest 建议默认 20）、`per_minute_limit`（每 guest 默认 5）、`global_daily_token_limit`、`max_concurrent_generations`、`max_question_chars`（默认 2000）、`retention_days`（暂建议最多 30）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。范围校验：额度与字符限制必须为正，留存期符合已公布告知，模型必须在服务端允许名单内。签发 guest 时在同一写事务中锁定这行并更新全站每分钟计数；未配置正数上限则拒绝签发。`data_scope_hash` 必须等于实际范围文案的 SHA-256，否则拒绝同意。全局 token/并发限制防止匿名新建 guest 绕过单 guest 额度；凭据不入表。
+单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`notice_version`、`notice_text`、`data_scope_text`、`data_scope_hash`、`guest_create_limit_per_minute`、`guest_create_window_start`、`guest_create_count`、`daily_success_limit`、`per_minute_limit`、`global_daily_token_limit`、`max_concurrent_generations`、`max_question_chars`、`retention_days`（旧字段，仅兼容现有 schema，不再用于正文清理）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。配置创建时各额度默认为 0 并保持关闭。用户确认的数据范围文案由后端附加“咨询问题和 AI 回答与报告关联永久保存在后台；重新进入不展示历史”的说明，并以附加后的文案计算同意摘要，从而使旧版本同意失效。`retention_days` 不参与有效期判定或清理。
 
 开关变更对**新生成**立即生效；正在进行的生成由停用策略明确终止并记为 `cancelled_by_admin`。`row_version` 用于防止两个管理员相互覆盖。
 
@@ -29,13 +29,13 @@
 
 ## 4. `sa_ai_consult_consent`
 
-`id`、`guest_id`、`notice_version`、`notice_content_hash`、`provider_code`、`data_scope_hash`、`choice`（granted/withdrawn）、`decided_at`、`withdrawn_at`。只有当前匿名访问者在当前报告、服务商、告知版本、告知正文和处理范围下的最新一条有效同意才可外发数据；改变任一项要求重新同意。访客同意不代表报告本人同意。撤回写入更新的非授权记录，立即阻断新模型请求。索引 `(guest_id, decided_at)`。
+`id`、`guest_id`、`notice_version`、`notice_content_hash`、`provider_code`、`data_scope_hash`、`choice`（granted/withdrawn）、`decided_at`、`withdrawn_at`。旧选择接口及已有记录保留；当前交互不要求存在 granted 记录，也不自动写入同意。按 `(decided_at DESC, id DESC)` 只认绑定凭证的最新选择，明确撤回阻断新会话/生成和回答发布，生成已产生的实际用量仍记录。该记录不证明报告本人身份或生产处理依据。索引 `(guest_id, decided_at)`。
 
 ## 5. `sa_ai_consult_session`
 
-`id`（不含身份信息的随机 UUID）、`guest_id`、`report_code`、`customer_id`、`report_date`、`source`（home/plan）、`source_plan_id`（可空）、`consent_id`、`title`、`status`（active/deleted/expired）、`created_at`、`last_activity_at`、`expires_at`、`deleted_at`、`generation_epoch`。索引 `(guest_id, report_code, last_activity_at)` 以及 `expires_at`；绝不能仅凭 `report_code` 查询聊天列表。
+`id`（不含身份信息的随机 UUID）、`guest_id`、`report_code`、`customer_id`、`report_date`、`source`（home/plan/indicator）、`source_plan_id`（可空）、`source_indicator_code`（可空，迁移 007 添加）、`consent_id`（迁移 008 改为可空）、`title`、`status`、`created_at`、`last_activity_at`、`expires_at`、`deleted_at`、`generation_epoch`。新会话不自动关联或创建同意记录；008 保留已有记录与引用，仅修改可空性，已有 NULL 引用时拒绝降级，不以删记录解决降级。`expires_at` 只限制访问，不表示数据过期。所有新增 DDL 仅允许在 `nepstar` 执行；发布前检查实际实例是否完成 006→007→008。
 
-报告切换新建/读取另一份报告的会话；不迁移旧会话消息。删除先将 `status=deleted`、递增 `generation_epoch`，所有后续读取和写回立即失败，清理任务再清除正文。
+每次进入 AI 咨询创建全新会话；旧会话保留在服务端，但任何访客端历史列表、会话详情和删除接口均不可用。仅当前页面内存中的会话 ID 可用于本次提问、重试和断线核对；轮次读取仅允许该 guest/report 最近创建的活动会话。
 
 ## 6. `sa_ai_consult_turn`
 
@@ -45,7 +45,7 @@
 
 ## 7. `sa_ai_consult_generation`
 
-每次实际模型尝试：`id`、`turn_id`、`attempt_number`、`generation_epoch`、`status`（queued/running/completed/failed/stopped/discarded）、`partial_text`（仅经分段校验且标记未完成）、`provider_request_id`、`model_code`、`prompt_tokens`、`completion_tokens`、`error_category`、`started_at`、`first_valid_chunk_at`、`finished_at`。唯一约束 `(turn_id, attempt_number)`。
+每次实际模型尝试：`id`、`turn_id`、`attempt_number`、`generation_epoch`、`status`（queued/running/completed/failed/stopped/discarded）、`partial_text`（仅经分段校验且标记未完成）、`provider_request_id`、`model_code`、`budget_tokens`、`prompt_tokens`、`completion_tokens`、`error_category`、`started_at`、`first_valid_chunk_at`、`finished_at`。唯一约束 `(turn_id, attempt_number)`，并按 `started_at` 建索引。新生成在 `nepstar` 配置行锁下预留 token；服务商返回可信用量后按实际值结算，无可信用量的尝试按预留额占用当日预算。
 
 生成结果提交需比较 session 的 `generation_epoch` 与当前 attempt；不匹配时丢弃，避免停止、删除、重试或切报告后的晚到结果。实际服务用量按 generation 汇总；匿名会话额度只按 completed turn 且 `(guest_id, 业务日)` 计数，重试成功不重复计。另设全局并发、总消耗和异常流量保护，因为新标签页可创建新 guest，不能按 guest_id 证明是同一真实用户。
 
@@ -58,9 +58,10 @@
 ```text
 guest: active → revoked | expired
 session: active → deleted | expired
+         expired（仅访问失效，数据继续保留）
 turn: accepted → generating → completed | failed | stopped
                   failed | stopped → generating（同一问题的新 attempt）
-                  any → deleted（会话删除）
+                  any → deleted（仅历史兼容状态，不由用户端写入）
 generation: queued → running → completed | failed | stopped | discarded
 ```
 
@@ -68,9 +69,9 @@ generation: queued → running → completed | failed | stopped | discarded
 
 ## 数据保留和删除
 
-- 用户删除：立即设置 deleted、撤销生成和读取；在线正文在 24 小时内清除，操作审计仅留必要非正文信息。
-- 正常到期：最近活动起最多 30 天，过期按同样逻辑处理；关闭标签页虽失去凭证，服务端仍按留存期清理；告知变更与实际配置同步。
-- 备份：最长 30 天到期，并在生产上线前验证恢复和到期清理流程。
+- 咨询会话、用户问题、完整回答和必要的依据/反馈永久保存在 `nepstar`，不设置聊天内容 TTL，不自动清理或硬删除；运行入口在连库前明确失败，防止旧调度误触发。
+- 报告端不提供最近咨询、历史读取、会话切换或用户删除功能。匿名凭证/访问会话过期只使访问拒绝，不删除或擦除后台记录。
+- 备份遵循数据库整体备份制度；本功能不额外创建会话级清理或过期任务。
 - 日志与指标：仅记录 request id、耗时、错误类别和用量，不记录问题正文、回答正文、姓名、电话及模型密钥。
 
 ## 数据库迁移门槛

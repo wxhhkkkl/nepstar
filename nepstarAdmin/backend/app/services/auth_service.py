@@ -78,7 +78,9 @@ async def get_me(db: AsyncSession, user_id: int) -> dict:
 
     # Get permissions
     role_ids_result = await db.execute(
-        select(SAUserRole.role_id).where(SAUserRole.user_id == user_id)
+        select(SAUserRole.role_id)
+        .join(SARole, SARole.id == SAUserRole.role_id)
+        .where(SAUserRole.user_id == user_id, SARole.status == 1)
     )
     role_ids = [r[0] for r in role_ids_result.all()]
 
@@ -89,14 +91,28 @@ async def get_me(db: AsyncSession, user_id: int) -> dict:
     for p in perm_result.scalars():
         if str(p.menu_id) not in permissions:
             permissions[str(p.menu_id)] = []
-        permissions[str(p.menu_id)].extend(p.actions.split(","))
+        for raw_action in (p.actions or "").split(","):
+            action = raw_action.strip()
+            if action and action not in permissions[str(p.menu_id)]:
+                permissions[str(p.menu_id)].append(action)
 
     # Build menu tree (admin sees all, others see permitted)
     if await is_admin(user_id, db):
         visible_menus = [m for m in all_menus]
     else:
         permitted_ids = {int(k) for k in permissions.keys()}
-        visible_menus = [m for m in all_menus if m.id in permitted_ids or m.parent_id in permitted_ids]
+        menu_by_id = {menu.id: menu for menu in all_menus}
+        visible_ids = set(permitted_ids)
+        for menu in all_menus:
+            if menu.id not in permitted_ids:
+                continue
+            parent_id = menu.parent_id
+            visited = {menu.id}
+            while parent_id in menu_by_id and parent_id not in visited:
+                visible_ids.add(parent_id)
+                visited.add(parent_id)
+                parent_id = menu_by_id[parent_id].parent_id
+        visible_menus = [menu for menu in all_menus if menu.id in visible_ids]
 
     menus = build_menu_tree(visible_menus)
 

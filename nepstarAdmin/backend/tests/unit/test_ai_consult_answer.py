@@ -23,8 +23,12 @@ def report_bundle():
     )
 
 
-def draft(summary="可以结合报告中的呼吸睡眠指标理解本次结果。", ids=None):
-    return {"summary": summary, "evidence_ids": ["ev1"] if ids is None else ids}
+def draft(summary="可以结合报告中的呼吸睡眠指标理解本次结果。", ids=None, follow_ups=None):
+    return {
+        "summary": summary,
+        "evidence_ids": ["ev1"] if ids is None else ids,
+        "follow_up_questions": [] if follow_ups is None else follow_ups,
+    }
 
 
 def test_validated_answer_renders_score_date_and_citation_from_server_evidence_only():
@@ -42,6 +46,47 @@ def test_validated_answer_renders_score_date_and_citation_from_server_evidence_o
     assert "customerId" not in result.candidate_text
 
 
+def test_answer_returns_two_structured_follow_up_questions():
+    from app.services.ai_consult_answer import validate_answer_draft
+
+    result = validate_answer_draft(
+        report_bundle(),
+        draft(
+            summary="这项指标可以结合你补充的情况理解。",
+            follow_ups=["你每晚是否容易醒来？", "白天会感到疲惫吗？"],
+        ),
+    )
+    assert result.state == "provenance_validated"
+    assert result.candidate_text.count("？") == 0
+    assert result.follow_up_questions == ["你每晚是否容易醒来？", "白天会感到疲惫吗？"]
+
+
+def test_answer_drops_follow_up_already_offered_for_same_indicator():
+    from app.services.ai_consult_answer import validate_answer_draft
+
+    bundle = report_bundle()
+    bundle.prior_follow_up_questions.append("你每晚是否容易醒来？")
+    result = validate_answer_draft(
+        bundle, draft(follow_ups=["你每晚是否容易醒来？", "白天会感到疲惫吗？"])
+    )
+    assert result.follow_up_questions == ["白天会感到疲惫吗？"]
+
+
+@pytest.mark.parametrize("follow_ups", [
+    ["你有确诊吗？"],
+    ["这个指标怎么样？" * 20],
+    ["你每晚是否容易醒来？", "你每晚是否容易醒来？"],
+    ["报告 KH503LS0014998K260729093902424 怎么样？"],
+    ["要不要停药？"],
+    ["第一项？第二项？第三项？"],
+])
+def test_unsafe_duplicate_or_oversized_followups_are_rejected(follow_ups):
+    from app.services.ai_consult_answer import AnswerRejected, validate_answer_draft
+
+    with pytest.raises(AnswerRejected):
+        validate_answer_draft(report_bundle(), draft(follow_ups=follow_ups))
+
+
 @pytest.mark.parametrize(
     "bad_draft",
     [
@@ -52,6 +97,7 @@ def test_validated_answer_renders_score_date_and_citation_from_server_evidence_o
         draft(summary="本次得分为 90 分。"),  # 正确数值也必须由服务端渲染
         draft(summary="根据 https://unknown.example/ 的研究。"),
         draft(summary="报告 KH503LS0014998K260729093902424 已确认。"),
+        draft(summary="问题一？问题二？问题三？"),
         {"summary": "可以结合报告理解。", "evidence_ids": ["ev1"],
          "answer": "模型夹带的原文不可返回"},
     ],

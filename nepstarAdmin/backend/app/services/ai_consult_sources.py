@@ -26,6 +26,7 @@ _TEXT_SELECTS = tuple(
         r"SELECT report_code FROM inspect_base WHERE customer_id = :cid AND status = 1 AND \(:ex IS NULL OR report_code <> :ex\) ORDER BY inspect_date DESC LIMIT :n",
         r"SELECT pi.indicator_id, p.id, p.plan_name, p.description, p.trigger_score_below, p.sort_order FROM nepstar.sa_plan_indicator pi JOIN nepstar.sa_plan p ON p.id = pi.plan_id WHERE p.status = 1 AND pi.indicator_id IN :ids ORDER BY pi.indicator_id, p.sort_order, p.id",
         r"SELECT pp.plan_id, pr.id, pr.product_name, pr.cover_url FROM nepstar.sa_plan_product pp JOIN nepstar.sa_product pr ON pr.id = pp.product_id WHERE pr.status = 1 AND pp.plan_id IN :ids ORDER BY pp.plan_id, pp.sort_order, pr.id",
+        r"SELECT id, product_name, cover_url FROM nepstar.sa_product WHERE status = 1 AND id IN :product_ids",
         r"SELECT report_code, inspect_date, report_date, customer_id FROM inspect_base WHERE customer_id = :cid AND status = 1 AND inspect_date <= :cutoff AND report_date <= :report_time AND report_code <> :current_code ORDER BY inspect_date DESC, report_code DESC LIMIT :n",
     )
 )
@@ -117,6 +118,38 @@ def _score(value: Any) -> int | None:
     return int(value) if 0 <= value <= 100 and int(value) == value else None
 
 
+def _recommendation_context(value: Any) -> dict[str, Any] | None:
+    """Expose only fields needed to re-check a current plan; no ad copy/products."""
+    if not isinstance(value, dict):
+        return None
+    plan_id = value.get("plan_id")
+    plan_name = value.get("plan_name")
+    code = value.get("trigger_indicator_code")
+    if (
+        isinstance(plan_id, bool)
+        or not isinstance(plan_id, int)
+        or plan_id <= 0
+        or not isinstance(plan_name, str)
+        or not plan_name.strip()
+        or len(plan_name) > 100
+        or not isinstance(code, str)
+        or _INDICATOR_CODE.fullmatch(code) is None
+    ):
+        return None
+    return {
+        "plan_id": plan_id,
+        "plan_name": plan_name.strip(),
+        "trigger_indicator_code": code,
+        "indicator_score": _score(value.get("indicator_score")),
+        "trigger_score_below": _score(value.get("trigger_score_below")),
+        "description": (
+            value.get("description")
+            if isinstance(value.get("description"), str) and len(value["description"]) <= 1200
+            else None
+        ),
+    }
+
+
 def _scope(scope: Any) -> tuple[str, int]:
     report_code = getattr(scope, "report_code", None)
     customer_id = getattr(scope, "customer_id", None)
@@ -190,6 +223,7 @@ async def read_report_tool(
                     "name": item["name"],
                     "score": _score(item.get("score")),
                     "indicators": indicators,
+                    "recommendation": _recommendation_context(item.get("recommendation")),
                 }
             )
         return {
@@ -215,6 +249,7 @@ async def read_report_tool(
             "description": item.get("description"),
             "interpretation": item.get("interpretation"),
             "status_text": item.get("status_text"),
+            "actions": item.get("actions") if isinstance(item.get("actions"), list) else [],
         },
     }
 

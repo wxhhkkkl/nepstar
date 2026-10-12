@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from sqlalchemy import Column, Integer, MetaData, String, Table, delete, select, text, update
+from sqlalchemy import Column, Integer, MetaData, String, Table, delete, insert, select, text, update
 
 from app.models.new.sa_indicator import SAIndicator
 
@@ -67,9 +67,11 @@ async def test_read_guard_allows_known_report_selects_but_rejects_writes_and_unk
     other = SAIndicator.__table__.alias("other")
 
     forbidden = [
+        insert(SAIndicator).values(id=1, name="不应写入"),
         update(SAIndicator).values(status=0),
         delete(SAIndicator),
         text("DROP TABLE inspect_base"),
+        text("ALTER TABLE inspect_base ADD COLUMN unexpected INT"),
         text("SELECT * FROM inspect_base"),
         text("SELECT report_code FROM inspect_base; DELETE FROM inspect_base"),
         select(SAIndicator).with_for_update(),
@@ -84,6 +86,11 @@ async def test_read_guard_allows_known_report_selects_but_rejects_writes_and_unk
     assert underlying.execute.await_count == allowed_count
     with pytest.raises(ReadBoundaryViolation):
         guarded.add(object())
+    for operation in (guarded.flush, guarded.commit):
+        with pytest.raises(ReadBoundaryViolation):
+            await operation()
+    with pytest.raises(ReadBoundaryViolation):
+        await guarded.delete(object())
 
 
 @pytest.mark.asyncio
@@ -106,6 +113,7 @@ async def test_only_named_tools_and_bound_report_scope_can_reach_sources(monkeyp
         "system": {"system_code": "SYS_LUNG", "name": "肺功能"},
         "indicator": {"indicator_code": "SYS_LUNG_SLEEP", "name": "呼吸睡眠", "score": 98,
                       "description": "测试描述", "interpretation": "测试解读",
+                      "actions": ["规律作息", "适量活动"],
                       "status_text": "保持关注", "trend": [{"date": "2026-12-01", "score": 99}],
                       "customer_id": 1001},
     })
@@ -130,13 +138,15 @@ async def test_only_named_tools_and_bound_report_scope_can_reach_sources(monkeyp
     assert home == {"report_code": "R1", "report_date": "2026-10-08", "total_score": 82,
                     "systems": [{"system_code": "SYS_LUNG", "name": "肺功能", "score": 80,
                                  "indicators": [{"indicator_code": "SYS_LUNG_SLEEP",
-                                                 "name": "呼吸睡眠", "score": 90}]},
+                                                 "name": "呼吸睡眠", "score": 90}],
+                                 "recommendation": None},
                                 {"system_code": "SYS_BAD", "name": "异常", "score": None,
-                                 "indicators": []}]}
+                                 "indicators": [], "recommendation": None}]}
     assert detail == {"report_code": "R1", "system": {"system_code": "SYS_LUNG", "name": "肺功能"},
                       "indicator": {"indicator_code": "SYS_LUNG_SLEEP", "name": "呼吸睡眠",
                                     "score": 98, "description": "测试描述",
-                                    "interpretation": "测试解读", "status_text": "保持关注"}}
+                                    "interpretation": "测试解读", "status_text": "保持关注",
+                                    "actions": ["规律作息", "适量活动"]}}
     assert isinstance(home_loader.await_args.args[0], ai_consult_sources.ReadOnlyReportSession)
     assert detail_loader.await_args.args[1:] == ("R1", "SYS_LUNG_SLEEP", 1001)
 
@@ -179,4 +189,29 @@ async def test_non_finite_scores_are_omitted_without_exposing_raw_data(monkeypat
     )
     assert result["total_score"] is None
     assert result["systems"] == [{"system_code": "SYS_LUNG", "name": "肺功能",
-                                   "score": None, "indicators": []}]
+                                   "score": None, "indicators": [], "recommendation": None}]
+
+
+@pytest.mark.asyncio
+async def test_public_report_verification_and_home_are_both_given_read_only_sessions(monkeypatch):
+    from app.api import ai_consult
+    from app.services import ai_consult_sources
+    import app.services as report_services_pkg
+
+    verify = AsyncMock(return_value=({}, {}))
+    build_home = AsyncMock(return_value={"report": {"report_code": "R1"}, "systems": []})
+    # Avoid importing report_source: its legacy-table reflection can open a DB connection.
+    report_view = SimpleNamespace(_load_document_and_meta=verify, build_home=build_home)
+    report_source = SimpleNamespace(
+        ReportSourceUnavailableError=type("ReportSourceUnavailableError", (RuntimeError,), {})
+    )
+    monkeypatch.setattr(report_services_pkg, "report_view_service", report_view, raising=False)
+    monkeypatch.setattr(report_services_pkg, "report_source", report_source, raising=False)
+    raw_db = FakeReadDb()
+
+    await ai_consult.verify_public_report(raw_db, "R1", 1001)
+    result = await ai_consult.load_public_report_home(raw_db, "R1", 1001)
+
+    assert result["report"]["report_code"] == "R1"
+    assert isinstance(verify.await_args.args[0], ai_consult_sources.ReadOnlyReportSession)
+    assert isinstance(build_home.await_args.args[0], ai_consult_sources.ReadOnlyReportSession)

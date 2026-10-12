@@ -18,6 +18,7 @@ export const router = createRouter({
     if (savedPosition) return savedPosition
     if (to.name === 'home' && from.name === 'system-detail') return false
     if (to.name === 'system-detail' && from.name === 'indicator-detail') return false
+    if (to.name === 'ai-consult' && ['system-detail', 'indicator-detail'].includes(from.name)) return false
     return { top: 0 }
   },
 })

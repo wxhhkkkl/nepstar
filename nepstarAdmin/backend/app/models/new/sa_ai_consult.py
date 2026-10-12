@@ -98,7 +98,8 @@ class SAAiConsultSession(Base):
     report_date: Mapped[date] = mapped_column(Date, nullable=False)
     source: Mapped[str] = mapped_column(String(20), nullable=False)
     source_plan_id: Mapped[int | None] = mapped_column(BigInteger)
-    consent_id: Mapped[int] = mapped_column(ForeignKey("nepstar.sa_ai_consult_consent.id"), nullable=False)
+    source_indicator_code: Mapped[str | None] = mapped_column(String(64))
+    consent_id: Mapped[int | None] = mapped_column(ForeignKey("nepstar.sa_ai_consult_consent.id"), nullable=True)
     title: Mapped[str | None] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
@@ -133,7 +134,11 @@ class SAAiConsultTurn(Base):
 
 class SAAiConsultGeneration(Base):
     __tablename__ = "sa_ai_consult_generation"
-    __table_args__ = (UniqueConstraint("turn_id", "attempt_number", name="uk_ai_generation_attempt"), {"schema": SCHEMA})
+    __table_args__ = (
+        UniqueConstraint("turn_id", "attempt_number", name="uk_ai_generation_attempt"),
+        Index("idx_ai_generation_started", "started_at"),
+        {"schema": SCHEMA},
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     turn_id: Mapped[int] = mapped_column(ForeignKey("nepstar.sa_ai_consult_turn.id"), nullable=False)
@@ -143,6 +148,7 @@ class SAAiConsultGeneration(Base):
     partial_text: Mapped[str | None] = mapped_column(Text)
     provider_request_id: Mapped[str | None] = mapped_column(String(100))
     model_code: Mapped[str | None] = mapped_column(String(100))
+    budget_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     prompt_tokens: Mapped[int | None] = mapped_column(Integer)
     completion_tokens: Mapped[int | None] = mapped_column(Integer)
     error_category: Mapped[str | None] = mapped_column(String(50))

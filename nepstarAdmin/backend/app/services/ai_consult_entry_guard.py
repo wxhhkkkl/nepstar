@@ -11,6 +11,17 @@ from ..models.new.sa_ai_consult import SAAiConsultSettings
 class GuestEntryDisabled(Exception):
     """入口关闭、未配置或限流上限未明确设置。"""
 
+    def __init__(self, maintenance_text: str | None = None):
+        self.maintenance_text = maintenance_text
+
+
+def public_maintenance_text(config: SAAiConsultSettings | None) -> str | None:
+    """只返回后台公开维护说明；不将内部配置或异常详情暴露给访客。"""
+    value = getattr(config, "maintenance_text", None)
+    if not isinstance(value, str):
+        return None
+    return value.strip()[:500] or None
+
 
 class GuestRateLimited(Exception):
     def __init__(self, retry_after_seconds: int):
@@ -25,8 +36,9 @@ async def reserve_guest_creation(db: AsyncSession, *, now: datetime | None = Non
         .with_for_update()
     )
     config = result.scalar_one_or_none()
-    if config is None or not config.enabled or config.guest_create_limit_per_minute <= 0:
-        raise GuestEntryDisabled()
+    maintenance_text = public_maintenance_text(config)
+    if maintenance_text or config is None or not config.enabled or config.guest_create_limit_per_minute <= 0:
+        raise GuestEntryDisabled(maintenance_text)
 
     current = now or datetime.now(UTC).replace(tzinfo=None)
     if current.tzinfo is not None:

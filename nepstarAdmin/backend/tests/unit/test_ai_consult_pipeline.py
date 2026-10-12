@@ -21,6 +21,7 @@ class FakeProvider:
         self.result = draft or {
             "summary": "可以结合这项报告结果理解本次情况。",
             "evidence_ids": ["ev1"],
+            "follow_up_questions": [],
         }
         self.calls = []
 
@@ -29,7 +30,7 @@ class FakeProvider:
         return self.result
 
 
-def report_reader(*, score=90, detail_score=90):
+def report_reader(*, score=90, detail_score=90, actions=None):
     async def read(_db, _scope, tool_name, *, indicator_code=None):
         if tool_name == "home":
             return {
@@ -61,6 +62,7 @@ def report_reader(*, score=90, detail_score=90):
                 "name": "呼吸睡眠",
                 "score": detail_score,
                 "description": "关注睡眠期间的呼吸质量。",
+                "actions": actions or [],
             },
         }
 
@@ -103,6 +105,8 @@ async def test_urgent_or_private_input_never_reaches_reader_or_provider():
     )
     assert urgent.state == "emergency"
     assert private.state == "private_input"
+    assert (urgent.prompt_tokens, urgent.completion_tokens) == (0, 0)
+    assert (private.prompt_tokens, private.completion_tokens) == (0, 0)
     assert provider.calls == []
 
 
@@ -123,9 +127,9 @@ async def test_conflicting_scores_produce_uncertainty_without_model_call():
 @pytest.mark.parametrize(
     "draft",
     [
-        {"summary": "分数是 98 分。", "evidence_ids": ["ev1"]},
-        {"summary": "可以放心，不用就医。", "evidence_ids": ["ev1"]},
-        {"summary": "这项情况良好。", "evidence_ids": ["ev404"]},
+        {"summary": "分数是 98 分。", "evidence_ids": ["ev1"], "follow_up_questions": []},
+        {"summary": "可以放心，不用就医。", "evidence_ids": ["ev1"], "follow_up_questions": []},
+        {"summary": "这项情况良好。", "evidence_ids": ["ev404"], "follow_up_questions": []},
     ],
 )
 async def test_unverified_or_unsafe_model_text_is_never_exposed(draft):
@@ -155,7 +159,7 @@ async def test_provider_timeout_does_not_publish_partial_text():
     class SlowProvider:
         async def draft(self, *, question, evidence):
             await asyncio.sleep(0.1)
-            return {"summary": "不应展示", "evidence_ids": ["ev1"]}
+            return {"summary": "不应展示", "evidence_ids": ["ev1"], "follow_up_questions": []}
 
     result = await prepare_answer_candidate(
         object(), SCOPE, "呼吸睡眠怎么样？", provider=SlowProvider(),
@@ -179,3 +183,80 @@ async def test_report_read_failure_never_calls_provider():
     assert result.state == "report_unavailable"
     assert "private report source error" not in result.text
     assert provider.calls == []
+
+
+@pytest.mark.asyncio
+async def test_safe_admin_actions_are_saved_as_separate_sources_not_model_facts():
+    provider = FakeProvider()
+    result = await prepare_answer_candidate(
+        object(), SCOPE, "呼吸睡眠有什么建议？", provider=provider,
+        reader=report_reader(actions=["保持规律作息", "适量活动"]),
+    )
+
+    assert result.state == "reviewed_candidate"
+    assert [item["text"] for item in result.evidence if item.get("source_type") == "action"] == [
+        "保持规律作息", "适量活动",
+    ]
+    assert all(item["kind"] == "maintained" for item in result.evidence if item.get("source_type") == "action")
+    _, model_evidence = provider.calls[0]
+    assert "保持规律作息" not in str(model_evidence)
+    assert "适量活动" not in str(model_evidence)
+
+
+@pytest.mark.asyncio
+async def test_unsafe_admin_action_prevents_answer_and_action_from_being_published():
+    result = await prepare_answer_candidate(
+        object(), SCOPE, "呼吸睡眠有什么建议？", provider=FakeProvider(),
+        reader=report_reader(actions=["建议购买我们的产品"]),
+    )
+
+    assert result.state == "unsafe_answer"
+    assert result.evidence == []
+    assert result.is_completed is False
+
+
+@pytest.mark.asyncio
+async def test_pipeline_sends_only_bounded_labeled_same_indicator_user_context():
+    provider = FakeProvider()
+    result = await prepare_answer_candidate(
+        object(),
+        SCOPE,
+        "这个情况可以怎么改善？",
+        provider=provider,
+        reader=report_reader(),
+        context_indicator_code="SYS_LUNG_SLEEP_BREATHING",
+        prior_user_context=[
+            {"indicator_code": "SYS_LUNG_SLEEP_BREATHING", "text": "我最近每天睡得比较晚"},
+            {"indicator_code": "SYS_CARDIO_LIPID", "text": "不相关的另一个指标"},
+        ],
+        prior_follow_up_questions=[
+            {"indicator_code": "SYS_LUNG_SLEEP_BREATHING", "text": "你每晚是否容易醒来？"},
+            {"indicator_code": "SYS_CARDIO_LIPID", "text": "你平时关注血脂吗？"},
+        ],
+    )
+
+    assert result.state == "reviewed_candidate"
+    _, model_evidence = provider.calls[0]
+    assert model_evidence["user_context"] == [
+        {"source_type": "user_supplement", "text": "我最近每天睡得比较晚"},
+    ]
+    assert "previous_follow_up_questions" not in model_evidence
+    assert "不相关的另一个指标" not in str(model_evidence)
+    assert "你平时关注血脂吗？" not in str(model_evidence)
+    assert "我最近每天睡得比较晚" not in str(result.evidence)
+
+
+@pytest.mark.asyncio
+async def test_pipeline_persists_only_validated_followups_with_report_citation():
+    provider = FakeProvider({
+        "summary": "可以结合这项报告结果理解本次情况。",
+        "evidence_ids": ["ev1"],
+        "follow_up_questions": ["你每晚是否容易醒来？"],
+    })
+    result = await prepare_answer_candidate(
+        object(), SCOPE, "呼吸睡眠怎么样？", provider=provider, reader=report_reader()
+    )
+    assert result.state == "reviewed_candidate"
+    assert result.evidence[0]["kind"] == "report"
+    assert result.evidence[0]["follow_up_questions"] == ["你每晚是否容易醒来？"]
+    assert all("follow_up_questions" not in item for item in result.evidence[1:])

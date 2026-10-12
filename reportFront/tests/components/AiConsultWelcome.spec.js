@@ -5,8 +5,18 @@ import { bootstrapPayload } from '../fixtures/aiConsult.js'
 
 vi.mock('@/api/aiConsultClient.js', () => ({
   loadConsultBootstrap: vi.fn(),
+  listConsultSessions: vi.fn(),
+  loadConsultSession: vi.fn(),
+  loadConsultTurn: vi.fn(),
+  createConsultSession: vi.fn(),
+  endConsultSession: vi.fn(),
   AiConsultApiError: class AiConsultApiError extends Error {
-    constructor(kind) { super(kind); this.kind = kind }
+    constructor(kind, status = 0, detail = '') {
+      super(kind)
+      this.kind = kind
+      this.status = status
+      this.detail = detail
+    }
   },
 }))
 vi.mock('@/api/reportClient.js', async (importOriginal) => {
@@ -39,10 +49,74 @@ describe('AI consultation welcome route', () => {
     expect(wrapper.find('[aria-busy="true"]').exists()).toBe(true)
   })
 
+  it('uses the new welcome layout without a history entry or invented visitor identity', async () => {
+    loadConsultBootstrap.mockResolvedValueOnce({
+      ...structuredClone(bootstrapPayload), report_score: 82,
+      focus_systems: [{ name: '肺功能', score: 80 }],
+    })
+    const wrapper = mountWelcome()
+    await flushPromises()
+    expect(wrapper.get('.ai-topbar-title').text()).toContain('AI 长寿咨询')
+    expect(wrapper.get('.ai-hero .ai-eyebrow').text()).toBe('YOUR LONGEVITY COMPANION')
+    expect(wrapper.get('[data-testid="ai-report-score"]').text()).toBe('82分')
+    expect(wrapper.get('.ai-report-focus').text()).toContain('肺功能 · 活力值 80')
+    expect(wrapper.get('.ai-hero').text()).toContain('想先了解哪项长寿指标？')
+    expect(wrapper.get('.ai-topbar').findAll('button')).toHaveLength(0)
+    expect(wrapper.text()).not.toContain('最近咨询')
+    expect(wrapper.text()).not.toContain('GOOD MORNING · LEE')
+    wrapper.unmount()
+  })
+
+  it('keeps actual report-matched plans and links to their same-report system details', async () => {
+    loadConsultBootstrap.mockResolvedValueOnce({
+      ...structuredClone(bootstrapPayload),
+      management_plans: [{
+        plan_id: 7, plan_name: '睡眠健康管理方案', system_code: 'SYS_ENDOCRINE',
+        indicator_code: 'SYS_ENDOCRINE_PINEAL', indicator_name: '松果体', indicator_score: 48,
+        description: '从睡眠节律开始管理', image_url: '/assets/sleep-health-management-plan.png',
+        image_alt: '睡眠管理方案产品',
+      }],
+    })
+    const wrapper = mountWelcome()
+    await flushPromises()
+    expect(wrapper.get('[data-testid="ai-management-plans"]').text()).toContain('1 项健康管理方案')
+    const plan = wrapper.get('[data-testid="ai-management-plan"]')
+    expect(plan.text()).toContain('松果体 · 活力值 48')
+    expect(plan.text()).toContain('从睡眠节律开始管理')
+    expect(plan.findComponent(RouterLinkStub).props('to')).toEqual({
+      name: 'system-detail', params: { systemId: 'SYS_ENDOCRINE' },
+      query: { reportId: 'R1', userId: '1001', fromAiConsult: '1' },
+    })
+    expect(plan.find('img').attributes('alt')).toBe('睡眠管理方案产品')
+    wrapper.unmount()
+  })
+
+  it('does not fabricate plans or a score when the report has none', async () => {
+    loadConsultBootstrap.mockResolvedValueOnce({ ...structuredClone(bootstrapPayload), report_score: null })
+    const wrapper = mountWelcome()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="ai-management-plans"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="ai-report-score"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('68分')
+    wrapper.unmount()
+  })
+
+  it('opens the composer directly without a required consent sheet', async () => {
+    loadConsultBootstrap.mockResolvedValueOnce({ ...structuredClone(bootstrapPayload), service_status: 'available' })
+    const wrapper = mountWelcome()
+    await flushPromises()
+    expect(wrapper.find('textarea').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="ai-composer"]').exists()).toBe(true)
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="ai-notice-accept"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="ai-question"]').attributes('disabled')).toBeUndefined()
+    wrapper.unmount()
+  })
+
   it('shows only real bootstrap fields and keeps questions disabled while service is unavailable', async () => {
     const wrapper = mountWelcome()
     await flushPromises()
-    expect(loadConsultBootstrap).toHaveBeenCalledWith('R1', 1001)
+    expect(loadConsultBootstrap).toHaveBeenCalledWith('R1', 1001, { planId: null, indicatorCode: null })
     expect(wrapper.text()).toContain('本次报告总分 82 分')
     expect(wrapper.text()).toContain('2026-10-08')
     expect(wrapper.text()).toContain('我的肺功能活力值80分')
@@ -55,16 +129,12 @@ describe('AI consultation welcome route', () => {
     })
   })
 
-  it('shows the current notice and scope without recording consent while the model is closed', async () => {
+  it('does not show the standalone notice entry while the service is unavailable', async () => {
     const wrapper = mountWelcome()
     await flushPromises()
-    await wrapper.get('[data-testid="ai-notice-open"]').trigger('click')
-    expect(wrapper.get('[role="dialog"]').text()).toContain('测试用健康数据处理告知。')
-    expect(wrapper.get('[role="dialog"]').text()).toContain('仅使用当前报告指标和本次问题。')
-    expect(wrapper.get('[role="dialog"]').text()).toContain('test-provider')
-    expect(wrapper.get('[role="dialog"]').text()).not.toContain('同意并继续')
-    await wrapper.get('[data-testid="ai-notice-close"]').trigger('click')
+    expect(wrapper.find('[data-testid="ai-notice-open"]').exists()).toBe(false)
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('报告内容仍可查看')
   })
 
   it('has a controlled network error with retry and no invented report content', async () => {
@@ -77,6 +147,29 @@ describe('AI consultation welcome route', () => {
     await flushPromises()
     expect(loadConsultBootstrap).toHaveBeenCalledTimes(2)
     expect(wrapper.text()).toContain('本次报告总分 82 分')
+  })
+
+  it('shows the configured maintenance notice without enabling consent or questions', async () => {
+    loadConsultBootstrap.mockResolvedValueOnce({
+      ...structuredClone(bootstrapPayload),
+      service_status: 'maintenance',
+      maintenance_text: '模型服务维护中，预计稍后恢复。',
+    })
+    const wrapper = mountWelcome()
+    await flushPromises()
+    expect(wrapper.text()).toContain('咨询服务维护中')
+    expect(wrapper.text()).toContain('模型服务维护中，预计稍后恢复。')
+    expect(wrapper.find('textarea').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="ai-question"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('shows maintenance before a guest can be created and does not invent report data', async () => {
+    loadConsultBootstrap.mockRejectedValueOnce(new AiConsultApiError('maintenance', 503, '请稍后再试。'))
+    const wrapper = mountWelcome()
+    await flushPromises()
+    expect(wrapper.get('[role="alert"]').text()).toContain('咨询服务维护中')
+    expect(wrapper.get('[role="alert"]').text()).toContain('请稍后再试。')
+    expect(wrapper.text()).not.toContain('本次报告总分')
   })
 
   it('does not call the guest endpoint when report parameters are missing', async () => {

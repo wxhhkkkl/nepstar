@@ -16,8 +16,8 @@ for (const width of [320, 360, 390, 430]) {
     await expect(page.getByText('咨询服务暂未开放')).toBeVisible()
     await expect(page.getByTestId('ai-question')).toHaveCount(3)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
-    await page.getByTestId('ai-notice-open').click()
-    await expect(page.getByRole('dialog')).toBeVisible()
+    await expect(page.getByTestId('ai-notice-open')).toHaveCount(0)
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
   })
 }

@@ -1,8 +1,7 @@
 <script setup>
 import { computed } from 'vue'
-import { reportRouteQueryFromLocation } from '@/api/reportClient.js'
-import { saveHomeScroll } from '@/composables/useScrollRestoration.js'
-import { reportAssets } from '@/data/report.js'
+import { reportParamsFromLocation, reportRouteQueryFromLocation } from '@/api/reportClient.js'
+import { saveHomeScroll, saveSystemDetailScroll } from '@/composables/useScrollRestoration.js'
 
 const props = defineProps({
   system: { type: Object, required: true },
@@ -11,6 +10,25 @@ const props = defineProps({
 const recommendation = computed(() => props.system.recommendation)
 const titleLines = computed(() => recommendation.value?.title.split('\n') ?? [])
 const reportQuery = reportRouteQueryFromLocation()
+const consultRoute = computed(() => {
+  const context = recommendation.value || {}
+  return {
+    name: 'ai-consult',
+    query: {
+      ...reportQuery,
+      returnSystem: props.system.systemCode,
+      ...(Number.isSafeInteger(Number(context.planId)) && Number(context.planId) > 0
+        ? { planId: String(context.planId) } : {}),
+      ...(typeof context.triggerIndicatorCode === 'string'
+        ? { indicatorCode: context.triggerIndicatorCode } : {}),
+    },
+  }
+})
+
+function rememberDetailPosition() {
+  const { reportCode } = reportParamsFromLocation()
+  saveSystemDetailScroll(reportCode, props.system.systemCode)
+}
 </script>
 
 <template>
@@ -30,7 +48,7 @@ const reportQuery = reportRouteQueryFromLocation()
       <div class="detail-product-visual product-contain"><img :src="recommendation.image" :alt="recommendation.imageAlt" width="208" height="160"><span>PREMIUM SUPPORT</span></div>
       <div class="detail-product-copy"><span class="detail-product-module">对应问题 · {{ recommendation.issue }}</span><h2 :id="`${system.id}DetailProductTitle`"><template v-for="(line, index) in titleLines" :key="line">{{ line }}<br v-if="index < titleLines.length - 1"></template></h2><p>{{ recommendation.context }}</p></div>
     </div>
-    <a class="detail-product-action" :href="reportAssets.aiConsultImage" aria-label="咨询 AI 长寿顾问了解推荐依据"><span><b>咨询 AI 长寿顾问</b><small>进一步了解推荐依据</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></a>
+    <RouterLink class="detail-product-action" :to="consultRoute" aria-label="咨询 AI 长寿顾问了解推荐依据" @click="rememberDetailPosition"><span><b>咨询 AI 长寿顾问</b><small>进一步了解推荐依据</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
     <p class="detail-product-disclaimer">温馨提示：本推荐仅用于日常健康管理参考。保健食品不是药物，不能替代药物治疗疾病。</p>
   </section>
 </template>

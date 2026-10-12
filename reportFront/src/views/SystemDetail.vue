@@ -35,10 +35,23 @@ const legacySystemCodes = {
 const currentSystemCode = computed(
   () => legacySystemCodes[currentId.value] || currentId.value,
 );
-const reportQuery = reportRouteQueryFromLocation();
-const errorBackRoute = reportQuery.reportId
-  ? { name: "home", query: reportQuery }
-  : null;
+const reportQuery = computed(() => {
+  // Keep the launch context current when Vue reuses this detail component.
+  route?.fullPath;
+  return reportRouteQueryFromLocation();
+});
+const fromAiConsult = computed(() => reportQuery.value.fromAiConsult === "1");
+const consultReturnQuery = computed(() => {
+  const query = { ...reportQuery.value };
+  delete query.fromAiConsult;
+  return query;
+});
+const backRoute = computed(() => fromAiConsult.value
+  ? { name: "ai-consult", query: consultReturnQuery.value }
+  : { name: "home", query: reportQuery.value });
+const errorBackRoute = computed(() => reportQuery.value.reportId
+  ? backRoute.value
+  : null);
 
 const state = ref("loading");
 const errorKind = ref("");
@@ -90,15 +103,15 @@ watchEffect(() => {
     v-else-if="state !== 'ready'"
     :kind="errorKind"
     :back-to="errorBackRoute"
-    back-label="返回报告首页"
+    :back-label="fromAiConsult ? '返回 AI 咨询' : '返回报告首页'"
   />
 
   <main v-else class="app-shell detail-v2" :data-system-id="system.id">
     <header class="top-nav detail-nav">
       <RouterLink
         class="round-button"
-        :to="{ name: 'home', query: reportQuery }"
-        aria-label="返回长寿指数报告"
+        :to="backRoute"
+        :aria-label="fromAiConsult ? '返回 AI 咨询' : '返回长寿指数报告'"
         ><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg
       ></RouterLink>
       <div class="brand">
@@ -233,8 +246,8 @@ watchEffect(() => {
         </li>
       </ul>
     </section>
-    <RouterLink class="detail-back" :to="{ name: 'home', query: reportQuery }"
-      >返回长寿指数报告 <span>→</span></RouterLink
+    <RouterLink class="detail-back" :to="backRoute"
+      >{{ fromAiConsult ? '返回 AI 咨询' : '返回长寿指数报告' }} <span>→</span></RouterLink
     >
     <footer><p>结果仅用于健康趋势管理，不构成临床诊断。</p></footer>
   </main>

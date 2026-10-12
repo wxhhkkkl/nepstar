@@ -69,7 +69,12 @@ def validate_ai_consult_database_url(raw_url: str) -> None:
 @lru_cache(maxsize=1)
 def _ai_consult_sessionmaker(raw_url: str) -> async_sessionmaker[AsyncSession]:
     validate_ai_consult_database_url(raw_url)
-    consult_engine = create_async_engine(raw_url, echo=False, pool_size=5, max_overflow=10)
+    # Quota admission locks the settings row, then reads committed attempts.
+    # A repeatable-read snapshot taken by the earlier guest check would be stale.
+    consult_engine = create_async_engine(
+        raw_url, echo=False, pool_size=5, max_overflow=10,
+        isolation_level="READ COMMITTED",
+    )
     return async_sessionmaker(consult_engine, class_=AsyncSession, expire_on_commit=False)
 
 

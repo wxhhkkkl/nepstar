@@ -70,7 +70,7 @@ const authStore = useAuthStore();
 const { locale } = useI18n();
 const mobileMenuOpen = ref(false);
 const isAuthPage = computed(() => ['/login', '/change-password'].includes(route.path));
-const displayName = computed(() => authStore.user?.realName || authStore.user?.username || 'Admin');
+const displayName = computed(() => authStore.user?.real_name || authStore.user?.username || 'Admin');
 const avatarText = computed(() => displayName.value.trim().slice(0, 1).toUpperCase());
 
 watch(() => appStore.language, (lang) => { locale.value = lang; });

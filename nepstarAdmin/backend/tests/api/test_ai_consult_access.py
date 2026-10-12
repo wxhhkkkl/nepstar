@@ -84,6 +84,7 @@ def isolated_app(monkeypatch):
     monkeypatch.setattr(ai_consult, "async_session", FakeReadSession)
     monkeypatch.setattr(ai_consult, "get_ai_consult_sessionmaker", lambda: lambda: write_db)
     monkeypatch.setattr(settings, "AI_CONSULT_GUEST_ENABLED", True)
+    monkeypatch.setattr(settings, "AI_CONSULT_OPERATIONS_READY", True)
     monkeypatch.setattr(settings, "AI_CONSULT_TOKEN_HMAC_KEY", "test-only-hmac-key-" * 3)
     verify = AsyncMock()
     monkeypatch.setattr(ai_consult, "verify_public_report", verify)
@@ -148,6 +149,23 @@ async def test_guest_creation_is_globally_rate_limited_before_insert(isolated_ap
     assert limited.json()["message"] == "consult.rate_limited"
     assert int(limited.headers["retry-after"]) > 0
     assert len(write_db.rows) == 2
+
+
+@pytest.mark.asyncio
+async def test_public_maintenance_notice_blocks_guest_creation_without_persisting_token(isolated_app):
+    app, write_db, _ = isolated_app
+    write_db.policy.enabled = False
+    write_db.policy.maintenance_text = "  模型服务维护中，预计稍后恢复。  "
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        result = await client.post(
+            "/api/v1/ai-consult/guest-contexts",
+            json={"report_code": "R1", "customer_id": 1001},
+        )
+    assert result.status_code == 503
+    assert result.json()["message"] == "consult.maintenance"
+    assert result.json()["data"] == {"maintenance_text": "模型服务维护中，预计稍后恢复。"}
+    assert write_db.rows == []
+    assert write_db.policy.guest_create_count == 0
 
 
 @pytest.mark.asyncio

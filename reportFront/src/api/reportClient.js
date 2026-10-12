@@ -7,7 +7,8 @@
 
 const DEFAULT_API_BASE = 'https://nepstar.kangjia.online/api/v1'
 const BASE = (import.meta.env?.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/+$/, '')
-const DEFAULT_TIMEOUT_MS = 8000
+// 本地/远程数据源首次建连可能比常规请求慢；给首页聚合接口留出连接时间。
+const DEFAULT_TIMEOUT_MS = 15000
 
 export const ERROR_KINDS = {
   NOT_FOUND: 'not_found',
@@ -17,6 +18,7 @@ export const ERROR_KINDS = {
   ROUTE_NOT_FOUND: 'route_not_found',
   UNAVAILABLE: 'unavailable',
   NETWORK: 'network',
+  TIMEOUT: 'timeout',
 }
 
 const MESSAGE_TO_KIND = {
@@ -46,7 +48,10 @@ async function request(path, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
       signal: controller.signal,
     })
   } catch (error) {
-    throw new ReportApiError(ERROR_KINDS.NETWORK, String(error?.message || error))
+    const kind = controller.signal.aborted
+      ? ERROR_KINDS.TIMEOUT
+      : ERROR_KINDS.NETWORK
+    throw new ReportApiError(kind, String(error?.message || error))
   } finally {
     clearTimeout(timer)
   }

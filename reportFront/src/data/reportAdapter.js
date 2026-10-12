@@ -28,7 +28,7 @@ function filenameFromUrl(value) {
   }
 }
 
-function resolveProductImageUrl(value) {
+export function resolveProductImageUrl(value) {
   const filename = filenameFromUrl(value)
   return LOCAL_PRODUCT_ASSETS[filename] || value || ''
 }
@@ -74,6 +74,10 @@ function toRecommendation(dto, systemId) {
   const product = (dto.products || [])[0]
   return {
     issue: dto.issue,
+    planId: dto.plan_id,
+    triggerIndicatorCode: dto.trigger_indicator_code,
+    indicatorScore: dto.indicator_score,
+    triggerScoreBelow: dto.trigger_score_below,
     title: dto.title,
     eyebrow: dto.plan_name,
     context: dto.description,

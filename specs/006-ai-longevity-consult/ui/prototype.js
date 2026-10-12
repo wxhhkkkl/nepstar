@@ -238,11 +238,7 @@ function closeSheet() {
 }
 
 function showConsent() {
-  openSheet('开始前，了解一下', `<p class="sheet-copy">让 AI 更懂你的报告，也让你知道自己的信息如何被使用。</p><div class="privacy-item">${icon('report')}<div><strong>只结合必要的报告信息</strong><p>咨询时，会将相关指标和你的问题提供给 AI 服务，用于生成回答。</p></div></div><div class="privacy-item">${icon('shield')}<div><strong>你的咨询记录保持私密</strong><p>分享报告不会分享聊天记录，你也可以管理和删除自己的会话。</p></div></div><div class="privacy-item">${icon('spark')}<div><strong>帮助理解，不替代医疗判断</strong><p>AI 回答用于健康管理参考。如果身体不适，请及时寻求专业帮助。</p></div></div><p class="consent-note">这是交互设计预览，不会发送健康信息。正式上线时会展示实际 AI 服务商、数据使用范围与保留期限。</p><button class="primary-button" data-action="accept">了解，开始体验</button><button class="secondary-button" data-action="close">暂不开始</button>`)
-}
-
-function showHistory() {
-  openSheet('咨询记录', `<button class="primary-button" data-action="new-chat">${icon('plus')}开始新的咨询</button><p class="history-label">今天 · 示例记录</p><button class="history-card" data-action="open-history">${icon('history')}<span><strong>了解报告里的睡眠指标</strong><small>2026.10.08 · 本次报告</small></span>${icon('chevron')}</button><p class="sheet-body-note">这里展示的是设计样例。正式功能只会显示你有权访问的个人咨询记录。</p>`)
+  openSheet('开始前，了解一下', `<p class="sheet-copy">让 AI 更懂你的报告，也让你知道自己的信息如何被使用。</p><div class="privacy-item">${icon('report')}<div><strong>只结合必要的报告信息</strong><p>咨询时，会将相关指标和你的问题提供给 AI 服务，用于生成回答。</p></div></div><div class="privacy-item">${icon('shield')}<div><strong>后台永久保存咨询内容</strong><p>完整问题和回答会与本次报告关联保存在后台，不设自动清理；再次进入会开启新咨询，且不能查看之前的咨询。</p></div></div><div class="privacy-item">${icon('spark')}<div><strong>帮助理解，不替代医疗判断</strong><p>AI 回答用于健康管理参考。如果身体不适，请及时寻求专业帮助。</p></div></div><p class="consent-note">这是交互设计预览，不会发送健康信息。正式上线前会展示实际 AI 服务商和完整数据处理范围。</p><button class="primary-button" data-action="accept">了解，开始体验</button><button class="secondary-button" data-action="close">暂不开始</button>`)
 }
 
 document.querySelector('#composer').addEventListener('submit', event => {
@@ -282,12 +278,9 @@ document.addEventListener('click', async event => {
       if (currentView !== 'welcome') showView('welcome')
       else toast('正式页面将返回你进入咨询前的报告位置')
       break
-    case 'history': showHistory(); break
     case 'consent': showConsent(); break
     case 'close': closeSheet(); break
     case 'accept': closeSheet(); toast('仅开始设计体验，不调用真实 AI 服务'); break
-    case 'new-chat': showView('welcome'); break
-    case 'open-history': showView('chat'); break
     case 'report':
       openSheet('本次报告 · 示例', '<p class="sheet-copy">回答会结合当前报告中的相关信息。你可以随时回看引用的依据。</p><div class="report-fact"><span>检测日期</span><strong>2026.10.08</strong></div><div class="report-fact"><span>睡眠呼吸</span><strong>78 分</strong></div><div class="report-fact"><span>上次记录 · 2026.09.12</span><strong>82 分</strong></div><p class="sheet-body-note">以上仅为界面演示数据，不对应任何真实客户。</p><button class="primary-button" data-action="close">继续咨询</button>')
       break

@@ -18,9 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import mongo
 from ..database import NEPSTAR_SCHEMA
 from ..models.old.inspect_base import inspect_base_table
-
-# 方案默认触发阈值：关联指标得分严格低于该值才展示方案。
-DEFAULT_PLAN_TRIGGER_SCORE_BELOW = 80
+from .report_plan_source import DEFAULT_PLAN_TRIGGER_SCORE_BELOW, fetch_plans_for_indicators
 
 # V2 将同一生殖系统下的男性/女性专项合并展示；这些源报告分支是同级节点。
 # 只允许在对应系统分支实际存在时，从同一父节点下查找登记的关联分支。
@@ -428,77 +426,3 @@ def _first_target_score(document: dict, target_id: int) -> int | None:
             score = node.get("score")
             return int(score) if score is not None else None
     return None
-
-
-async def fetch_plans_for_indicators(
-    db: AsyncSession, indicator_ids: list[int]
-) -> dict[int, list[dict]]:
-    """按二级指标取命中的健康方案及其商品（FR-015、FR-017）。
-
-    关联链：sa_plan_indicator → sa_plan → sa_plan_product → sa_product。
-    只取启用状态的方案与商品；同一指标命中多个方案时按方案的排序取第一个。
-    """
-    if not indicator_ids:
-        return {}
-    plan_rows = (
-        await db.execute(
-            text(
-                f"SELECT pi.indicator_id, p.id, p.plan_name, p.description, "
-                f"p.trigger_score_below, p.sort_order "
-                f"FROM {_t('sa_plan_indicator')} pi "
-                f"JOIN {_t('sa_plan')} p ON p.id = pi.plan_id "
-                f"WHERE p.status = 1 AND pi.indicator_id IN :ids "
-                f"ORDER BY pi.indicator_id, p.sort_order, p.id"
-            ).bindparams(ids=tuple(indicator_ids))
-        )
-    ).all()
-    if not plan_rows:
-        return {}
-
-    plans: dict[int, list[dict]] = {}
-    for indicator_id, plan_id, plan_name, description, trigger_score_below, _sort in plan_rows:
-        plans.setdefault(int(indicator_id), []).append(
-            {
-                "plan_id": int(plan_id),
-                "plan_name": plan_name,
-                "description": description,
-                "trigger_score_below": (
-                    int(trigger_score_below)
-                    if trigger_score_below is not None
-                    else DEFAULT_PLAN_TRIGGER_SCORE_BELOW
-                ),
-                # tags / actionLabel / actionHint 在 sa_plan 里没有对应列，当前无来源
-                "tags": [],
-                "action_label": None,
-                "action_hint": None,
-                "products": [],
-            }
-        )
-
-    plan_ids = [p["plan_id"] for group in plans.values() for p in group]
-    product_rows = (
-        await db.execute(
-            text(
-                f"SELECT pp.plan_id, pr.id, pr.product_name, pr.cover_url "
-                f"FROM {_t('sa_plan_product')} pp "
-                f"JOIN {_t('sa_product')} pr ON pr.id = pp.product_id "
-                f"WHERE pr.status = 1 AND pp.plan_id IN :ids "
-                f"ORDER BY pp.plan_id, pp.sort_order, pr.id"
-            ).bindparams(ids=tuple(plan_ids))
-        )
-    ).all()
-
-    by_plan = {p["plan_id"]: p for group in plans.values() for p in group}
-    for plan_id, product_id, product_name, cover_url in product_rows:
-        plan = by_plan.get(int(plan_id))
-        if plan is None:
-            continue
-        plan["products"].append(
-            {
-                "product_id": int(product_id),
-                "name": product_name,
-                "image_url": cover_url,
-                "image_alt": product_name,
-            }
-        )
-    return plans

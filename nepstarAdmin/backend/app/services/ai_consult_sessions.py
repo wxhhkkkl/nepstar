@@ -8,7 +8,13 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.new.sa_ai_consult import SAAiConsultConsent, SAAiConsultGuest, SAAiConsultSession
+from ..models.new.sa_ai_consult import (
+    SAAiConsultConsent, SAAiConsultGeneration, SAAiConsultGuest,
+    SAAiConsultSession, SAAiConsultTurn,
+)
+from .ai_consult_plan_context import resolve_entry_context
+
+SESSION_IDLE_TIMEOUT = timedelta(minutes=10)
 
 
 def _score(value: Any) -> int | None:
@@ -54,9 +60,33 @@ def build_welcome_context(home: dict[str, Any]) -> dict[str, Any]:
             break
         questions.append(fallback)
 
+    management_plans = []
+    for system in visible:
+        recommendation = system.get("recommendation")
+        if not isinstance(recommendation, dict):
+            continue
+        context = resolve_entry_context(
+            home,
+            plan_id=recommendation.get("plan_id"),
+            indicator_code=recommendation.get("trigger_indicator_code"),
+        )
+        if not context or context["type"] != "plan":
+            continue
+        products = recommendation.get("products") or []
+        product = next((item for item in products if isinstance(item, dict) and item.get("image_url")), {})
+        management_plans.append({
+            **context,
+            "description": recommendation.get("description"),
+            "image_url": product.get("image_url"),
+            "image_alt": product.get("image_alt") or product.get("name") or context["plan_name"],
+        })
+
     return {
         "report_date": date,
+        "report_score": total,
         "report_summary": summary,
+        "focus_systems": [{"name": name, "score": score} for name, score in scored[:2]],
+        "management_plans": management_plans,
         "suggested_questions": questions[:3],
     }
 
@@ -84,14 +114,17 @@ def verified_report_date(home: dict[str, Any], expected_report_code: str) -> dat
 
 def new_home_session(
     guest: SAAiConsultGuest,
-    consent: SAAiConsultConsent,
+    consent: SAAiConsultConsent | None,
     report_date: date,
     *,
+    source: str = "home",
+    plan_id: int | None = None,
+    indicator_code: str | None = None,
     now: datetime | None = None,
 ) -> SAAiConsultSession:
     current = now or datetime.now(UTC).replace(tzinfo=None)
-    if consent.guest_id != guest.id or guest.revoked_at is not None or current >= guest.expires_at:
-        raise ValueError("Guest and consent must be valid for this session")
+    if (consent is not None and consent.guest_id != guest.id) or guest.revoked_at is not None or current >= guest.expires_at:
+        raise ValueError("Guest must be valid for this session")
     guest.last_activity_at = current
     return SAAiConsultSession(
         id=str(uuid.uuid4()),
@@ -99,9 +132,10 @@ def new_home_session(
         report_code=guest.report_code,
         customer_id=guest.customer_id,
         report_date=report_date,
-        source="home",
-        source_plan_id=None,
-        consent_id=consent.id,
+        source=source,
+        source_plan_id=plan_id,
+        source_indicator_code=indicator_code,
+        consent_id=consent.id if consent is not None else None,
         title=None,
         status="active",
         created_at=current,
@@ -118,6 +152,8 @@ def public_session(item: SAAiConsultSession) -> dict[str, Any]:
         "report_code": item.report_code,
         "report_date": item.report_date.isoformat(),
         "source": item.source,
+        "source_plan_id": item.source_plan_id,
+        "source_indicator_code": item.source_indicator_code,
         "title": item.title,
         "status": item.status,
         "created_at": item.created_at.isoformat() + "Z",
@@ -126,23 +162,13 @@ def public_session(item: SAAiConsultSession) -> dict[str, Any]:
     }
 
 
-async def list_guest_sessions(
-    db: AsyncSession, guest: SAAiConsultGuest, report_code: str, *, limit: int = 20
-) -> list[SAAiConsultSession]:
-    current = datetime.now(UTC).replace(tzinfo=None)
-    result = await db.execute(
-        select(SAAiConsultSession)
-        .where(
-            SAAiConsultSession.guest_id == guest.id,
-            SAAiConsultSession.report_code == report_code,
-            SAAiConsultSession.status == "active",
-            SAAiConsultSession.deleted_at.is_(None),
-            SAAiConsultSession.expires_at > current,
-        )
-        .order_by(SAAiConsultSession.last_activity_at.desc(), SAAiConsultSession.id.desc())
-        .limit(min(max(limit, 1), 20))
-    )
-    return list(result.scalars().all())
+def revoke_guest_session(item: SAAiConsultSession, *, now: datetime | None = None) -> None:
+    """撤销会话访问并使正在生成的结果失效；永久留存的问答正文不做清理。"""
+    current = now or datetime.now(UTC).replace(tzinfo=None)
+    item.status = "deleted"
+    item.deleted_at = current
+    item.last_activity_at = current
+    item.generation_epoch += 1
 
 
 async def get_guest_session(
@@ -157,8 +183,72 @@ async def get_guest_session(
         SAAiConsultSession.status == "active",
         SAAiConsultSession.deleted_at.is_(None),
         SAAiConsultSession.expires_at > current,
+        SAAiConsultSession.last_activity_at > current - SESSION_IDLE_TIMEOUT,
     )
     if lock:
         statement = statement.with_for_update()
     result = await db.execute(statement)
     return result.scalar_one_or_none()
+
+
+async def is_latest_guest_session(
+    db: AsyncSession, guest: SAAiConsultGuest, report_code: str, session_id: str,
+) -> bool:
+    """允许当前咨询断线恢复，但不允许通过旧会话 ID 读取之前的咨询。"""
+    statement = (
+        select(SAAiConsultSession.id)
+        .where(
+            SAAiConsultSession.guest_id == guest.id,
+            SAAiConsultSession.report_code == report_code,
+        )
+        .order_by(SAAiConsultSession.created_at.desc(), SAAiConsultSession.id.desc())
+        .limit(1)
+    )
+    # Do not acquire a second session lock after the settings lock: another
+    # request could hold that session while waiting for settings (lock inversion).
+    result = await db.execute(statement)
+    return result.scalar_one_or_none() == session_id
+
+
+async def end_guest_session(
+    db: AsyncSession, guest: SAAiConsultGuest, report_code: str, session_id: str,
+    *, now: datetime | None = None,
+) -> SAAiConsultSession | None:
+    """End an owned session idempotently; retain completed answers and usage."""
+    item = (await db.execute(
+        select(SAAiConsultSession).where(
+            SAAiConsultSession.id == session_id,
+            SAAiConsultSession.guest_id == guest.id,
+            SAAiConsultSession.report_code == report_code,
+            SAAiConsultSession.deleted_at.is_(None),
+        ).with_for_update()
+    )).scalar_one_or_none()
+    if item is None or item.status not in {"active", "ended"}:
+        return None
+    if item.status == "ended":
+        return item
+    current = now or datetime.now(UTC).replace(tzinfo=None)
+    item.status = "ended"
+    item.generation_epoch += 1
+    # last_activity_at remains the last user question/retry time.
+    turns = (await db.execute(
+        select(SAAiConsultTurn).where(
+            SAAiConsultTurn.session_id == item.id,
+            SAAiConsultTurn.status == "running",
+        ).with_for_update()
+    )).scalars().all()
+    if turns:
+        generations = (await db.execute(
+            select(SAAiConsultGeneration).where(
+                SAAiConsultGeneration.turn_id.in_([turn.id for turn in turns]),
+                SAAiConsultGeneration.status == "running",
+            ).with_for_update()
+        )).scalars().all()
+        for turn in turns:
+            turn.status = "stopped"
+        for generation in generations:
+            generation.status = "stopped"
+            generation.error_category = "session_ended"
+            generation.finished_at = current
+            generation.partial_text = None
+    return item

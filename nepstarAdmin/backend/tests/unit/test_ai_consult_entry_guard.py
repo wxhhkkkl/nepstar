@@ -80,7 +80,7 @@ async def test_guest_creation_fails_closed_without_active_policy(config):
 
 @pytest.mark.asyncio
 async def test_consent_accepts_only_current_published_notice_and_provider():
-    from app.services.ai_consult_consent import ConsentMismatch, record_consent
+    from app.services.ai_consult_consent import ConsentMismatch, public_data_scope_text, record_consent
 
     db = FakeDb(settings=ready_settings())
     guest = SimpleNamespace(id=7)
@@ -93,13 +93,13 @@ async def test_consent_accepts_only_current_published_notice_and_provider():
     accepted = await record_consent(db, guest, notice_version="v1", provider_code="fake-provider", accepted=True)
     assert accepted.guest_id == 7
     assert accepted.choice == "granted"
-    assert accepted.data_scope_hash == db.settings.data_scope_hash
+    assert accepted.data_scope_hash == hashlib.sha256(public_data_scope_text(db.settings).encode()).hexdigest()
     assert db.added == [accepted]
 
 
 @pytest.mark.asyncio
 async def test_consent_refusal_or_withdrawal_never_grants_model_access():
-    from app.services.ai_consult_consent import consent_is_current, record_consent
+    from app.services.ai_consult_consent import consent_is_current, public_data_scope_text, record_consent
 
     config = ready_settings()
     db = FakeDb(settings=config)
@@ -111,6 +111,13 @@ async def test_consent_refusal_or_withdrawal_never_grants_model_access():
 
     granted = await record_consent(db, guest, notice_version="v1", provider_code="fake-provider", accepted=True)
     assert consent_is_current(granted, config, guest.id)
+    old_scope_consent = SimpleNamespace(
+        guest_id=guest.id, choice="granted", withdrawn_at=None, notice_version="v1",
+        notice_content_hash=granted.notice_content_hash, provider_code="fake-provider",
+        data_scope_hash=config.data_scope_hash,
+    )
+    assert granted.data_scope_hash == hashlib.sha256(public_data_scope_text(config).encode()).hexdigest()
+    assert not consent_is_current(old_scope_consent, config, guest.id)
     assert not consent_is_current(granted, ready_settings(notice_version="v2"), guest.id)
     assert not consent_is_current(granted, ready_settings(notice_text="文案变更但管理员忘记升版本"), guest.id)
     assert not consent_is_current(granted, ready_settings(data_scope_hash="b" * 64), guest.id)

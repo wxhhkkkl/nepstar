@@ -1,5 +1,8 @@
 """FastAPI application entry point."""
 
+import asyncio
+from contextlib import suppress
+
 import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +11,8 @@ from fastapi.responses import JSONResponse
 from . import mongo
 from .api import (
     auth,
+    ai_consult,
+    ai_consult_admin,
     customers,
     dashboard,
     devices,
@@ -22,8 +27,11 @@ from .api import (
     users,
 )
 from .database import ai_consult_storage_ready, async_session
+from .config import settings
 from .i18n import get_message
 from .services.health_seed import seed_health_menus
+from .services.ai_consult_admin_menu import seed_ai_consult_admin_menu
+from .services.ai_consult_recovery import run_generation_recovery_job
 from .services.organization_service import seed_root_org
 from .services.role_service import seed_admin_role
 
@@ -43,6 +51,18 @@ structlog.configure(
 )
 
 logger = structlog.get_logger()
+
+
+async def _ai_consult_recovery_loop() -> None:
+    """Each worker may sweep; row locks and rechecks make overlap harmless."""
+    while True:
+        try:
+            recovered = await run_generation_recovery_job()
+            if recovered:
+                logger.info("ai_consult_generations_recovered", count=recovered)
+        except Exception:
+            logger.warning("ai_consult_generation_recovery_failed", exc_info=True)
+        await asyncio.sleep(60)
 
 app = FastAPI(
     title="Smart Admin API",
@@ -73,6 +93,9 @@ app.include_router(products.router, prefix="/api/v1")
 app.include_router(plans.router, prefix="/api/v1")
 # 报告展示接口：无 JWT，凭报告编号 + 客户标识访问
 app.include_router(report_view.router, prefix="/api/v1")
+# AI 匿名咨询接口已挂载；入口/会话/问答/运营保护开关默认关闭，公开侧保持 fail-closed。
+app.include_router(ai_consult.router, prefix="/api/v1")
+app.include_router(ai_consult_admin.router, prefix="/api/v1")
 
 
 # Error handler middleware
@@ -119,12 +142,26 @@ async def startup_event():
         await seed_root_org(db)
         await seed_health_menus(db)  # 健康管理菜单，须在 seed_admin_role 之前执行以便自动授权
         await seed_admin_role(db)
+    if ai_consult_storage_ready():
+        try:
+            await seed_ai_consult_admin_menu()
+        except Exception:
+            logger.warning("ai_consult_admin_menu_seed_skipped", exc_info=True)
     # 报告数据源（MongoDB，只读）。未配置 MONGODB_URL 时跳过，不影响其余功能
     await mongo.connect()
+    if settings.AI_CONSULT_OPERATIONS_READY is not False and ai_consult_storage_ready():
+        app.state.ai_consult_recovery_task = asyncio.create_task(
+            _ai_consult_recovery_loop()
+        )
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    recovery_task = getattr(app.state, "ai_consult_recovery_task", None)
+    if recovery_task is not None:
+        recovery_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await recovery_task
     await mongo.close()
 
 

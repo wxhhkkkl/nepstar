@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-12",
+  "feature": "admin emergency pause/resume and public API control alignment",
+  "results": {
+    "backend_ai_and_local_boundary_passed": 694,
+    "admin_frontend_vitest_passed": 68,
+    "report_frontend_vitest_passed": 158,
+    "mobile_chrome_mock_e2e_passed": 36,
+    "admin_synthetic_chrome_enable_pause_and_conflict": "passed",
+    "admin_typecheck": "passed",
+    "admin_temporary_build": "passed",
+    "report_temporary_build": "passed"
+  },
+  "verified_controls": [
+    "view/edit RBAC with exact route matching",
+    "strict service-state request and row-version conflict",
+    "pause works despite unavailable provider or deployment veto",
+    "same-state request does not duplicate audit",
+    "quota save preserves service state",
+    "unset deployment flags delegate to the database switch; explicit false remains a veto",
+    "pause before preparation avoids model call",
+    "pause during generation suppresses answer and retains known token usage",
+    "pause/resume fence prevents the old inflight generation from publishing",
+    "mobile pause message blocks new questions/retry and preserves the current conversation"
+  ],
+  "boundaries": {
+    "real_database_connections": 0,
+    "real_model_requests": 0,
+    "schema_migrations_executed": false,
+    "tables_added": false,
+    "persistent_env_or_settings_changed": false,
+    "persistent_services_restarted": false,
+    "repository_dist_overwritten": false,
+    "git_committed_or_pushed": false,
+    "production_deployed": false,
+    "real_mysql_concurrency_proven": false
+  },
+  "deployment_note": "Deploy the updated backend and frontends to the report API environment. Existing explicit false deployment flags still require an authorized environment update/restart before the admin can resume. No production operation was performed."
+}
