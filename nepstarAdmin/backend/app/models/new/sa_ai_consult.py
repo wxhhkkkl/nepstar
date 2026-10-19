@@ -30,7 +30,7 @@ class SAAiConsultSettings(Base):
     __table_args__ = {"schema": SCHEMA}
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     provider_code: Mapped[str | None] = mapped_column(String(50))
     model_code: Mapped[str | None] = mapped_column(String(100))
     maintenance_text: Mapped[str | None] = mapped_column(Text)

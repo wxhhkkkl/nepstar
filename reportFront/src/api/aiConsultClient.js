@@ -383,7 +383,7 @@ async function streamConsultGeneration(reportCode, customerId, sessionId, path, 
 }
 
 export async function streamConsultQuestion(reportCode, customerId, sessionId, question, options = {}) {
-  if (!SESSION_ID_PATTERN.test(sessionId) || !question?.trim() || question.length > 500) {
+  if (!SESSION_ID_PATTERN.test(sessionId) || !question?.trim()) {
     throw new AiConsultApiError('invalid_question')
   }
   return streamConsultGeneration(

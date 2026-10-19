@@ -9,7 +9,7 @@ class AiConsultSettingsUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     expected_row_version: int = Field(ge=0)
-    enabled: bool = False
+    enabled: bool = True
     provider_code: Literal["openai_compatible"] = "openai_compatible"
     model_code: str = Field(default="", max_length=100)
     maintenance_text: str = Field(default="", max_length=500)
@@ -21,7 +21,7 @@ class AiConsultSettingsUpdate(BaseModel):
     per_minute_limit: int = Field(default=0, ge=0, le=60, strict=True)
     global_daily_token_limit: int = Field(default=0, ge=0, le=100000000, strict=True)
     max_concurrent_generations: int = Field(default=0, ge=0, le=100, strict=True)
-    max_question_chars: int = Field(default=500, ge=1, le=500, strict=True)
+    max_question_chars: int = Field(default=500, ge=0, le=500, strict=True)
 
 
 class AiConsultRuleDraftCreate(BaseModel):

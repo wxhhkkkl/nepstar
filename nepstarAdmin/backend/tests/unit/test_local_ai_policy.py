@@ -67,7 +67,7 @@ def test_admin_managed_startup_accepts_paused_service_and_saved_quota():
 @pytest.mark.parametrize("field,lower,upper", [
     ("guest_create_limit_per_minute", 0, 1000), ("daily_success_limit", 0, 1000),
     ("per_minute_limit", 0, 60), ("global_daily_token_limit", 0, 100000000),
-    ("max_concurrent_generations", 0, 100), ("max_question_chars", 1, 500),
+    ("max_concurrent_generations", 0, 100), ("max_question_chars", 0, 500),
 ])
 def test_admin_managed_limits_reuse_admin_bounds(field, lower, upper):
     from scripts.local_ai_policy import validate_browser_policy

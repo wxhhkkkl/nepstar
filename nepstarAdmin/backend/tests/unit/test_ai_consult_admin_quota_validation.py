@@ -12,7 +12,7 @@ QUOTA_BOUNDS = [
     ("per_minute_limit", 0, 60),
     ("global_daily_token_limit", 0, 100000000),
     ("max_concurrent_generations", 0, 100),
-    ("max_question_chars", 1, 500),
+    ("max_question_chars", 0, 500),
 ]
 
 

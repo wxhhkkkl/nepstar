@@ -72,8 +72,8 @@ _UNSAFE_MESSAGE = "这段回答未通过安全校验，暂时不能展示；请�
 
 def assess_input(question: str) -> InputAssessment:
     """先处理可能需要及时帮助的问题；只做保守分流，不作医学诊断。"""
-    if not isinstance(question, str) or not question.strip() or len(question) > 500:
-        return InputAssessment("invalid", False, "问题不能为空或过长，请修改后重试。", "user_question")
+    if not isinstance(question, str) or not question.strip():
+        return InputAssessment("invalid", False, "问题不能为空，请修改后重试。", "user_question")
     text = question.strip()
     if _URGENT_SYMPTOM.search(text) and _PERSONAL_CONTEXT.search(text):
         return InputAssessment("emergency", False, _EMERGENCY_MESSAGE, "user_report")

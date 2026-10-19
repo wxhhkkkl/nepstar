@@ -2,7 +2,7 @@
 
 基础路径：`/api/v1/ai-consult`。JSON 成功使用 `{ "code": 200, "message": "ok", "data": ... }`；失败使用实际 HTTP 4xx/5xx 与稳定错误码，`data` 通常为 `null`，限流或维护时可含公开的恢复提示。流式端点使用 `text/event-stream`，在事件流已开始后以 `error` 事件表示故障。公开报告仍可仅凭有效 `reportId/userId` 查看；所有聊天端点另须验证 `Authorization: Bearer <guest_token>`。这个随机秘密只授权访问该匿名访客创建的聊天，不证明访客是报告本人；后台管理员 JWT 也不能替代它。
 
-2026-10-12：后台独立服务开关现可启停。数据库总开关默认 false；四个部署开关未设置时委托后台，显式 false 仍拒绝。暂停后新问答/重试返回 `503 consult.disabled`；生成准备前和最终发布前重新检查暂停审计栅栏，关闭后即使恢复也不发布旧未完成回答，失败终态保留实际 token/未知预留。流中返回 `error {code:"consult.disabled",retryable:false}`，页面保留当前对话、禁用继续发送与重试，不误报网络故障。开关不提供用户历史读取或删除。
+2026-10-12（默认值更新）：后台独立服务开关现可启停，新建设置默认 `enabled=true`；既有数据库值不迁移。四个部署开关未设置时委托后台，显式 false 仍拒绝，运行条件未就绪时服务不可用。暂停后新问答/重试返回 `503 consult.disabled`；生成准备前和最终发布前重新检查暂停审计栅栏，关闭后即使恢复也不发布旧未完成回答，失败终态保留实际 token/未知预留。流中返回 `error {code:"consult.disabled",retryable:false}`，页面保留当前对话、禁用继续发送与重试，不误报网络故障。开关不提供用户历史读取或删除。
 
 ## 匿名聊天建立
 
@@ -12,7 +12,7 @@
 
 ## 启动与可选处理选择（2026-10-12 当前契约）
 
-`GET /bootstrap?report_code=...`：携带 `Authorization: Bearer <guest_token>`，读取绑定报告的日期、总分、事实摘要、可问问题、方案、服务状态和剩余额度，不返回 `notice` 或 `consent_status`，也不创建同意记录。服务开关、后台配置、服务商/模型匹配、无维护文案及无明确撤回时才可返回 `service_status: "available"`；缺失同意记录本身不阻断。生产默认关闭；维护返回 `maintenance` 及最多 500 字公开说明，其他不可用状态返回 `unavailable`。`remaining_today` 按 UTC 自然日统计该凭证跨会话的已完成轮次，截断至不小于 0；服务不可用或额度配置无效时为 `null`。新凭证在维护期不签发，返回 503 `consult.maintenance`；环境开关关闭时返回 `consult.disabled`。bootstrap 不调用模型。
+`GET /bootstrap?report_code=...`：携带 `Authorization: Bearer <guest_token>`，读取绑定报告的日期、总分、事实摘要、可问问题、方案、服务状态和剩余额度，不返回 `notice` 或 `consent_status`，也不创建同意记录。服务开关、后台配置、服务商/模型匹配、无维护文案及无明确撤回时才可返回 `service_status: "available"`；缺失同意记录本身不阻断。新部署的新设置默认开启，但未完成运行配置或部署显式禁用时仍返回 `unavailable`；已有关闭状态不自动改变。维护返回 `maintenance` 及最多 500 字公开说明。`remaining_today` 按 UTC 自然日统计该凭证跨会话的已完成轮次，截断至不小于 0；服务不可用或额度配置无效时为 `null`。新凭证在维护期不签发，返回 503 `consult.maintenance`；环境开关关闭时返回 `consult.disabled`。bootstrap 不调用模型。
 
 欢迎页使用 `report_score`（缺失时为 `null`）、`focus_systems`（按已核对分数升序取两个系统）和 `management_plans`（当前有效推荐）。方案复用原有指标关联、发布和严格低于阈值的规则，只投影必要资料和首张商品图片；无匹配时隐藏，不补假方案。顶部没有历史入口，服务可用时直接展示输入框，不展示强制同意弹层。首次发送才创建新会话。
 

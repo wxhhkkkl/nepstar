@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { loadConsultBootstrap, guestTokenStorageKey } = await import('@/api/aiConsultClient.js')
+const { loadConsultBootstrap, guestTokenStorageKey, streamConsultQuestion } = await import('@/api/aiConsultClient.js')
 const PRIVATE_TOKEN = 'a'.repeat(43)
 const NEW_TOKEN = 'b'.repeat(43)
 const OLD_TOKEN = 'c'.repeat(43)
@@ -61,5 +61,16 @@ describe('anonymous consultation client', () => {
     vi.stubGlobal('fetch', fetchMock)
     await expect(loadConsultBootstrap('R1', 1001)).rejects.toMatchObject({ kind: 'unavailable' })
     expect(sessionStorage.length).toBe(0)
+  })
+
+  it('sends long questions to the server instead of imposing the old fixed length cap', async () => {
+    sessionStorage.setItem(guestTokenStorageKey('R1', 1001), PRIVATE_TOKEN)
+    const question = '问'.repeat(600)
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('offline'))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(streamConsultQuestion('R1', 1001, '00000000-0000-4000-8000-000000000001', question))
+      .rejects.toMatchObject({ kind: 'network' })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ question })
   })
 })

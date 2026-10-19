@@ -19,7 +19,7 @@
 
 ## 2. `sa_ai_consult_settings`
 
-单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`notice_version`、`notice_text`、`data_scope_text`、`data_scope_hash`、`guest_create_limit_per_minute`、`guest_create_window_start`、`guest_create_count`、`daily_success_limit`、`per_minute_limit`、`global_daily_token_limit`、`max_concurrent_generations`、`max_question_chars`、`retention_days`（旧字段，仅兼容现有 schema，不再用于正文清理）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。配置创建时各额度默认为 0 并保持关闭。用户确认的数据范围文案由后端附加“咨询问题和 AI 回答与报告关联永久保存在后台；重新进入不展示历史”的说明，并以附加后的文案计算同意摘要，从而使旧版本同意失效。`retention_days` 不参与有效期判定或清理。
+单行当前配置：`id`、`enabled`、`provider_code`、`model_code`、`maintenance_text`、`notice_version`、`notice_text`、`data_scope_text`、`data_scope_hash`、`guest_create_limit_per_minute`、`guest_create_window_start`、`guest_create_count`、`daily_success_limit`、`per_minute_limit`、`global_daily_token_limit`、`max_concurrent_generations`、`max_question_chars`、`retention_days`（旧字段，仅兼容现有 schema，不再用于正文清理）、`active_rule_version_id`、`updated_by`、`updated_at`、`row_version`。新设置默认 `enabled=true`，各额度默认为 0（不限制）；首次保存后才创建设置行。此默认不改写已有记录，显式部署禁用和运行时就绪检查仍优先，环境未就绪时服务不可用。用户确认的数据范围文案由后端附加“咨询问题和 AI 回答与报告关联永久保存在后台；重新进入不展示历史”的说明，并以附加后的文案计算同意摘要，从而使旧版本同意失效。`retention_days` 不参与有效期判定或清理。
 
 开关变更对**新生成**立即生效；正在进行的生成由停用策略明确终止并记为 `cancelled_by_admin`。`row_version` 用于防止两个管理员相互覆盖。
 

@@ -255,7 +255,7 @@ async def get_bootstrap(
         home, plan_id=plan_id, indicator_code=indicator_code
     ) if indicator_code else None
     question_limit = getattr(notice_config, "max_question_chars", 500)
-    if type(question_limit) is not int or not 1 <= question_limit <= 500:
+    if type(question_limit) is not int or not 0 <= question_limit <= 500:
         question_limit = 500
     response.headers["Cache-Control"] = "no-store"
     response.headers["Referrer-Policy"] = "no-referrer"

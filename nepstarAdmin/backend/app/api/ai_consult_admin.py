@@ -111,11 +111,11 @@ def _runtime(config: SAAiConsultSettings | None) -> dict:
         blocked = "服务端模型不可用或与后台配置不匹配，请检查服务端模型与密钥配置。"
     elif config.maintenance_text and config.maintenance_text.strip():
         blocked = "当前仍有维护提示，请先完成维护配置。"
-    elif any(getattr(config, name, 0) <= 0 for name in (
+    elif any(getattr(config, name, 0) < 0 for name in (
         "guest_create_limit_per_minute", "daily_success_limit", "per_minute_limit",
         "global_daily_token_limit", "max_concurrent_generations", "max_question_chars",
     )):
-        blocked = "请先配置大于 0 的入口频率、问答额度、token 预算和并发上限。"
+        blocked = "额度设置不能小于 0；0 表示不限制。"
     return {
         "provider_code": getattr(default_provider, "provider_code", "disabled"),
         "model_code": getattr(default_provider, "model_code", "") or None,
@@ -133,7 +133,7 @@ def _public_settings(config: SAAiConsultSettings | None) -> dict:
         return {
             "configured": False,
             "id": 1,
-            "enabled": False,
+            "enabled": True,
             "provider_code": "openai_compatible",
             "model_code": "",
             "maintenance_text": "",
@@ -641,7 +641,7 @@ async def update_settings(
             actual_version = config.row_version if config else 0
             if request.expected_row_version != actual_version:
                 raise SettingsVersionConflict(actual_version)
-            if request.enabled != bool(config and config.enabled):
+            if config is not None and request.enabled != bool(config.enabled):
                 return JSONResponse(status_code=409, content={
                     "code": 409, "message": "consult.admin_activation_blocked",
                     "data": {"detail": "请使用独立的 AI 咨询服务开关，保存额度不会切换服务状态。"},
@@ -649,7 +649,7 @@ async def update_settings(
 
             scope_text = request.data_scope_text.strip()
             values = {
-                "enabled": bool(config and config.enabled),
+                "enabled": bool(config.enabled) if config is not None else request.enabled,
                 "provider_code": request.provider_code,
                 "model_code": request.model_code.strip() or None,
                 "maintenance_text": request.maintenance_text.strip() or None,

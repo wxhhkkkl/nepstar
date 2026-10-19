@@ -180,6 +180,25 @@ describe('AI consultation conversation candidate', () => {
     wrapper.unmount()
   })
 
+  it('allows long questions without an HTML cap or exhausted allowance when limits are unlimited', async () => {
+    client.loadConsultBootstrap.mockResolvedValueOnce({ ...available(), max_question_chars: 0, remaining_today: null })
+    client.streamConsultQuestion.mockResolvedValueOnce(undefined)
+    const wrapper = mountConversation()
+    await flushPromises()
+    expect(wrapper.get('#aiQuestionInput').attributes('maxlength')).toBeUndefined()
+    const question = '问'.repeat(600)
+    await wrapper.get('#aiQuestionInput').setValue(question)
+    expect(wrapper.get('.ai-composer-note small').text()).toBe('600')
+    await wrapper.get('[data-testid="ai-composer"]').trigger('submit')
+    await flushPromises()
+    expect(client.createConsultSession).toHaveBeenCalledTimes(1)
+    expect(client.streamConsultQuestion).toHaveBeenCalledWith(
+      'R1', 1001, SESSION_ID, question, expect.any(Object),
+    )
+    expect(wrapper.text()).not.toContain('每次最多可输入')
+    wrapper.unmount()
+  })
+
   it('prefills a verified plan question without creating a session or sending it', async () => {
     reportRouteQueryFromLocation.mockReturnValue({
       reportId: 'R1', userId: '1001', planId: '17', indicatorCode: 'SYS_LUNG_SLEEP',

@@ -52,8 +52,7 @@ async def remaining_daily_successes(
 ) -> int | None:
     """Return this guest's remaining successful answers in the current UTC day.
 
-    A non-positive limit means the service is not configured for admission, so
-    there is no truthful public allowance to report.
+    Zero means unlimited; return None rather than an exhausted allowance of 0.
     """
     if daily_limit <= 0:
         return None
@@ -89,6 +88,7 @@ async def reserve_generation_capacity(
     """Reject over-limit new attempts in the same transaction that creates them.
 
     A replay keeps its original attempt and consumes no additional allowance.
+    Each zero-valued quota is unlimited and skips its corresponding usage query.
     Missing provider usage is charged at the full reservation, including for
     failed attempts; this prevents failures from evading the global budget.
     """
@@ -102,9 +102,9 @@ async def reserve_generation_capacity(
         config.global_daily_token_limit,
         config.max_concurrent_generations,
         config.max_question_chars,
-    ) <= 0 or token_budget <= 0 or not model_code:
+    ) < 0 or token_budget <= 0 or not model_code:
         raise ConsultLimitReached("consult.disabled")
-    if len(question.strip()) > config.max_question_chars:
+    if config.max_question_chars > 0 and len(question.strip()) > config.max_question_chars:
         raise ConsultLimitReached("consult.question_too_long")
 
     current = now or datetime.now(UTC)
@@ -115,51 +115,55 @@ async def reserve_generation_capacity(
     minute_start = current - timedelta(minutes=1)
     day_retry = max(1, int((day_end - current).total_seconds() + 0.999999))
 
-    successes = await db.scalar(
-        select(func.count(SAAiConsultTurn.id))
-        .join(SAAiConsultSession, SAAiConsultTurn.session_id == SAAiConsultSession.id)
-        .where(
-            SAAiConsultSession.guest_id == guest_id,
-            SAAiConsultTurn.status == "completed",
-            SAAiConsultTurn.completed_at >= day_start,
-            SAAiConsultTurn.completed_at < day_end,
+    if config.daily_success_limit > 0:
+        successes = await db.scalar(
+            select(func.count(SAAiConsultTurn.id))
+            .join(SAAiConsultSession, SAAiConsultTurn.session_id == SAAiConsultSession.id)
+            .where(
+                SAAiConsultSession.guest_id == guest_id,
+                SAAiConsultTurn.status == "completed",
+                SAAiConsultTurn.completed_at >= day_start,
+                SAAiConsultTurn.completed_at < day_end,
+            )
         )
-    )
-    if int(successes or 0) >= config.daily_success_limit:
-        raise ConsultLimitReached("consult.daily_limit", day_retry)
+        if int(successes or 0) >= config.daily_success_limit:
+            raise ConsultLimitReached("consult.daily_limit", day_retry)
 
-    attempts = await db.scalar(
-        select(func.count(SAAiConsultGeneration.id))
-        .join(SAAiConsultTurn, SAAiConsultGeneration.turn_id == SAAiConsultTurn.id)
-        .join(SAAiConsultSession, SAAiConsultTurn.session_id == SAAiConsultSession.id)
-        .where(
-            SAAiConsultSession.guest_id == guest_id,
-            SAAiConsultGeneration.id != start.generation_id,
-            SAAiConsultGeneration.started_at >= minute_start,
-            SAAiConsultGeneration.started_at <= current,
+    if config.per_minute_limit > 0:
+        attempts = await db.scalar(
+            select(func.count(SAAiConsultGeneration.id))
+            .join(SAAiConsultTurn, SAAiConsultGeneration.turn_id == SAAiConsultTurn.id)
+            .join(SAAiConsultSession, SAAiConsultTurn.session_id == SAAiConsultSession.id)
+            .where(
+                SAAiConsultSession.guest_id == guest_id,
+                SAAiConsultGeneration.id != start.generation_id,
+                SAAiConsultGeneration.started_at >= minute_start,
+                SAAiConsultGeneration.started_at <= current,
+            )
         )
-    )
-    if int(attempts or 0) >= config.per_minute_limit:
-        raise ConsultLimitReached("consult.rate_limited", 60)
+        if int(attempts or 0) >= config.per_minute_limit:
+            raise ConsultLimitReached("consult.rate_limited", 60)
 
-    running = await db.scalar(
-        select(func.count(SAAiConsultGeneration.id)).where(
-            SAAiConsultGeneration.id != start.generation_id,
-            SAAiConsultGeneration.status == "running",
+    if config.max_concurrent_generations > 0:
+        running = await db.scalar(
+            select(func.count(SAAiConsultGeneration.id)).where(
+                SAAiConsultGeneration.id != start.generation_id,
+                SAAiConsultGeneration.status == "running",
+            )
         )
-    )
-    if int(running or 0) >= config.max_concurrent_generations:
-        raise ConsultLimitReached("consult.capacity_busy", 5)
+        if int(running or 0) >= config.max_concurrent_generations:
+            raise ConsultLimitReached("consult.capacity_busy", 5)
 
-    used_tokens = await db.scalar(
-        select(func.coalesce(func.sum(charged_tokens_expression()), 0)).where(
-            SAAiConsultGeneration.id != start.generation_id,
-            SAAiConsultGeneration.started_at >= day_start,
-            SAAiConsultGeneration.started_at < day_end,
+    if config.global_daily_token_limit > 0:
+        used_tokens = await db.scalar(
+            select(func.coalesce(func.sum(charged_tokens_expression()), 0)).where(
+                SAAiConsultGeneration.id != start.generation_id,
+                SAAiConsultGeneration.started_at >= day_start,
+                SAAiConsultGeneration.started_at < day_end,
+            )
         )
-    )
-    if int(used_tokens or 0) + token_budget > config.global_daily_token_limit:
-        raise ConsultLimitReached("consult.global_budget_exhausted", day_retry)
+        if int(used_tokens or 0) + token_budget > config.global_daily_token_limit:
+            raise ConsultLimitReached("consult.global_budget_exhausted", day_retry)
 
     generation = (
         await db.execute(

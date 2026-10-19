@@ -33,7 +33,7 @@ def validate_browser_policy(config, rule, model, *, require_enabled=True, admin_
               "max_concurrent_generations": 1, "max_question_chars": 300}
     minimum = {key: 1 for key in limits}
     if admin_managed:
-        # The admin owns quota configuration, including zero as a stop condition.
+        # The admin owns quota configuration, including zero as unlimited.
         # Reuse its input bounds; the small fixed trial limits still apply to the
         # explicit initial-configuration tool, which does not pass this option.
         from app.schemas.ai_consult_admin import AiConsultSettingsUpdate

@@ -82,7 +82,7 @@ class OpenAICompatibleDraftProvider:
 
     async def draft(self, *, question: str, evidence: dict[str, Any]) -> dict[str, Any]:
         """Request a complete JSON draft; callers must still validate facts and safety."""
-        if not isinstance(question, str) or not question.strip() or len(question) > 500:
+        if not isinstance(question, str) or not question.strip():
             raise ProviderUnavailable("Invalid question")
         if not isinstance(evidence, dict) or not isinstance(evidence.get("facts"), list):
             raise ProviderUnavailable("Invalid evidence")

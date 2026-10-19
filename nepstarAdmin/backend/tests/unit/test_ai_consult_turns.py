@@ -135,6 +135,17 @@ async def test_latest_session_check_is_report_scoped_without_a_second_session_lo
 
 
 @pytest.mark.asyncio
+async def test_turn_stores_question_longer_than_500_chars_for_unlimited_policy():
+    from app.schemas.ai_consult import ConsultTurnCreate
+
+    question = "问" * 600
+    request = ConsultTurnCreate(question=question)
+    db = FakeWriteDb()
+    await start_turn(db, bound_session(), str(uuid4()), request.question)
+    assert db.turns[0].question_text == question
+
+
+@pytest.mark.asyncio
 async def test_turn_creation_is_scoped_to_session_and_reuses_idempotency_key():
     db = FakeWriteDb()
     session = bound_session()

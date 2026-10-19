@@ -126,7 +126,7 @@ async def test_bootstrap_uses_bound_report_without_exposing_a_required_consent_s
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("limit", [None, True, 0, 501, "250"])
+@pytest.mark.parametrize("limit", [None, True, -1, 501, "250"])
 async def test_bootstrap_question_limit_has_safe_legacy_fallback(bootstrap_app, limit):
     app, token, write_db, _ = bootstrap_app
     write_db.policy.max_question_chars = limit
@@ -137,6 +137,19 @@ async def test_bootstrap_question_limit_has_safe_legacy_fallback(bootstrap_app, 
         )
     assert result.status_code == 200
     assert result.json()["data"]["max_question_chars"] == 500
+
+
+@pytest.mark.asyncio
+async def test_bootstrap_preserves_zero_as_unlimited_question_length(bootstrap_app):
+    app, token, write_db, _ = bootstrap_app
+    write_db.policy.max_question_chars = 0
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        result = await client.get(
+            "/api/v1/ai-consult/bootstrap?report_code=R-REAL",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    assert result.status_code == 200
+    assert result.json()["data"]["max_question_chars"] == 0
 
 
 @pytest.mark.asyncio

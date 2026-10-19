@@ -93,7 +93,7 @@ app.include_router(products.router, prefix="/api/v1")
 app.include_router(plans.router, prefix="/api/v1")
 # 报告展示接口：无 JWT，凭报告编号 + 客户标识访问
 app.include_router(report_view.router, prefix="/api/v1")
-# AI 匿名咨询接口已挂载；入口/会话/问答/运营保护开关默认关闭，公开侧保持 fail-closed。
+# AI 匿名咨询接口已挂载；部署未显式禁用时由后台总开关控制，运行条件未就绪时公开侧仍不可用。
 app.include_router(ai_consult.router, prefix="/api/v1")
 app.include_router(ai_consult_admin.router, prefix="/api/v1")
 

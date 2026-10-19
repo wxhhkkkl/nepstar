@@ -294,8 +294,8 @@ function applyAdmissionError(error) {
 
 function updateRemainingAnswers(data) {
   if (
-    Number.isSafeInteger(data.remaining_today) &&
-    data.remaining_today >= 0 &&
+    (data.remaining_today === null ||
+      (Number.isSafeInteger(data.remaining_today) && data.remaining_today >= 0)) &&
     welcome.value
   ) {
     welcome.value.remaining_today = data.remaining_today;
@@ -303,7 +303,7 @@ function updateRemainingAnswers(data) {
 }
 const questionLimit = computed(() => {
   const limit = welcome.value?.max_question_chars;
-  return Number.isSafeInteger(limit) && limit >= 1 && limit <= 500
+  return Number.isSafeInteger(limit) && limit >= 0 && limit <= 500
     ? limit
     : 500;
 });
@@ -640,7 +640,7 @@ async function sendQuestion(rawQuestion, existingMessage = null) {
     ? existingMessage.question
     : rawQuestion?.trim();
   if (!canSend.value || sending.value || !question) return;
-  if (question.length > questionLimit.value) {
+  if (questionLimit.value > 0 && question.length > questionLimit.value) {
     chatError.value = `每次最多可输入 ${questionLimit.value} 字，请缩短后再发送。`;
     return;
   }
@@ -1680,7 +1680,7 @@ onUnmounted(() => {
               id="aiQuestionInput"
               v-model="questionText"
               rows="1"
-              :maxlength="questionLimit"
+              :maxlength="questionLimit || undefined"
               placeholder="问问我的长寿报告"
               :disabled="sending || sessionEnded"
             />
@@ -1696,7 +1696,11 @@ onUnmounted(() => {
           </div>
           <div class="ai-composer-note">
             <span>AI 生成内容仅供健康管理参考</span
-            ><small>{{ questionText.length }}/{{ questionLimit }}</small>
+            ><small
+              >{{ questionText.length }}<template v-if="questionLimit"
+                >/{{ questionLimit }}</template
+              ></small
+            >
           </div>
         </form>
       </footer>

@@ -70,12 +70,24 @@ async def test_guest_creation_uses_locked_global_minute_bucket_and_recovers():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("config", [None, ready_settings(enabled=False), ready_settings(guest_create_limit_per_minute=0)])
+@pytest.mark.parametrize("config", [None, ready_settings(enabled=False), ready_settings(guest_create_limit_per_minute=-1)])
 async def test_guest_creation_fails_closed_without_active_policy(config):
     from app.services.ai_consult_entry_guard import GuestEntryDisabled, reserve_guest_creation
 
     with pytest.raises(GuestEntryDisabled):
         await reserve_guest_creation(FakeDb(settings=config), now=datetime(2026, 10, 8, 12, 0))
+
+
+@pytest.mark.asyncio
+async def test_zero_entry_limit_allows_creation_without_incrementing_the_bucket():
+    from app.services.ai_consult_entry_guard import reserve_guest_creation
+
+    config = ready_settings(guest_create_limit_per_minute=0, guest_create_count=1000000)
+    db = FakeDb(settings=config)
+    for _ in range(3):
+        await reserve_guest_creation(db, now=datetime(2026, 10, 8, 12, 0))
+    assert config.guest_create_count == 1000000
+    assert config.guest_create_window_start is None
 
 
 @pytest.mark.asyncio

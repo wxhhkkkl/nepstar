@@ -15,8 +15,8 @@ DEPLOYMENT_GATES = {
 
 
 def deployment_allows(*gates: str) -> bool:
-    # Unset delegates to the database master switch (default False). Explicit
-    # False remains a deployment veto; True never enables the database switch.
+    # Unset delegates to the database master switch (new settings default True).
+    # Explicit False remains a deployment veto; True never overrides a saved pause.
     return all(getattr(settings, DEPLOYMENT_GATES[gate]) is not False for gate in gates)
 
 

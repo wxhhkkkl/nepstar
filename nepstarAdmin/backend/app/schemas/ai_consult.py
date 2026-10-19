@@ -39,7 +39,8 @@ class ConsultSessionCreate(BaseModel):
 class ConsultTurnCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    question: str = Field(min_length=1, max_length=500)
+    # The current settings row enforces a positive limit; zero means unlimited.
+    question: str = Field(min_length=1)
 
 
 class ConsultFeedbackUpdate(BaseModel):

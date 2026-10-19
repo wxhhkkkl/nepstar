@@ -72,7 +72,8 @@ async def test_deepseek_root_address_and_non_thinking_json_request(monkeypatch, 
 
 
 @pytest.mark.asyncio
-async def test_provider_returns_actual_usage_and_limits_output(monkeypatch):
+@pytest.mark.parametrize("question", ["这项结果如何？", "问" * 600])
+async def test_provider_returns_actual_usage_and_limits_output(monkeypatch, question):
     requests = []
     payload = {
         "choices": [{"message": {"content": json.dumps({
@@ -85,11 +86,12 @@ async def test_provider_returns_actual_usage_and_limits_output(monkeypatch):
         provider_module.httpx, "AsyncClient",
         lambda **_kwargs: FakeClient(payload, requests),
     )
-    result = await adapter().draft(question="这项结果如何？", evidence={"facts": []})
+    result = await adapter().draft(question=question, evidence={"facts": []})
     assert result["_usage"] == {"prompt_tokens": 315, "completion_tokens": 42}
     assert requests[0][0:2] == ("POST", "https://example.com/v1/chat/completions")
     assert requests[0][2]["max_tokens"] == 1024
     assert "thinking" not in requests[0][2]
+    assert json.loads(requests[0][2]["messages"][1]["content"])["question"] == question
 
 
 @pytest.mark.asyncio

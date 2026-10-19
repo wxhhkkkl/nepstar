@@ -180,6 +180,28 @@ describe('AiConsultSettings', () => {
     wrapper.unmount();
   });
 
+  it('saves all six quotas as zero and explains that zero means unlimited', async () => {
+    const wrapper = mountSettings();
+    await flushPromises();
+    const initial = await vi.mocked(fetchAiConsultAdminSettings).mock.results[0].value;
+    const quotas = Object.fromEntries([
+      'guest_create_limit_per_minute', 'daily_success_limit', 'per_minute_limit',
+      'global_daily_token_limit', 'max_concurrent_generations', 'max_question_chars',
+    ].map((key) => [key, 0]));
+    vi.mocked(updateAiConsultAdminSettings).mockResolvedValueOnce({ data: {
+      ...initial.data, settings: { ...initial.data.settings, ...quotas, row_version: 2 },
+    } } as any);
+    for (const control of wrapper.findAllComponents({ name: 'ElInputNumber' })) {
+      expect(control.props('min')).toBe(0);
+      control.vm.$emit('update:modelValue', 0);
+    }
+    expect(wrapper.findAll('.inline-hint').filter((hint) => hint.text().includes('0 表示不限制'))).toHaveLength(6);
+    await wrapper.findAll('button').find((button) => button.text().includes('保存额度设置'))!.trigger('click');
+    await flushPromises();
+    expect(updateAiConsultAdminSettings).toHaveBeenCalledWith(expect.objectContaining(quotas));
+    wrapper.unmount();
+  });
+
   it('blocks a cleared quota instead of accidentally sending the backend default zero', async () => {
     const wrapper = mountSettings();
     await flushPromises();
@@ -203,7 +225,7 @@ describe('AiConsultSettings', () => {
     await flushPromises();
     await wrapper.findAll('button').find((button) => button.text().includes('保存额度设置'))!.trigger('click');
     await flushPromises();
-    await vi.waitFor(() => expect(wrapper.text()).toContain('请输入 1–500 之间的整数'));
+    await vi.waitFor(() => expect(wrapper.text()).toContain('请输入 0–500 之间的整数'));
     expect(wrapper.findAllComponents({ name: 'ElInputNumber' })
       .find((item) => item.attributes('data-testid') === 'quota-max_question_chars')!.props('modelValue')).toBe(500);
     expect(errorMessage).toHaveBeenCalledWith('配置未保存，请检查标记的额度项。');
@@ -214,7 +236,7 @@ describe('AiConsultSettings', () => {
   it.each([
     ['daily_success_limit', 1001],
     ['per_minute_limit', 61], ['global_daily_token_limit', 100000001],
-    ['max_question_chars', 0],
+    ['max_question_chars', -1],
     ['daily_success_limit', 2.5],
   ])('rejects invalid %s=%s before saving', async (field, value) => {
     const wrapper = mountSettings();

@@ -68,7 +68,7 @@ async def start_turn(
     rule_version_id: int | None = None,
 ) -> TurnStart:
     """调用方先锁定且验证 session；该行锁串行化同会话的序号和幂等键。"""
-    if not valid_request_id(request_id) or not question.strip() or len(question) > 500:
+    if not valid_request_id(request_id) or not question.strip():
         raise ValueError("Invalid consult question or request ID")
     clean_question = question.strip()
     existing_result = await db.execute(

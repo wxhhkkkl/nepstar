@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     CONFIG_DATABASE_URL: str = ""
     NEPSTAR_DATABASE_URL: str = ""  # 系统表所在库；AI 咨询写会话要求显式指向 nepstar
     AI_CONSULT_TOKEN_HMAC_KEY: str = ""  # 匿名聊天凭证摘要密钥；未配置时禁止签发/读取聊天
-    # 未设置时由 nepstar.settings.enabled（默认 False）控制；显式 false 为部署硬禁用。
-    # true 仅允许后台启用，不会自动开启。上线审批与配置验收仍须独立完成。
+    # 未设置时由 nepstar.settings.enabled 控制（新设置默认开启）；显式 false 为部署硬禁用。
+    # true 不会覆盖后台已保存的关闭状态。运行环境未就绪时，服务仍不可用。
     AI_CONSULT_GUEST_ENABLED: bool | None = None
     AI_CONSULT_SESSIONS_ENABLED: bool | None = None
     AI_CONSULT_ANSWERS_ENABLED: bool | None = None

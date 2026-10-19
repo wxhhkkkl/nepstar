@@ -34,7 +34,7 @@
       <div class="service-copy">
         <span class="section-kicker">SERVICE CONTROL</span>
         <h3>前台 AI 咨询开关</h3>
-        <p>{{ settings.enabled ? '正在开放咨询。出现异常时，可在此立即暂停新提问和重试。' : '咨询已关闭。开启后，报告访问者才可使用 AI 咨询。' }}</p>
+        <p>{{ !settings.configured ? '新建设置默认开启；首次保存设置后生效，运行环境未就绪时前台仍不可用。' : settings.enabled && !runtime.can_enable ? '开关已开启，但运行环境未就绪，前台暂不可用。' : settings.enabled ? '正在开放咨询。出现异常时，可在此立即暂停新提问和重试。' : '咨询已关闭。开启后，报告访问者才可使用 AI 咨询。' }}</p>
         <p class="service-note">关闭不删除历史问答；尚未通过发布检查的回答将被拦截。已发给模型的请求不能保证立即取消或退还用量。</p>
         <p class="service-note">仅控制当前管理端连接的 API；报告端若连接线上域名，请在同一线上后台操作。</p>
         <p v-if="!canEditSettings" class="hint">仅有查看权限，请联系有编辑权限的管理员操作。</p>
@@ -44,13 +44,13 @@
           :model-value="settings.enabled"
           data-testid="consult-service-switch"
           :loading="switching"
-          :disabled="!canEditSettings || !loaded || loading || saving || switching || (!settings.enabled && !runtime.can_enable)"
+          :disabled="!canEditSettings || !loaded || loading || saving || switching || !settings.configured || (!settings.enabled && !runtime.can_enable)"
           :before-change="toggleService"
           inline-prompt active-text="开启" inactive-text="关闭"
           aria-label="前台 AI 咨询开关"
           style="--el-switch-on-color:#27a2a8; --el-switch-off-color:#a4afbd"
         />
-        <span>{{ switching ? '正在保存…' : settings.enabled ? '已开启' : '已关闭' }}</span>
+        <span>{{ !settings.configured ? '待初始化' : switching ? '正在保存…' : settings.enabled && !runtime.can_enable ? '待运行环境' : settings.enabled ? '已开启' : '已关闭' }}</span>
       </div>
     </section>
 
@@ -75,27 +75,27 @@
         <el-form label-position="top" :model="form" :disabled="!canEditSettings || switching" class="settings-form">
           <el-form-item label="全站每分钟新咨询入口上限" :error="quotaErrors.guest_create_limit_per_minute">
             <el-input-number v-model="form.guest_create_limit_per_minute" data-testid="quota-guest_create_limit_per_minute" :min="0" :max="1000" :precision="0" />
-            <span class="inline-hint">保护公开报告咨询入口；0 表示禁止创建咨询</span>
+            <span class="inline-hint">保护公开报告咨询入口；0 表示不限制</span>
           </el-form-item>
           <el-form-item label="每访客每天成功回答上限" :error="quotaErrors.daily_success_limit">
             <el-input-number v-model="form.daily_success_limit" data-testid="quota-daily_success_limit" :min="0" :max="1000" :precision="0" />
-            <span class="inline-hint">失败回答不占成功次数；0 表示禁止提问</span>
+            <span class="inline-hint">失败回答不占成功次数；0 表示不限制</span>
           </el-form-item>
           <el-form-item label="每访客每分钟提问上限" :error="quotaErrors.per_minute_limit">
             <el-input-number v-model="form.per_minute_limit" data-testid="quota-per_minute_limit" :min="0" :max="60" :precision="0" />
-            <span class="inline-hint">失败请求也计入频率；0 表示禁止提问</span>
+            <span class="inline-hint">失败请求也计入频率；0 表示不限制</span>
           </el-form-item>
           <el-form-item label="全站每日 token 预算" :error="quotaErrors.global_daily_token_limit">
             <el-input-number v-model="form.global_daily_token_limit" data-testid="quota-global_daily_token_limit" :min="0" :max="100000000" :step="10000" :precision="0" />
-            <span class="inline-hint">生成前预留额度，服务商回报后按实际用量结算</span>
+            <span class="inline-hint">0 表示不限制；生成前预留额度，服务商回报后按实际用量结算</span>
           </el-form-item>
           <el-form-item label="单次提问字数上限" :error="quotaErrors.max_question_chars">
-            <el-input-number v-model="form.max_question_chars" data-testid="quota-max_question_chars" :min="1" :max="500" :precision="0" />
-            <span class="inline-hint">1–500 字；报告端输入限制同步此设置</span>
+            <el-input-number v-model="form.max_question_chars" data-testid="quota-max_question_chars" :min="0" :max="500" :precision="0" />
+            <span class="inline-hint">0 表示不限制；1–500 字，报告端输入限制同步此设置</span>
           </el-form-item>
           <el-form-item label="全站同时生成上限" :error="quotaErrors.max_concurrent_generations">
             <el-input-number v-model="form.max_concurrent_generations" data-testid="quota-max_concurrent_generations" :min="0" :max="100" :precision="0" />
-            <span class="inline-hint">限制正在生成的回答数；0 表示禁止生成</span>
+            <span class="inline-hint">限制正在生成的回答数；0 表示不限制</span>
           </el-form-item>
           <div class="form-footer">
             <span v-if="settings.updated_at">最近保存：{{ settings.updated_at }}</span>
@@ -271,7 +271,7 @@ const canEditSettings = computed(() => hasSettingsAction('edit'));
 const canPublishRules = computed(() => hasSettingsAction('publish'));
 const saving = ref(false);
 const settings = reactive<AiConsultAdminSettings>({
-  configured: false, id: 1, enabled: false, provider_code: 'openai_compatible', model_code: '',
+  configured: false, id: 1, enabled: true, provider_code: 'openai_compatible', model_code: '',
   maintenance_text: '', notice_version: '', notice_text: '', data_scope_text: '',
   guest_create_limit_per_minute: 0, row_version: 0, updated_at: null,
   daily_success_limit: 0, per_minute_limit: 0, global_daily_token_limit: 0,
@@ -292,7 +292,7 @@ const quotaBounds = {
   daily_success_limit: [0, 1000],
   per_minute_limit: [0, 60],
   global_daily_token_limit: [0, 100000000],
-  max_question_chars: [1, 500],
+  max_question_chars: [0, 500],
   max_concurrent_generations: [0, 100],
 } as const;
 type QuotaField = keyof typeof quotaBounds;

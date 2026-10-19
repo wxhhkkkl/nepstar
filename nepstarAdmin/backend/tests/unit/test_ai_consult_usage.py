@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.services.ai_consult_turns import TurnStart
-from app.services.ai_consult_usage import ConsultLimitReached, reserve_generation_capacity
+from app.services.ai_consult_usage import ConsultLimitReached, remaining_daily_successes, reserve_generation_capacity
 
 
 class FakeUsageDb:
@@ -37,6 +37,55 @@ def config(**changes):
 
 
 START = TurnStart(12, 34, 1, False, "running")
+
+UNLIMITED = dict(
+    daily_success_limit=0, per_minute_limit=0, global_daily_token_limit=0,
+    max_concurrent_generations=0, max_question_chars=0,
+)
+
+
+@pytest.mark.asyncio
+async def test_all_zero_quotas_allow_long_questions_and_still_record_reserved_tokens():
+    db = FakeUsageDb([])
+    await reserve_generation_capacity(
+        db, config(**UNLIMITED), guest_id=7, start=START,
+        question="问" * 600, token_budget=16384, model_code="fake-model",
+    )
+    assert len(db.queries) == 1  # No quota COUNT/SUM, only the generation update.
+    assert db.generation.budget_tokens == 16384
+    assert db.generation.model_code == "fake-model"
+    assert await remaining_daily_successes(db, guest_id=7, daily_limit=0) is None
+    assert len(db.queries) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("field,code", [
+    ("daily_success_limit", "consult.daily_limit"),
+    ("per_minute_limit", "consult.rate_limited"),
+    ("max_concurrent_generations", "consult.capacity_busy"),
+    ("global_daily_token_limit", "consult.global_budget_exhausted"),
+])
+async def test_positive_quota_still_applies_when_other_quotas_are_unlimited(field, code):
+    db = FakeUsageDb([1])
+    with pytest.raises(ConsultLimitReached) as error:
+        await reserve_generation_capacity(
+            db, config(**{**UNLIMITED, field: 1}), guest_id=7, start=START,
+            question="问" * 600, token_budget=16384, model_code="fake-model",
+        )
+    assert error.value.code == code
+    assert db.generation.budget_tokens == 0
+
+
+@pytest.mark.asyncio
+async def test_service_pause_still_blocks_when_every_quota_is_unlimited():
+    db = FakeUsageDb([])
+    with pytest.raises(ConsultLimitReached) as error:
+        await reserve_generation_capacity(
+            db, config(**UNLIMITED, enabled=False), guest_id=7, start=START,
+            question="报告如何？", token_budget=16384, model_code="fake-model",
+        )
+    assert error.value.code == "consult.disabled"
+    assert db.queries == []
 
 
 @pytest.mark.asyncio

@@ -291,7 +291,6 @@ async def prepare_report_evidence(
         or not isinstance(scope_date, date)
         or not isinstance(question, str)
         or not question.strip()
-        or len(question) > 500
     ):
         raise EvidenceUnavailable("Invalid evidence scope or question")
 

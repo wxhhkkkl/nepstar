@@ -159,6 +159,30 @@ def allow_service_control(monkeypatch, engine):
 
 
 @pytest.mark.asyncio
+async def test_admin_can_save_all_zero_quotas_and_enable_service(admin_app, monkeypatch):
+    app, engine, _, headers = admin_app
+    allow_service_control(monkeypatch, engine)
+    quotas = dict.fromkeys((
+        "guest_create_limit_per_minute", "daily_success_limit", "per_minute_limit",
+        "global_daily_token_limit", "max_concurrent_generations", "max_question_chars",
+    ), 0)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        saved = await client.put("/api/v1/ai-consult/admin/settings", headers=headers, json={
+            "expected_row_version": 1, "model_code": "test-model", **quotas,
+        })
+        assert saved.status_code == 200
+        assert saved.json()["data"]["runtime"]["can_enable"] is True
+        opened = await client.put("/api/v1/ai-consult/admin/service-state", headers=headers,
+                                  json={"expected_row_version": 2, "enabled": True})
+    assert opened.status_code == 200
+    assert opened.json()["data"]["runtime"]["service_available"] is True
+    with Session(engine) as db:
+        config = db.get(SAAiConsultSettings, 1)
+        assert config.enabled
+        assert all(getattr(config, field) == 0 for field in quotas)
+
+
+@pytest.mark.asyncio
 async def test_service_switch_opens_pauses_and_audits_without_changing_other_settings(admin_app, monkeypatch):
     app, engine, _, headers = admin_app
     allow_service_control(monkeypatch, engine)

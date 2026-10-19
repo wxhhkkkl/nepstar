@@ -90,6 +90,18 @@ async def test_reviewed_candidate_uses_only_minimal_facts_and_server_citations()
 
 
 @pytest.mark.asyncio
+async def test_long_question_reaches_the_full_pipeline_without_a_fixed_500_char_cap():
+    provider = FakeProvider()
+    question = "呼吸睡眠怎么样？" + "我想了解报告含义。" * 60
+    result = await prepare_answer_candidate(
+        object(), SCOPE, question, provider=provider, reader=report_reader()
+    )
+    assert len(question) > 500
+    assert result.state == "reviewed_candidate"
+    assert provider.calls[0][0] == question
+
+
+@pytest.mark.asyncio
 async def test_urgent_or_private_input_never_reaches_reader_or_provider():
     provider = FakeProvider()
 
