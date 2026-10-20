@@ -15,6 +15,13 @@ for (const width of [320, 360, 390, 430]) {
     await expect(page.getByTestId('ai-consult-welcome')).toBeVisible()
     await expect(page.getByText('咨询服务暂未开放')).toBeVisible()
     await expect(page.getByTestId('ai-question')).toHaveCount(3)
+    const smallText = await page.locator('.ai-consult-page').evaluate(root =>
+      [...root.querySelectorAll('*')]
+        .filter(element => [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim()))
+        .filter(element => parseFloat(getComputedStyle(element).fontSize) < 14)
+        .map(element => element.className),
+    )
+    expect(smallText).toEqual([])
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
     await expect(page.getByTestId('ai-notice-open')).toHaveCount(0)
     await expect(page.getByRole('dialog')).toHaveCount(0)

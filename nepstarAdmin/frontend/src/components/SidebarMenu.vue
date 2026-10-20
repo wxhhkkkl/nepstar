@@ -37,7 +37,7 @@ function menuName(menu: any): string {
 </script>
 
 <style>
-.side-menu { border-right: none !important; padding: 8px 0; flex: 1; overflow-y: auto; }
+.side-menu { min-height: 0; border-right: none !important; padding: 8px 0; flex: 1; overflow-y: auto; }
 .side-menu .el-menu-item,
 .side-menu .el-sub-menu__title { position: relative; height: 46px; line-height: 46px; margin: 3px 12px; border-radius: 11px; font-size: 13px; font-weight: 550; padding-left: 16px !important; transition: color .2s ease, background .2s ease, transform .25s var(--ease); }
 .side-menu .el-menu-item:hover,

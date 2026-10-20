@@ -9,6 +9,7 @@ import {
 } from "@/api/reportClient.js";
 import { toSystemViewModel } from "@/data/reportAdapter.js";
 import DetailChart from "@/components/DetailChart.vue";
+import { indicatorProgressColor } from "@/utils/indicatorColor.js";
 import RecommendationCard from "@/components/RecommendationCard.vue";
 import ReportErrorState from "@/components/ReportErrorState.vue";
 import SystemDetailSkeleton from "@/components/SystemDetailSkeleton.vue";
@@ -205,7 +206,7 @@ watchEffect(() => {
             <div>
               <h3>{{ item.name }}</h3>
               <small>权重 {{ item.weight }}%</small
-              ><i><b :style="{ width: `${item.score}%` }"></b></i>
+              ><i><b :style="{ width: `${item.score}%`, background: system.id === 'digest' ? indicatorProgressColor(index) : undefined }"></b></i>
             </div>
             <strong>{{ item.score }}</strong>
           </article></RouterLink

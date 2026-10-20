@@ -9,6 +9,7 @@ import {
   onUnmounted,
   reactive,
   ref,
+  watch,
 } from "vue";
 import { onBeforeRouteLeave, routerKey } from "vue-router";
 import {
@@ -28,6 +29,8 @@ import {
 } from "@/api/reportClient.js";
 import AiConsultEvidence from "@/components/AiConsultEvidence.vue";
 import AiConsultWelcomeSkeleton from "@/components/AiConsultWelcomeSkeleton.vue";
+import AiConsultReportCard from "@/components/AiConsultReportCard.vue";
+import AiConsultAnswer from "@/components/AiConsultAnswer.vue";
 import avatar from "@/assets/ai-longevity-doctor-avatar.png";
 import { resolveProductImageUrl } from "@/data/reportAdapter.js";
 
@@ -64,19 +67,35 @@ const reportScore = computed(() =>
 );
 const focusSystems = computed(() => welcome.value?.focus_systems || []);
 const managementPlans = computed(() => welcome.value?.management_plans || []);
+
+function planDescription(plan) {
+  return typeof plan.description === 'string' ? plan.description.trim() : '';
+}
+
 const failedPlanImages = ref(new Set());
-const greeting = (() => {
-  const hour = new Date().getHours();
-  return hour < 6
-    ? "你好"
-    : hour < 12
-      ? "早上好"
-      : hour < 18
-        ? "下午好"
-        : "晚上好";
-})();
 const messages = ref([]);
 const questionText = ref("");
+const questionInput = ref(null);
+const composerExtraHeight = ref(0);
+
+function resizeQuestionInput() {
+  const input = questionInput.value;
+  if (!input) {
+    composerExtraHeight.value = 0;
+    return;
+  }
+  const style = window.getComputedStyle(input);
+  const minHeight = parseFloat(style.minHeight) || 46;
+  const maxHeight = parseFloat(style.maxHeight) || 126;
+  input.style.overflowY = 'hidden';
+  input.style.height = 'auto';
+  const height = Math.max(minHeight, Math.min(input.scrollHeight, maxHeight));
+  input.style.height = `${height}px`;
+  input.style.overflowY = input.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  composerExtraHeight.value = height - minHeight;
+}
+
+watch([questionText, questionInput], resizeQuestionInput, { flush: 'post' });
 const sending = ref(false);
 const stopBusy = ref(false);
 const chatError = ref("");
@@ -407,6 +426,10 @@ function maintainedActions(message) {
   );
 }
 
+function messageTime(value) {
+  return value ? new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(value) : '';
+}
+
 async function load() {
   const { reportCode, customerId } = reportParamsFromLocation();
   reportQuery.value = reportRouteQueryFromLocation();
@@ -486,12 +509,15 @@ function scrollToPageTop() {
 function bindPageScroll() {
   if (scrollListening) return;
   window.addEventListener("scroll", onPageScroll, { passive: true });
+  window.addEventListener("resize", resizeQuestionInput);
+  void nextTick(resizeQuestionInput);
   scrollListening = true;
 }
 
 function unbindPageScroll() {
   if (!scrollListening) return;
   window.removeEventListener("scroll", onPageScroll);
+  window.removeEventListener("resize", resizeQuestionInput);
   scrollListening = false;
 }
 
@@ -655,6 +681,7 @@ async function sendQuestion(rawQuestion, existingMessage = null) {
       turnId: null,
       generationId: null,
       question,
+      createdAt: Date.now(),
       answer: "",
       evidence: [],
       status: "loading",
@@ -1148,6 +1175,7 @@ onUnmounted(() => {
   <main
     v-else
     class="app-shell ai-consult-page"
+    :style="{ '--ai-composer-extra': `${composerExtraHeight}px` }"
     data-testid="ai-consult-welcome"
   >
     <header class="ai-topbar">
@@ -1193,45 +1221,13 @@ onUnmounted(() => {
     <template v-else>
       <section class="ai-welcome-content">
         <div class="ai-hero">
-          <div class="ai-avatar"><img :src="avatar" alt="AI 顾问形象" /></div>
           <div class="ai-hero-copy">
-            <p class="ai-eyebrow">YOUR LONGEVITY COMPANION</p>
-            <h1>{{ greeting }}，<br />想先了解哪项长寿指标？</h1>
+            <h1>你好，<br />一起读懂你的长寿报告</h1>
+            <p class="ai-intro">从本次报告出发，了解指标与健康管理建议。</p>
           </div>
-          <p class="ai-intro">
-            从你的本次报告出发，了解身体系统、指标趋势与健康管理方案。
-          </p>
+          <div class="ai-avatar"><img :src="avatar" alt="AI 男医生顾问形象" /></div>
         </div>
-
-        <section class="ai-report-strip" aria-label="当前关联报告">
-          <div class="ai-report-score">
-            <small>已连接长寿报告</small>
-            <strong v-if="reportScore !== null" data-testid="ai-report-score"
-              >{{ reportScore }}<span>分</span></strong
-            >
-            <strong v-else class="ai-score-missing">分数未提供</strong>
-          </div>
-          <ul v-if="focusSystems.length" class="ai-report-focus">
-            <li v-for="system in focusSystems" :key="system.name">
-              {{ system.name }} · 活力值 {{ system.score }}
-            </li>
-          </ul>
-          <p v-else class="ai-report-focus ai-report-summary">
-            {{ welcome.report_summary }}
-          </p>
-          <span class="ai-report-badge">已连接</span>
-        </section>
-        <div class="ai-report-meta">
-          <span v-if="welcome.report_date"
-            >检测日期
-            <time :datetime="welcome.report_date">{{
-              welcome.report_date
-            }}</time></span
-          >
-          <span class="ai-accessibility-only">{{
-            welcome.report_summary
-          }}</span>
-        </div>
+        <AiConsultReportCard :score="reportScore" :systems="focusSystems" :summary="welcome.report_summary" :date="welcome.report_date" :report-to="backTo" />
 
         <section
           v-if="managementPlans.length"
@@ -1240,8 +1236,8 @@ onUnmounted(() => {
           aria-labelledby="aiPlansTitle"
         >
           <h2 id="aiPlansTitle">
-            本次为你匹配
-            <span>{{ managementPlans.length }}</span> 项健康管理方案
+            为你匹配的健康管理方案
+            <span>{{ managementPlans.length }} 项</span>
           </h2>
           <article
             v-for="plan in managementPlans"
@@ -1278,27 +1274,14 @@ onUnmounted(() => {
                   >{{ plan.indicator_name }} · 活力值
                   {{ plan.indicator_score ?? "—" }}</span
                 >
-                <p>{{ plan.description || "查看本次报告的方案与推荐依据" }}</p>
               </div>
-              <span class="ai-plan-arrow" aria-hidden="true"
-                ><svg viewBox="0 0 24 24">
-                  <path d="M5 12h14m-6-6 6 6-6 6" /></svg
+              <span class="ai-plan-arrow" aria-hidden="true"><span>查看方案</span
+                ><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg
               ></span>
+              <p v-if="planDescription(plan)" class="ai-plan-description" data-testid="ai-plan-description">{{ planDescription(plan) }}</p>
             </RouterLink>
           </article>
         </section>
-
-        <p
-          v-if="
-            Number.isSafeInteger(welcome.remaining_today) &&
-            welcome.remaining_today >= 0
-          "
-          class="ai-quota-note"
-          role="status"
-          data-testid="ai-quota-note"
-        >
-          今日剩余回答次数 <strong>{{ welcome.remaining_today }}</strong>
-        </p>
 
         <section
           v-if="entryContext"
@@ -1324,9 +1307,9 @@ onUnmounted(() => {
           <p v-else>问题已关联到这份报告中的该项指标。</p>
         </section>
 
+        <section class="ai-question-panel">
         <div class="ai-section-heading">
           <h2>{{ entryContext ? "已为你准备的问题" : "你可以这样问" }}</h2>
-          <small>基于本次报告</small>
         </div>
         <div class="ai-suggestions">
           <button
@@ -1339,41 +1322,37 @@ onUnmounted(() => {
           >
             <span
               class="ai-question-icon"
-              :class="`ai-question-icon--${index % 3}`"
+              :class="`ai-question-icon--${index % 4}`"
               aria-hidden="true"
             >
-              <svg v-if="index % 3 === 0" viewBox="0 0 24 24">
-                <path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z" />
-                <path d="m8 12 3 3 5-6" />
+              <svg v-if="index % 4 === 0" viewBox="0 0 24 24">
+                <path d="M6 3h8l4 4v14H6V3Zm8 0v5h4M9 12h6M9 16h6" />
               </svg>
-              <svg v-else-if="index % 3 === 1" viewBox="0 0 24 24">
-                <path d="M3 20h18M4 15l5-6 4 3 7-8m-5 0h5v5" />
+              <svg v-else-if="index % 4 === 1" viewBox="0 0 24 24">
+                <path d="M10 5v8M14 5v8M10 9C7 5 4 10 3 15c-1 5 6 5 7 1M14 9c3-4 6 1 7 6 1 5-6 5-7 1M10 13l2-2 2 2" />
               </svg>
+              <svg v-else-if="index % 4 === 2" viewBox="0 0 24 24"><path d="M9 17h6M10 21h4M9 17v-2a7 7 0 1 1 6 0v2M12 4v6l-3 3" /></svg>
               <svg v-else viewBox="0 0 24 24">
-                <path
-                  d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"
-                />
+                <path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z" />
               </svg>
             </span>
             <span class="ai-question-copy"
-              ><strong>{{ question }}</strong
-              ><small>{{
-                index % 3 === 0
-                  ? "了解报告数据与关注重点"
-                  : index % 3 === 1
-                    ? "结合指标结果，理解健康信号"
-                    : "从本次报告开始，梳理管理方向"
-              }}</small></span
+              ><strong>{{ question }}</strong></span
             >
             <svg
               class="ai-question-arrow"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
-              <path d="M5 12h14m-6-6 6 6-6 6" />
+              <path d="m9 5 7 7-7 7" />
             </svg>
           </button>
         </div>
+        </section>
+
+        <p v-if="Number.isSafeInteger(welcome.remaining_today) && welcome.remaining_today >= 0" class="ai-quota-note" role="status" data-testid="ai-quota-note">
+          今日剩余回答次数 <strong>{{ welcome.remaining_today }}</strong>
+        </p>
 
         <section v-if="!serviceAvailable" class="ai-status" role="status">
           <strong>{{
@@ -1415,27 +1394,31 @@ onUnmounted(() => {
             :key="message.id"
             class="ai-turn"
           >
-            <small class="ai-user-source">你的问题与补充</small>
+            <small class="ai-user-source">我</small>
             <div class="ai-user-question">{{ message.question }}</div>
+            <time v-if="message.createdAt" class="ai-message-time" :datetime="new Date(message.createdAt).toISOString()">{{ messageTime(message.createdAt) }}</time>
             <div class="ai-answer" :aria-busy="message.status === 'loading'">
-              <span class="ai-answer-avatar" aria-hidden="true">AI</span>
+              <span class="ai-answer-avatar" aria-hidden="true"><img :src="avatar" alt="" /></span>
+              <div class="ai-answer-main">
+              <div class="ai-answer-heading"><strong>AI 长寿顾问</strong><span>AI</span></div>
               <div class="ai-answer-body">
-                <strong>AI 长寿顾问</strong>
                 <p
                   v-if="message.status === 'loading' && !message.answer"
                   class="ai-answer-pending"
                 >
-                  正在核对报告依据…
+                  <strong>正在结合报告整理建议</strong><span class="ai-typing-dots" aria-hidden="true"><i /><i /><i /></span>
                 </p>
-                <p
+                <AiConsultAnswer
                   v-else-if="
                     message.status === 'completed' ||
                     (message.status === 'loading' && message.answer)
                   "
-                  class="ai-answer-text"
-                >
-                  {{ message.answer }}
-                </p>
+                  :answer="message.answer"
+                  :evidence="message.evidence"
+                  :streaming="message.status === 'loading'"
+                  :report-code="reportParamsFromLocation().reportCode"
+                  :customer-id="reportParamsFromLocation().customerId"
+                />
                 <p
                   v-else-if="message.status === 'timed_out'"
                   class="ai-answer-pending"
@@ -1542,31 +1525,13 @@ onUnmounted(() => {
                   :report-query="reportQuery"
                   @navigate="rememberChatPosition"
                 />
-                <div
-                  v-if="
-                    canAsk && !sending && followUpSuggestions(message).length
-                  "
-                  class="ai-followup-prompts"
-                  aria-label="可继续追问"
-                >
-                  <span>继续了解</span>
-                  <button
-                    v-for="question in followUpSuggestions(message)"
-                    :key="question"
-                    type="button"
-                    data-testid="ai-followup-prompt"
-                    :disabled="!canSend"
-                    @click="sendQuestion(question)"
-                  >
-                    {{ question }}
-                  </button>
                 </div>
                 <div
                   v-if="message.status === 'completed' && message.turnId"
                   class="ai-feedback"
                   data-testid="ai-feedback"
                 >
-                  <span>这条回答有帮助吗？</span>
+                  <span class="ai-accessibility-only">这条回答有帮助吗？</span>
                   <div class="ai-feedback-actions">
                     <button
                       type="button"
@@ -1574,6 +1539,7 @@ onUnmounted(() => {
                       :disabled="message.feedbackBusy"
                       @click="rateAnswer(message, true)"
                     >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10h-4v11h4V10Zm0 0 5-8c3 0 3 3 1 7h5c2 0 2 2 1 5l-2 7H8V10Z" /></svg>
                       有帮助
                     </button>
                     <button
@@ -1582,6 +1548,7 @@ onUnmounted(() => {
                       :disabled="message.feedbackBusy"
                       @click="feedbackReasonFor = message.id"
                     >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 14H4V3h4v11Zm0 0 5 8c3 0 3-3 1-7h5c2 0 2-2 1-5l-2-7H8v11Z" /></svg>
                       没有帮助
                     </button>
                   </div>
@@ -1619,17 +1586,16 @@ onUnmounted(() => {
                       跳过原因
                     </button>
                   </div>
-                  <small v-if="message.feedback && !message.feedbackError">{{
-                    message.feedback === "helpful"
-                      ? "已记录：有帮助"
-                      : "已记录：没有帮助"
-                  }}</small>
                   <small
                     v-if="message.feedbackError"
                     class="ai-feedback-error"
                     role="alert"
                     >{{ message.feedbackError }}</small
                   >
+                </div>
+                <div v-if="canAsk && !sending && followUpSuggestions(message).length" class="ai-followup-prompts" aria-label="可继续追问">
+                  <span class="ai-accessibility-only">继续了解</span>
+                  <button v-for="question in followUpSuggestions(message)" :key="question" type="button" data-testid="ai-followup-prompt" :disabled="!canSend" @click="sendQuestion(question)">{{ question }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></button>
                 </div>
               </div>
             </div>
@@ -1647,7 +1613,7 @@ onUnmounted(() => {
         <p v-if="chatError" class="ai-chat-error" role="alert">
           {{ chatError }}
         </p>
-        <p class="ai-footnote">
+        <p v-if="!serviceAvailable" class="ai-footnote">
           AI 回答仅作健康管理参考，不替代医学诊断或治疗。
         </p>
       </section>
@@ -1675,32 +1641,32 @@ onUnmounted(() => {
           <label class="ai-accessibility-only" for="aiQuestionInput"
             >问问我的长寿报告</label
           >
-          <div>
+          <div class="ai-composer-row">
+            <div class="ai-composer-field">
             <textarea
               id="aiQuestionInput"
+              ref="questionInput"
               v-model="questionText"
               rows="1"
               :maxlength="questionLimit || undefined"
-              placeholder="问问我的长寿报告"
+              :placeholder="messages.length ? '继续询问你的报告…' : '问问我的长寿报告…'"
               :disabled="sending || sessionEnded"
+              @input="resizeQuestionInput"
             />
+            <small class="ai-composer-count">{{ questionText.length }}<template v-if="questionLimit">/{{ questionLimit }}</template></small>
+            </div>
             <button
               type="submit"
               :disabled="!canSend || sending || !questionText.trim()"
               aria-label="发送问题"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m5 4 16 8-16 8 3-8-3-8Zm3 8h13" />
+                <path d="m21 3-6 18-4-8-8-4L21 3ZM11 13 21 3" />
               </svg>
             </button>
           </div>
           <div class="ai-composer-note">
-            <span>AI 生成内容仅供健康管理参考</span
-            ><small
-              >{{ questionText.length }}<template v-if="questionLimit"
-                >/{{ questionLimit }}</template
-              ></small
-            >
+            <span>AI 回答仅供健康管理参考，不替代医学诊断或治疗。</span>
           </div>
         </form>
       </footer>
@@ -1720,966 +1686,4 @@ onUnmounted(() => {
   </Teleport>
 </template>
 
-<style scoped>
-.ai-leave-overlay { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:24px; background:#17263f66; }
-.ai-leave-dialog { width:min(100%, 350px); box-sizing:border-box; padding:28px 24px 24px; border:1px solid #e1e9f3; border-radius:24px; background:#fff; color:#17263f; box-shadow:0 20px 60px #17263f33; }
-.ai-leave-dialog h2 { margin:0 0 10px; font-size:20px; text-align:center; }
-.ai-leave-dialog p { margin:0; color:#718199; font-size:14px; line-height:1.75; }
-.ai-leave-actions { display:flex; gap:10px; margin-top:24px; }
-.ai-leave-actions button { flex:1; min-height:46px; padding:10px 8px; border:1px solid #dce6f2; border-radius:13px; background:#f6f9fc; color:#526c8d; font-size:14px; font-weight:600; cursor:pointer; }
-.ai-leave-actions .ai-leave-confirm { border-color:#527bb4; background:#527bb4; color:#fff; }
-.ai-start-again { margin-top:14px; padding:9px 14px; border:1px solid #c5d8ed; border-radius:10px; background:#fff; color:#476994; font-size:13px; cursor:pointer; }
-.ai-consult-page {
-  position: relative;
-  isolation: isolate;
-  overflow: clip;
-  max-width: 480px;
-  min-height: 100svh;
-  background:
-    radial-gradient(ellipse at 100% 0%, #e7eaf9a6, transparent 40%),
-    radial-gradient(ellipse at 0% 36%, #e0f2f5a6, transparent 48%), #f6f9fc;
-  color: #17263f;
-}
-.ai-consult-page::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0 0 auto;
-  height: 400px;
-  pointer-events: none;
-  background: radial-gradient(#b8cae45e 0.6px, transparent 0.8px) 0 0 / 10px
-    10px;
-  mask-image: linear-gradient(#000, transparent);
-}
-.ai-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  height: 88px;
-  display: grid;
-  grid-template-columns: 48px 1fr 48px;
-  align-items: center;
-  padding: 8px 20px 0;
-  background: linear-gradient(
-    180deg,
-    rgba(246, 249, 252, 0.8) 0%,
-    rgba(246, 249, 252, 0.62) 72%,
-    rgba(246, 249, 252, 0.2) 100%
-  );
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-.ai-topbar::after {
-  content: "";
-  position: absolute;
-  inset: 100% 0 auto;
-  height: 18px;
-  background: linear-gradient(
-    180deg,
-    rgba(246, 249, 252, 0.2),
-    rgba(246, 249, 252, 0)
-  );
-  pointer-events: none;
-}
-.ai-back {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid #fff9;
-  border-radius: 50%;
-  background: #ffffff9c;
-}
-.ai-back svg {
-  width: 22px;
-  height: 22px;
-}
-.ai-topbar-title {
-  text-align: center;
-}
-.ai-topbar-title strong {
-  display: block;
-  margin-top: 4px;
-  font-size: 20px;
-  line-height: 1.5;
-}
-.ai-topbar-title small {
-  display: block;
-  color: #7e8da6;
-  font:
-    750 10px/1.5 ui-monospace,
-    Menlo,
-    monospace;
-  letter-spacing: 0.17em;
-}
-.ai-welcome-content {
-  padding: 26px 16px calc(156px + env(safe-area-inset-bottom));
-}
-.ai-hero {
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  align-items: center;
-  column-gap: 15px;
-  row-gap: 12px;
-  padding: 0 7px;
-}
-.ai-hero-copy {
-  min-width: 0;
-}
-.ai-eyebrow {
-  margin: 0 0 12px;
-  color: #6282b1;
-  font:
-    750 9px/1.5 ui-monospace,
-    Menlo,
-    monospace;
-  letter-spacing: 0.12em;
-}
-.ai-hero h1 {
-  margin: 0;
-  font-size: clamp(22px, 6.3vw, 26px);
-  line-height: 1.36;
-  font-weight: 750;
-  letter-spacing: -0.045em;
-}
-.ai-avatar {
-  position: relative;
-  width: 88px;
-  height: 94px;
-  overflow: hidden;
-  border: 1px solid #d9e6f1;
-  border-radius: 28px;
-  background: linear-gradient(145deg, #fbfdff, #e7f1f9);
-  box-shadow: 0 12px 32px #436c8a0b;
-}
-.ai-avatar img {
-  position: absolute;
-  left: -7px;
-  top: 6px;
-  width: 104px;
-  max-width: none;
-  height: auto;
-}
-.ai-intro {
-  grid-column: 2;
-  margin: 0;
-  color: #73839b;
-  font-size: 13px;
-  line-height: 1.8;
-}
-.ai-report-strip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 84px;
-  margin-top: 20px;
-  padding: 14px 15px;
-  border: 1px solid #fff;
-  border-radius: 25px;
-  background: #ffffffd9;
-  box-shadow: 0 9px 30px #415c8005;
-}
-.ai-report-score {
-  flex: none;
-}
-.ai-report-score > small {
-  display: block;
-  color: #7385a1;
-  font-size: 11px;
-  line-height: 1.5;
-}
-.ai-report-score > strong {
-  display: block;
-  margin-top: 4px;
-  color: #426be2;
-  font-size: 32px;
-  font-weight: 750;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.04em;
-}
-.ai-report-score > strong span {
-  margin-left: 4px;
-  font-size: 12px;
-  letter-spacing: 0;
-}
-.ai-report-score > .ai-score-missing {
-  font-size: 13px;
-  line-height: 2;
-}
-.ai-report-focus {
-  display: grid;
-  flex: 1;
-  min-width: 0;
-  gap: 7px;
-  margin: 0;
-  padding: 2px 0 2px 12px;
-  border-left: 1px solid #dce7f4;
-  color: #576983;
-  font-size: 11px;
-  line-height: 1.5;
-  list-style: none;
-}
-.ai-report-focus li {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-.ai-report-focus li::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  flex: none;
-  border-radius: 50%;
-  background: #5caaa8;
-}
-.ai-report-focus li:nth-child(2)::before {
-  background: #c49c5b;
-}
-.ai-report-badge {
-  flex: none;
-  padding: 7px 9px;
-  border-radius: 20px;
-  background: #edf7f7;
-  color: #458c90;
-  font-size: 10px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-.ai-report-meta {
-  margin: 8px 6px 0;
-  color: #8c9aaf;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.ai-accessibility-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-}
-.ai-management-plans {
-  display: grid;
-  gap: 9px;
-  margin-top: 18px;
-  padding: 14px 11px 11px;
-  border: 1px solid #dfe6e5;
-  border-radius: 25px;
-  background: linear-gradient(125deg, #edf4f2d9, #f7f5ecb3);
-}
-.ai-management-plans h2 {
-  margin: 0 5px 3px;
-  font-size: 14px;
-  line-height: 1.6;
-  font-weight: 700;
-}
-.ai-plan-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 5px;
-  border: 1px solid #e9e9e3;
-  border-radius: 19px;
-  background: #ffffffed;
-}
-.ai-plan-visual {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 106px;
-  height: 84px;
-  flex: none;
-  overflow: hidden;
-  border-radius: 15px;
-  background: linear-gradient(140deg, #f4eee4, #e5eeea);
-  color: #729989;
-}
-.ai-plan-visual img {
-  display: block;
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.ai-plan-visual svg {
-  width: 45px;
-  height: 45px;
-  stroke-width: 1.3;
-}
-.ai-plan-copy {
-  flex: 1;
-  min-width: 0;
-  padding-block: 5px;
-}
-.ai-plan-copy h3 {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.45;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-.ai-plan-issue {
-  display: inline-block;
-  max-width: 100%;
-  margin-top: 7px;
-  padding: 4px 7px;
-  border-radius: 12px;
-  color: #4c6d92;
-  background: #eaf2fb;
-  font-size: 10px;
-  line-height: 1.4;
-}
-.ai-plan-copy p {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  margin: 7px 0 0;
-  color: #7d8da4;
-  font-size: 11px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.ai-plan-arrow {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  flex: none;
-  margin-right: 6px;
-  border-radius: 50%;
-  background: #edf3fb;
-  color: #6182ab;
-}
-.ai-plan-arrow svg {
-  width: 18px;
-  height: 18px;
-}
-.ai-entry-context {
-  display: grid;
-  gap: 5px;
-  margin: 18px 0 22px;
-  padding: 15px 16px;
-  border: 1px solid #dce8f5;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f5f9fe, #edf4fb);
-}
-.ai-entry-context small {
-  color: #6082ad;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.14em;
-}
-.ai-entry-context strong {
-  color: #20334f;
-  font-size: 16px;
-}
-.ai-entry-context p {
-  margin: 0;
-  color: #71839b;
-  font-size: 12px;
-  line-height: 1.65;
-}
-.ai-quota-note {
-  margin: 10px 2px 0;
-  color: #8798ad;
-  font-size: 12px;
-  line-height: 1.6;
-}
-.ai-quota-note strong {
-  margin-left: 4px;
-  color: #557cb0;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-.ai-section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 23px 5px 12px;
-}
-.ai-section-heading h2 {
-  margin: 0;
-  font-size: 19px;
-  line-height: 1.5;
-  font-weight: 750;
-  letter-spacing: -0.025em;
-}
-.ai-section-heading > small {
-  flex: none;
-  color: #8799b2;
-  font-size: 10px;
-}
-.ai-suggestions {
-  display: grid;
-  gap: 9px;
-}
-.ai-suggestions button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 82px;
-  padding: 13px;
-  border: 1px solid #fff;
-  border-radius: 22px;
-  background: #ffffffd9;
-  color: #25354f;
-  text-align: left;
-  opacity: 1;
-  cursor: pointer;
-}
-.ai-suggestions button:disabled {
-  cursor: not-allowed;
-}
-.ai-question-icon {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 43px;
-  flex: none;
-  border-radius: 14px;
-  color: #688aba;
-  background: #eaf2fa;
-}
-.ai-question-icon svg {
-  width: 24px;
-  height: 24px;
-}
-.ai-question-icon--1 {
-  color: #5b999b;
-  background: #eaf5f5;
-}
-.ai-question-icon--2 {
-  color: #8c8dbb;
-  background: #f1eff9;
-}
-.ai-question-copy {
-  flex: 1;
-  min-width: 0;
-}
-.ai-question-copy strong {
-  display: block;
-  font-size: 14px;
-  line-height: 1.55;
-  font-weight: 650;
-  overflow-wrap: anywhere;
-}
-.ai-question-copy small {
-  display: block;
-  margin-top: 5px;
-  color: #8190a6;
-  font-size: 11px;
-  line-height: 1.5;
-}
-.ai-question-arrow {
-  width: 19px;
-  height: 19px;
-  flex: none;
-  color: #8797b0;
-}
-.ai-status {
-  margin-top: 22px;
-  padding: 16px 17px;
-  border: 1px solid #dce8f4;
-  border-radius: 17px;
-  background: #eaf3fb;
-}
-.ai-status strong {
-  color: #476994;
-  font-size: 14px;
-}
-.ai-status p {
-  margin: 7px 0 0;
-  color: #7188a4;
-  font-size: 12px;
-  line-height: 1.7;
-}
-.ai-conversation {
-  display: grid;
-  gap: 24px;
-  margin-top: 28px;
-}
-.ai-new-reply {
-  position: fixed;
-  z-index: 20;
-  left: 50%;
-  bottom: calc(134px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: min(230px, calc(100vw - 32px));
-  min-height: 46px;
-  padding: 10px 16px;
-  border: 1px solid #b8d1ed;
-  border-radius: 24px;
-  background: #f5faff;
-  box-shadow: 0 10px 28px #456c9a32;
-  color: #416da7;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.ai-new-reply span {
-  font-size: 17px;
-  line-height: 1;
-}
-.ai-back-to-top {
-  position: fixed;
-  z-index: 24;
-  right: max(14px, calc((100vw - 480px) / 2 + 16px));
-  bottom: calc(20px + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-height: 42px;
-  padding: 0 13px;
-  border: 1px solid #d9e5f1;
-  border-radius: 22px;
-  background: rgba(250, 253, 255, 0.96);
-  box-shadow: 0 8px 24px rgba(49, 76, 112, 0.16);
-  color: #5277a7;
-  font-size: 12px;
-  font-weight: 650;
-  cursor: pointer;
-}
-.ai-back-to-top--with-composer {
-  bottom: calc(112px + env(safe-area-inset-bottom));
-}
-.ai-back-to-top svg {
-  width: 16px;
-  height: 16px;
-}
-.ai-turn {
-  display: grid;
-  gap: 12px;
-}
-.ai-user-source {
-  justify-self: end;
-  margin: 0 4px -7px 0;
-  color: #92a2b7;
-  font-size: 10px;
-  line-height: 1.4;
-}
-.ai-user-question {
-  justify-self: end;
-  max-width: 88%;
-  padding: 12px 15px;
-  border-radius: 18px 18px 5px 18px;
-  background: #dfeeff;
-  color: #365b8a;
-  font-size: 14px;
-  line-height: 1.65;
-  overflow-wrap: anywhere;
-}
-.ai-answer {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.ai-answer-avatar {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  flex: none;
-  border-radius: 10px;
-  background: #dceafb;
-  color: #4d78b0;
-  font:
-    750 10px ui-monospace,
-    Menlo,
-    monospace;
-}
-.ai-answer-body {
-  flex: 1;
-  min-width: 0;
-  padding: 13px 14px;
-  border: 1px solid #e4ebf4;
-  border-radius: 6px 17px 17px 17px;
-  background: #fff;
-  box-shadow: 0 5px 18px #415c8010;
-}
-.ai-answer-body > strong {
-  color: #526d92;
-  font-size: 11px;
-}
-.ai-answer-body > p {
-  margin: 9px 0 0;
-  font-size: 14px;
-  line-height: 1.8;
-  overflow-wrap: anywhere;
-}
-.ai-answer-text {
-  white-space: pre-wrap;
-}
-.ai-answer-pending {
-  color: #8b9cb1;
-}
-.ai-maintained-actions {
-  margin-top: 13px;
-  padding: 12px;
-  border: 1px solid #dce9f5;
-  border-radius: 13px;
-  background: #f5f9fd;
-}
-.ai-maintained-actions header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.ai-maintained-actions header strong {
-  color: #476b98;
-  font-size: 12px;
-}
-.ai-maintained-actions header small,
-.ai-maintained-note {
-  color: #899bb1;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.ai-maintained-actions ol {
-  display: grid;
-  gap: 7px;
-  margin: 9px 0 0;
-  padding-left: 19px;
-  color: #4f6581;
-  font-size: 12px;
-  line-height: 1.65;
-}
-.ai-maintained-note {
-  display: block;
-  margin-top: 9px;
-}
-.ai-stop-button {
-  min-height: 40px;
-  margin-top: 12px;
-  padding: 7px 13px;
-  border: 1px solid #d8e3f0;
-  border-radius: 10px;
-  background: #f5f8fc;
-  color: #5e7898;
-  font-size: 12px;
-}
-.ai-feedback {
-  display: grid;
-  gap: 8px;
-  margin-top: 15px;
-  padding-top: 12px;
-  border-top: 1px solid #edf1f6;
-  color: #8596ad;
-  font-size: 11px;
-}
-.ai-feedback-actions,
-.ai-feedback-reasons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  align-items: center;
-}
-.ai-feedback button {
-  min-height: 40px;
-  padding: 8px 12px;
-  border: 1px solid #dfe8f3;
-  border-radius: 10px;
-  background: #f7faff;
-  color: #607fa8;
-  font-size: 11px;
-}
-.ai-feedback button[aria-pressed="true"] {
-  border-color: #9fbee8;
-  background: #e8f2ff;
-  color: #3d6da9;
-}
-.ai-feedback button:disabled {
-  opacity: 0.55;
-}
-.ai-feedback-reasons {
-  padding: 8px 0;
-}
-.ai-feedback-reasons > span {
-  width: 100%;
-}
-.ai-feedback small {
-  color: #7896b4;
-}
-.ai-feedback .ai-feedback-error {
-  color: #a75954;
-}
-.ai-followup-prompts {
-  display: grid;
-  justify-items: start;
-  gap: 7px;
-  margin-top: 13px;
-}
-.ai-followup-prompts > span {
-  color: #92a2b7;
-  font-size: 10px;
-}
-.ai-followup-prompts button {
-  min-height: 38px;
-  max-width: 100%;
-  padding: 8px 11px;
-  border: 1px solid #dce8f5;
-  border-radius: 12px;
-  background: #f5f9fe;
-  color: #5879a3;
-  font-size: 11px;
-  line-height: 1.45;
-  text-align: left;
-  overflow-wrap: anywhere;
-}
-.ai-followup-prompts button:focus-visible {
-  outline: 2px solid #8db4ef;
-  outline-offset: 2px;
-}
-.ai-chat-error {
-  margin: 13px 0 0;
-  color: #a75954;
-  font-size: 12px;
-  line-height: 1.7;
-}
-.ai-composer-dock {
-  position: fixed;
-  z-index: 15;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: linear-gradient(0deg, #f0f5fb 88%, #f0f5fb00);
-}
-.ai-privacy-note {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 8px;
-  color: #8a99af;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.ai-privacy-note svg {
-  width: 13px;
-  height: 13px;
-  flex: none;
-}
-.ai-composer {
-  padding: 10px 14px;
-  border: 1px solid #fff;
-  border-radius: 25px;
-  background: #fff;
-  box-shadow: 0 5px 28px #45648409;
-}
-.ai-composer > div:first-of-type {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.ai-composer textarea {
-  box-sizing: border-box;
-  min-width: 0;
-  width: 100%;
-  height: 42px;
-  min-height: 42px;
-  max-height: 96px;
-  resize: none;
-  border: 0;
-  outline: 0;
-  padding: 9px 12px;
-  background: transparent;
-  color: #2e4667;
-  font: inherit;
-  font-size: 14px;
-  line-height: 20px;
-}
-.ai-composer textarea::placeholder {
-  color: #95a3b8;
-  font-size: 14px;
-  font-weight: 400;
-  opacity: 1;
-}
-.ai-composer textarea:focus-visible {
-  outline: 2px solid #9fbbe0;
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-.ai-composer button {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  flex: none;
-  border: 0;
-  border-radius: 50%;
-  background: #213957;
-  color: #fff;
-}
-.ai-composer button svg {
-  width: 22px;
-  height: 22px;
-}
-.ai-composer button:disabled {
-  opacity: 0.45;
-}
-.ai-composer-note {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 4px;
-  color: #8c9bb1;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.ai-composer-note small {
-  font-size: 9px;
-  font-variant-numeric: tabular-nums;
-}
-.ai-footnote {
-  margin: 17px 0 0;
-  color: #9daaba;
-  font-size: 11px;
-  line-height: 1.7;
-  text-align: center;
-}
-.ai-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100svh - 88px);
-  padding: 24px 26px 72px;
-  text-align: center;
-}
-.ai-error-icon {
-  display: grid;
-  place-items: center;
-  width: 104px;
-  height: 104px;
-  border-radius: 50%;
-  background: #e8f1fb;
-  color: #6994c5;
-}
-.ai-error-icon svg {
-  width: 58px;
-  height: 58px;
-}
-.ai-error h1 {
-  margin: 24px 0 0;
-  font-size: 23px;
-}
-.ai-error p {
-  max-width: 290px;
-  margin: 12px 0 0;
-  color: #7d8ea5;
-  font-size: 14px;
-  line-height: 1.8;
-}
-.ai-error button {
-  width: min(100%, 240px);
-  min-height: 48px;
-  margin-top: 30px;
-  border: 0;
-  border-radius: 14px;
-  background: #5179bd;
-  color: #fff;
-  font-size: 14px;
-}
-.ai-error a {
-  margin-top: 18px;
-  color: #6588b7;
-  font-size: 13px;
-}
-.ai-back:focus-visible,
-.ai-error button:focus-visible,
-.ai-composer button:focus-visible,
-.ai-suggestions button:focus-visible,
-.ai-feedback button:focus-visible,
-.ai-new-reply:focus-visible,
-.ai-back-to-top:focus-visible,
-.ai-plan-card:focus-visible {
-  outline: 3px solid #8db4ef;
-  outline-offset: 3px;
-}
-@media (max-width: 359px) {
-  .ai-welcome-content {
-    padding-inline: 12px;
-  }
-  .ai-topbar {
-    padding-inline: 14px;
-  }
-  .ai-hero {
-    grid-template-columns: 72px minmax(0, 1fr);
-    column-gap: 12px;
-    padding-inline: 3px;
-  }
-  .ai-avatar {
-    width: 72px;
-    height: 83px;
-    border-radius: 24px;
-  }
-  .ai-avatar img {
-    width: 88px;
-    left: -8px;
-  }
-  .ai-eyebrow {
-    font-size: 8px;
-    letter-spacing: 0.035em;
-  }
-  .ai-intro {
-    font-size: 12px;
-  }
-  .ai-report-strip {
-    padding-inline: 12px;
-    gap: 8px;
-  }
-  .ai-report-focus {
-    padding-left: 8px;
-    font-size: 10px;
-  }
-  .ai-report-badge {
-    padding-inline: 7px;
-    font-size: 9px;
-  }
-  .ai-plan-card {
-    gap: 9px;
-  }
-  .ai-plan-visual {
-    width: 79px;
-    height: 94px;
-  }
-  .ai-plan-copy h3 {
-    font-size: 13px;
-  }
-  .ai-plan-arrow {
-    width: 24px;
-    height: 24px;
-    margin-right: 3px;
-  }
-  .ai-section-heading h2 {
-    font-size: 18px;
-  }
-  .ai-suggestions button {
-    gap: 10px;
-    padding: 12px;
-  }
-  .ai-question-icon {
-    width: 36px;
-    height: 39px;
-  }
-  .ai-question-copy strong {
-    font-size: 13px;
-  }
-}
-</style>
+<style scoped src="../styles/ai-consult.css"></style>

@@ -90,6 +90,29 @@ async def test_reviewed_candidate_uses_only_minimal_facts_and_server_citations()
 
 
 @pytest.mark.asyncio
+async def test_system_answer_can_explain_components_instead_of_only_disclaiming():
+    class SystemProvider(FakeProvider):
+        async def draft(self, *, question, evidence):
+            by_name = {fact["metric"]: fact for fact in evidence["facts"]}
+            assert {"肺功能", "呼吸睡眠"} <= by_name.keys()
+            return {
+                "summary": "本次肺功能需要结合子项理解，呼吸睡眠是其中可单独查看的项目。"
+                           "可以先核对这项结果与日常感受；活力值不等于医学诊断。",
+                "evidence_ids": [by_name[name]["id"] for name in ["肺功能", "呼吸睡眠"]],
+                "follow_up_questions": [],
+            }
+
+    result = await prepare_answer_candidate(
+        object(), SCOPE, "我的肺功能活力值应该如何理解？", provider=SystemProvider(),
+        reader=report_reader(),
+    )
+    assert result.state == "reviewed_candidate"
+    assert "肺功能活力值 84 分" in result.text
+    assert "呼吸睡眠活力值 90 分" in result.text
+    assert [item["label"] for item in result.evidence] == ["肺功能", "呼吸睡眠"]
+
+
+@pytest.mark.asyncio
 async def test_long_question_reaches_the_full_pipeline_without_a_fixed_500_char_cap():
     provider = FakeProvider()
     question = "呼吸睡眠怎么样？" + "我想了解报告含义。" * 60

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useScoreAnimation } from '@/composables/useScoreAnimation.js'
 import { isWarningScore } from '@/utils/report.js'
 import SaveReportButton from './SaveReportButton.vue'
@@ -10,6 +10,12 @@ const showSaveReport = computed(() => props.report.features?.save_report_enabled
 const warning = computed(() => isWarningScore(props.report))
 const ageDifference = computed(() => (props.report.biologicalAge - props.report.actualAge).toFixed(1))
 const { displayScore, run } = useScoreAnimation(props.report.score)
+const replayKey = ref(0)
+
+function replay() {
+  replayKey.value += 1
+  run()
+}
 </script>
 
 <template>
@@ -19,7 +25,7 @@ const { displayScore, run } = useScoreAnimation(props.report.score)
       <span>REPORT / {{ report.reportDate }}</span>
       <SaveReportButton v-if="showSaveReport" :href="report.assets.downloadImage" />
     </div>
-    <div class="score-stage">
+    <div :key="replayKey" class="score-stage">
       <svg class="score-rings" viewBox="0 0 320 320" aria-hidden="true">
         <defs><linearGradient id="scoreGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38C6FF" /><stop offset=".55" stop-color="#2764FF" /><stop offset="1" stop-color="#6C36E8" /></linearGradient></defs>
         <circle class="ring-track" cx="160" cy="160" r="132" /><circle class="ring-progress" cx="160" cy="160" r="132" /><circle class="ring-fine" cx="160" cy="160" r="108" /><path class="ring-dash" d="M52 160a108 108 0 0 1 216 0" />
@@ -31,7 +37,7 @@ const { displayScore, run } = useScoreAnimation(props.report.score)
     <div class="score-foot">
       <div><span>超过同龄人</span><strong>{{ report.peerPercent }}<small>%</small></strong></div>
       <div><span>生理年龄差</span><strong>+{{ ageDifference }}<small>岁</small></strong></div>
-      <button id="replayScore" class="replay-button" type="button" aria-label="重播长寿指数动效" @click="run"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5" /><path d="M19 12a7 7 0 1 0-2 5" /></svg><span>重播动效</span></button>
+      <button id="replayScore" class="replay-button" type="button" aria-label="重播长寿指数动效" @click="replay"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5" /><path d="M19 12a7 7 0 1 0-2 5" /></svg><span>重播动效</span></button>
     </div>
   </section>
 </template>

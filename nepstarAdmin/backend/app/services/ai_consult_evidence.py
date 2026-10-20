@@ -278,7 +278,7 @@ async def prepare_report_evidence(
     requested_plan_id: int | None = None,
     reader: Callable[..., Awaitable[dict[str, Any]]] = read_report_tool,
 ) -> EvidenceBundle:
-    """按问题只取一项匹配指标详情，或最多三项低分事实；不调用模型。"""
+    """取匹配指标详情、系统及最多三项子指标，或报告优先项；不调用模型。"""
     report_code = getattr(bound_scope, "report_code", None)
     customer_id = getattr(bound_scope, "customer_id", None)
     scope_date = getattr(bound_scope, "report_date", None)
@@ -437,7 +437,8 @@ async def prepare_report_evidence(
             facts, citations, warnings, actions, user_context, previous_questions
         )
 
-    if any(word in question for word in _PRIORITY_WORDS):
+    matched_system = next((s for s in systems if s["name"] in question), None)
+    if any(word in question for word in _PRIORITY_WORDS) and matched_system is None:
         scored = [
             (system, indicator, _score(indicator.get("score")))
             for system, indicator in catalog
@@ -454,7 +455,6 @@ async def prepare_report_evidence(
             warnings.append("score_missing")
         return EvidenceBundle(facts, citations, warnings)
 
-    matched_system = next((s for s in systems if s["name"] in question), None)
     if matched_system:
         system_score = _score(matched_system.get("score"))
         if system_score is not None:
@@ -465,6 +465,25 @@ async def prepare_report_evidence(
             )
         else:
             warnings.append("score_missing")
+        # A system question needs its components, not just one aggregate score.
+        # Reuse the already scope-checked home facts; no extra database reads.
+        children = [
+            (indicator, _score(indicator.get("score")))
+            for system, indicator in catalog
+            if system["system_code"] == matched_system["system_code"]
+        ]
+        valid_children = [item for item in children if item[1] is not None]
+        valid_children.sort(key=lambda item: (item[1], item[0]["indicator_code"]))
+        if len(valid_children) != len(children):
+            warnings.append("system_indicator_score_missing")
+        if len(valid_children) > 3:
+            warnings.append("system_indicators_partial")
+        for indicator, score in valid_children[:3]:
+            _add_fact(
+                facts, citations, bound_scope, kind="report", metric=indicator["name"],
+                report_date=date_text, system_code=matched_system["system_code"],
+                indicator_code=indicator["indicator_code"], score=score,
+            )
     else:
         total_score = _score(home.get("total_score"))
         if total_score is not None:

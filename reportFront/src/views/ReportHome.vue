@@ -62,7 +62,6 @@ onMounted(load)
     <SystemAtlas :report="report" />
     <footer>
       <p>本报告用于健康趋势展示，不替代医学诊断或治疗建议。</p>
-      <span>{{ report.serialNumber }}</span>
     </footer>
   </main>
 </template>

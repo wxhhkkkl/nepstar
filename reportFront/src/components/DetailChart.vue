@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import FemaleFunctionChart from '@/components/FemaleFunctionChart.vue'
 import { buildLinePoints, buildRadialOffset, buildRadarPoints } from '@/utils/chartGeometry.js'
 
 const props = defineProps({ system: { type: Object, required: true } })
@@ -22,8 +23,9 @@ const average = computed(() => {
 </script>
 
 <template>
-  <div class="detail-chart" :data-chart-type="viz.type" role="img" :aria-label="`${system.name}：${viz.title}，综合活力值 ${system.score ?? '未参与评分'}`">
-    <template v-if="viz.type === 'line'">
+  <div class="detail-chart" :class="{ 'detail-chart--female': system.id === 'female' }" :data-chart-type="viz.type" :role="system.id === 'female' ? 'group' : 'img'" :aria-label="`${system.name}：${viz.title}，综合活力值 ${system.score ?? '未参与评分'}`">
+    <FemaleFunctionChart v-if="system.id === 'female'" :system="system" variant="detail" />
+    <template v-else-if="viz.type === 'line'">
       <svg class="detail-line-chart" viewBox="0 0 320 168" aria-hidden="true"><path class="detail-chart-grid" d="M18 34H302M18 80H302M18 126H302" /><path class="detail-chart-area" :d="`${linePath}L302 140H18Z`" /><path class="detail-chart-stroke" :d="linePath" /><g v-for="(point, index) in linePoints" :key="index"><circle :cx="point.x" :cy="point.y" r="5" /><text :x="point.x" :y="point.y - 11">{{ point.value }}</text><text class="axis-label" :x="point.x" y="158">{{ index + 1 }}</text></g></svg>
       <div class="detail-axis-caption"><span>第 1 次</span><span>{{ viz.period }} · {{ viz.unit }}</span><span>第 {{ linePoints.length }} 次</span></div>
     </template>
@@ -35,10 +37,7 @@ const average = computed(() => {
 
     <div v-else-if="viz.type === 'horizontal-bars'" class="detail-horizontal-bars"><article v-for="(name, index) in viz.categories" :key="name"><span>{{ String(index + 1).padStart(2, '0') }}</span><div><label>{{ name }}</label><i><b :style="{ width: `${viz.series[index]}%` }"></b></i></div><strong>{{ viz.series[index] }}</strong></article></div>
 
-    <template v-else-if="viz.type === 'matrix'">
-      <div class="detail-matrix"><article v-for="(name, index) in viz.categories" :key="name"><span>{{ name }}</span><strong>{{ viz.series[index] }}</strong><i :style="{ '--level': viz.series[index] / 100 }"></i></article></div>
-      <div class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name"><small>{{ name }}</small><strong>{{ viz.series[index] }}</strong></span></div>
-    </template>
+    <div v-else-if="viz.type === 'matrix'" class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name"><small>{{ name }}</small><strong>{{ viz.series[index] }}</strong></span></div>
 
     <template v-else-if="viz.type === 'radial-orbit'">
       <div class="detail-radar-wrap"><svg class="detail-radar" viewBox="0 0 200 200" aria-hidden="true"><g class="web"><polygon points="100,28 168,78 142,158 58,158 32,78" /><polygon points="100,52 145,85 128,138 72,138 55,85" /><path v-for="index in 5" :key="index" :d="`M100 100L${[100,168,142,58,32][index - 1]} ${[28,78,158,158,78][index - 1]}`" /></g><polygon class="shape" :points="radarPoints" /><text x="100" y="96">{{ viz.value || average }}</text><text class="radar-unit" x="100" y="111">{{ viz.unit }}</text></svg><div class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name"><small>{{ name }}</small><strong>{{ viz.series[index] }}</strong></span></div></div>
@@ -68,3 +67,18 @@ const average = computed(() => {
     <div v-else class="empty-module">该模块图表数据暂未生成。</div>
   </div>
 </template>
+
+<style scoped>
+.detail-chart[data-chart-type='matrix'] {
+  min-height: 0;
+}
+
+.detail-chart[data-chart-type='matrix'] .detail-chart-values {
+  margin-top: 0;
+}
+
+.detail-chart.detail-chart--female {
+  min-height: 0;
+  padding: 16px;
+}
+</style>

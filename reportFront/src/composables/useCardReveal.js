@@ -1,12 +1,13 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
-export function useCardReveal() {
+export function useCardReveal({ initiallyVisible = false } = {}) {
   const element = ref(null)
-  const isVisible = ref(false)
+  const isVisible = ref(initiallyVisible)
   let observer
 
   onMounted(() => {
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (isVisible.value) return
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
     const target = element.value?.$el ?? element.value
     if (reduced || !('IntersectionObserver' in window) || !target) {
       isVisible.value = true

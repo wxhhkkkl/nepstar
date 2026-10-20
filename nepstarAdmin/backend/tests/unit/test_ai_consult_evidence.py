@@ -250,5 +250,55 @@ async def test_global_or_explicit_system_questions_do_not_inherit_a_single_indic
     system = await prepare_report_evidence(
         None, scope(), "肺功能整体怎么样？", context_indicator_code="SYS_LUNG_SLEEP", reader=reader,
     )
-    assert [fact["metric"] for fact in system.facts] == ["肺功能"]
+    assert [fact["metric"] for fact in system.facts] == ["肺功能", "肺活量", "呼吸睡眠"]
     assert reader.calls == [("home", None, "R1", 1001)]
+
+
+@pytest.mark.asyncio
+async def test_system_question_keeps_components_in_the_same_report_and_system():
+    from app.services.ai_consult_evidence import prepare_report_evidence
+
+    source = home()
+    source["systems"].append({
+        "system_code": "SYS_BONE", "name": "骨骼", "score": 40,
+        "indicators": [{"indicator_code": "SYS_BONE_A", "name": "骨质", "score": 20}],
+    })
+    reader = FakeReader(source)
+    bundle = await prepare_report_evidence(
+        None, scope(), "肺功能应该优先关注哪些指标？", reader=reader,
+    )
+    assert [(fact["metric"], fact["score"]) for fact in bundle.facts] == [
+        ("肺功能", 84), ("肺活量", 60), ("呼吸睡眠", 90),
+    ]
+    assert all(item["route"].startswith("#/system/SYS_LUNG") for item in bundle.citations)
+    assert "骨质" not in str(bundle.for_model())
+    assert "私人姓名" not in str(bundle.for_model())
+    assert "DEVICE-SECRET" not in str(bundle.for_model())
+    assert reader.calls == [("home", None, "R1", 1001)]
+
+
+@pytest.mark.asyncio
+async def test_system_components_are_bounded_and_skip_unusable_scores():
+    from app.services.ai_consult_evidence import prepare_report_evidence
+
+    source = home()
+    source["systems"][0]["indicators"].extend([
+        {"indicator_code": "SYS_LUNG_X", "name": "子项甲", "score": 80},
+        {"indicator_code": "SYS_LUNG_Y", "name": "子项乙", "score": 70},
+        {"indicator_code": "SYS_LUNG_BAD", "name": "错误项", "score": True},
+    ])
+    bundle = await prepare_report_evidence(None, scope(), "肺功能整体怎么样？", reader=FakeReader(source))
+    assert [(fact["metric"], fact["score"]) for fact in bundle.facts] == [
+        ("肺功能", 84), ("肺活量", 60), ("子项乙", 70), ("子项甲", 80),
+    ]
+    assert set(bundle.warnings) == {"system_indicator_score_missing", "system_indicators_partial"}
+
+
+@pytest.mark.asyncio
+async def test_system_without_valid_components_does_not_invent_them():
+    from app.services.ai_consult_evidence import prepare_report_evidence
+
+    source = home()
+    source["systems"][0]["indicators"] = []
+    bundle = await prepare_report_evidence(None, scope(), "肺功能整体怎么样？", reader=FakeReader(source))
+    assert [(fact["metric"], fact["score"]) for fact in bundle.facts] == [("肺功能", 84)]

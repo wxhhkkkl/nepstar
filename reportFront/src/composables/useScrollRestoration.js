@@ -2,6 +2,10 @@ export const HOME_SCROLL_KEY = 'longevityReportV2ScrollY'
 const HOME_SCROLL_RESTORE_KEY = 'longevityReportV2ShouldRestoreScroll'
 const SYSTEM_SCROLL_KEY = 'longevityReportV2SystemReturnScroll'
 
+export function shouldRestoreHomeScroll() {
+  return sessionStorage.getItem(HOME_SCROLL_RESTORE_KEY) === 'true'
+}
+
 export function saveHomeScroll() {
   const value = Number(window.scrollY)
   if (Number.isFinite(value) && value >= 0) {
@@ -12,18 +16,16 @@ export function saveHomeScroll() {
 }
 
 export function restoreHomeScroll() {
-  const shouldRestore = sessionStorage.getItem(HOME_SCROLL_RESTORE_KEY) === 'true'
+  const shouldRestore = shouldRestoreHomeScroll()
   sessionStorage.removeItem(HOME_SCROLL_RESTORE_KEY)
-  if (!shouldRestore) return Promise.resolve()
-
-  const saved = Number(sessionStorage.getItem(HOME_SCROLL_KEY))
-  if (!Number.isFinite(saved) || saved <= 0) return Promise.resolve()
+  const saved = shouldRestore ? Number(sessionStorage.getItem(HOME_SCROLL_KEY)) : 0
+  const top = Number.isFinite(saved) && saved > 0 ? saved : 0
 
   // 必须等真实报告取代骨架屏后再滚动，否则内容高度变化会导致视觉位置偏移。
   return new Promise((resolve) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        window.scrollTo({ top: saved, left: 0, behavior: 'auto' })
+        window.scrollTo({ top, left: 0, behavior: 'auto' })
         resolve()
       })
     })

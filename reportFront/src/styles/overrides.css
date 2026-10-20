@@ -278,7 +278,7 @@ body {
 }
 
 .digest-flow i {
-    background: linear-gradient(90deg, #7696bd var(--w), rgba(51, 74, 105, .08) var(--w))
+    background: linear-gradient(90deg, var(--score-color, #7696bd) var(--w), rgba(51, 74, 105, .08) var(--w))
 }
 
 .gender-grid {
@@ -370,8 +370,33 @@ body {
     color: #738096
 }
 
-.bone-bars>span {
-    background: linear-gradient(#92abc6, #58799d)
+.bone-bars>span,
+.detail-v2[data-system-id="bone"] .detail-vertical-bars i b {
+    background: linear-gradient(180deg, var(--bone-bar-top, #d3e0f1), var(--bone-bar-bottom, #8ca6c8))
+}
+
+.bone-bars>span:nth-child(4n+1),
+.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+1) {
+    --bone-bar-top: #d3e0f1;
+    --bone-bar-bottom: #8ca6c8
+}
+
+.bone-bars>span:nth-child(4n+2),
+.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+2) {
+    --bone-bar-top: #e1ddef;
+    --bone-bar-bottom: #aaa0c6
+}
+
+.bone-bars>span:nth-child(4n+3),
+.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+3) {
+    --bone-bar-top: #d5e7e3;
+    --bone-bar-bottom: #8fb6ae
+}
+
+.bone-bars>span:nth-child(4n+4),
+.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+4) {
+    --bone-bar-top: #f1e1cf;
+    --bone-bar-bottom: #cea77e
 }
 
 .bone-tip {
@@ -701,7 +726,8 @@ body {
     color: #385a86;
     background: rgba(255, 255, 255, .55);
     box-shadow: 0 8px 24px rgba(57, 83, 126, .08);
-    font: 700 10px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    font: 700 10px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .03em;
     cursor: pointer;
     backdrop-filter: blur(10px);
@@ -871,7 +897,8 @@ body {
 .detail-chart-values strong {
     display: block;
     margin-top: 6px;
-    font: 700 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 14px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #486e9e
 }
 
@@ -906,7 +933,8 @@ body {
     fill: #3e618c;
     stroke: none;
     text-anchor: middle;
-    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 8px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .detail-line-chart .axis-label {
@@ -956,7 +984,8 @@ body {
 }
 
 .detail-radial strong {
-    font: 700 42px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 42px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .detail-radial>span {
@@ -981,7 +1010,8 @@ body {
 .detail-secondary-stat strong {
     display: block;
     margin-top: 8px;
-    font: 700 28px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 28px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .detail-secondary-stat strong small {
@@ -1021,7 +1051,8 @@ body {
 }
 
 .detail-horizontal-bars article>span {
-    font: 600 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 600 7px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #8b96a5
 }
 
@@ -1046,7 +1077,8 @@ body {
 }
 
 .detail-horizontal-bars strong {
-    font: 700 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 15px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #496f9f
 }
 
@@ -1073,7 +1105,8 @@ body {
 .detail-matrix strong {
     display: block;
     margin-top: 12px;
-    font: 700 26px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 26px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #536fa3
 }
 
@@ -1122,7 +1155,13 @@ body {
     fill: #3f648f;
     stroke: none;
     text-anchor: middle;
-    font: 700 22px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 22px/1 var(--font-report);
+    font-variant-numeric: tabular-nums
+}
+
+.detail-radar text:not(.radar-unit),
+.detail-network .network-score {
+    font-family: var(--font-report-number)
 }
 
 .detail-radar .radar-unit {
@@ -1181,7 +1220,8 @@ body {
 .detail-network-item-head strong {
     flex: none;
     color: #447d82;
-    font: 700 17px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 17px/1.2 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .detail-network-item>i {
@@ -1255,7 +1295,8 @@ body {
 }
 
 .detail-vertical-bars strong {
-    font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 10px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #4e7098
 }
 
@@ -1550,7 +1591,8 @@ body {
 .ai-entry-copy small {
     margin-bottom: 5px;
     color: #6680a1;
-    font: 700 6px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 6px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .12em
 }
 
@@ -1578,7 +1620,7 @@ body {
 }
 
 .report-v2 footer {
-    padding-bottom: calc(104px + env(safe-area-inset-bottom))
+    padding-bottom: calc(28px + env(safe-area-inset-bottom))
 }
 
 @keyframes aiEntryIn {
@@ -1639,7 +1681,8 @@ body {
     align-items: center;
     justify-content: space-between;
     color: #5c708b;
-    font: 700 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 10px/1.2 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .08em
 }
 
@@ -1652,7 +1695,8 @@ body {
     border-radius: 99px;
     color: #3d6e67;
     background: rgba(255, 255, 255, .68);
-    font: 700 11px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    font: 700 11px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: 0
 }
 
@@ -1713,7 +1757,8 @@ body {
     left: 12px;
     bottom: 10px;
     color: #5c746f;
-    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 8px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .1em
 }
 
@@ -2774,8 +2819,14 @@ body {
     border-radius: 50%
 }
 
-.indicator-nav-back:active { background: #edf3fb }
-.indicator-nav-back svg { width: 25px; height: 25px }
+.indicator-nav-back:active {
+    background: #edf3fb
+}
+
+.indicator-nav-back svg {
+    width: 25px;
+    height: 25px
+}
 
 .indicator-hero {
     padding: 30px 24px 22px;
@@ -2790,7 +2841,10 @@ body {
     gap: 18px
 }
 
-.indicator-hero-copy { min-width: 0 }
+.indicator-hero-copy {
+    min-width: 0
+}
+
 .indicator-system-pill {
     display: inline-block;
     padding: 7px 10px;
@@ -2810,15 +2864,61 @@ body {
     letter-spacing: -.03em
 }
 
-.indicator-hero-copy p { margin: 0; color: #6b83a5; font-size: 13px }
-.indicator-ring { position: relative; flex: 0 0 132px; width: 132px; height: 132px }
-.indicator-ring svg { width: 100%; height: 100%; transform: rotate(-90deg) }
-.indicator-ring circle { fill: none; stroke-width: 7; stroke-linecap: round; stroke-dasharray: 308 }
-.indicator-ring-track { stroke: rgba(73, 110, 158, .13) }
-.indicator-ring-progress { stroke: #4d7ed0; transition: stroke-dashoffset .5s ease }
-.indicator-ring>div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px }
-.indicator-ring strong { font: 700 43px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.07em }
-.indicator-ring span { color: #6b83a5; font-size: 11px }
+.indicator-hero-copy p {
+    margin: 0;
+    color: #6b83a5;
+    font-size: 13px
+}
+
+.indicator-ring {
+    position: relative;
+    flex: 0 0 132px;
+    width: 132px;
+    height: 132px
+}
+
+.indicator-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg)
+}
+
+.indicator-ring circle {
+    fill: none;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 308
+}
+
+.indicator-ring-track {
+    stroke: rgba(73, 110, 158, .13)
+}
+
+.indicator-ring-progress {
+    stroke: #4d7ed0;
+    transition: stroke-dashoffset .5s ease
+}
+
+.indicator-ring>div {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px
+}
+
+.indicator-ring strong {
+    font: 700 43px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.07em
+}
+
+.indicator-ring span {
+    color: #6b83a5;
+    font-size: 11px
+}
 
 .indicator-hero-facts {
     display: grid;
@@ -2828,14 +2928,40 @@ body {
     border-top: 1px solid rgba(89, 130, 180, .18)
 }
 
-.indicator-hero-facts>div { display: flex; flex-direction: column; gap: 7px; min-width: 0; padding: 0 12px }
-.indicator-hero-facts>div:first-child { padding-left: 0 }
-.indicator-hero-facts>div:not(:last-child) { border-right: 1px solid rgba(89, 130, 180, .18) }
-.indicator-hero-facts span { color: #7184a0; font-size: 11px }
-.indicator-hero-facts strong { overflow: hidden; font-size: 13px; white-space: nowrap; text-overflow: ellipsis }
-.indicator-hero-facts strong.is-good { color: #398a77 }
+.indicator-hero-facts>div {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    padding: 0 12px
+}
 
-.indicator-panel, .indicator-actions {
+.indicator-hero-facts>div:first-child {
+    padding-left: 0
+}
+
+.indicator-hero-facts>div:not(:last-child) {
+    border-right: 1px solid rgba(89, 130, 180, .18)
+}
+
+.indicator-hero-facts span {
+    color: #7184a0;
+    font-size: 11px
+}
+
+.indicator-hero-facts strong {
+    overflow: hidden;
+    font-size: 13px;
+    white-space: nowrap;
+    text-overflow: ellipsis
+}
+
+.indicator-hero-facts strong.is-good {
+    color: #398a77
+}
+
+.indicator-panel,
+.indicator-actions {
     margin: 14px 12px 0;
     padding: 25px 22px;
     border: 1px solid #e8eef6;
@@ -2844,54 +2970,289 @@ body {
     box-shadow: 0 8px 24px rgba(46, 77, 125, .035)
 }
 
-.indicator-detail-page .eyebrow { color: #4b70a9; font: 700 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .18em }
-.indicator-panel h2, .indicator-actions h2 { margin: 10px 0 18px; font-size: 22px; line-height: 1.25 }
-.indicator-profile p { margin: 0; color: #53657f; font-size: 15px; line-height: 1.85 }
-.indicator-profile .indicator-interpretation { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e8eef5 }
-.indicator-panel-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px }
-.indicator-panel-heading>span { padding-bottom: 19px; color: #8595ab; font-size: 11px; white-space: nowrap }
-.indicator-trend-chart { padding: 13px 12px 8px; border-radius: 15px; background: #f5f9fe }
-.indicator-trend-chart svg { display: block; width: 100%; height: 130px; overflow: visible }
-.indicator-chart-area { fill: rgba(87, 150, 224, .13); stroke: none }
-.indicator-chart-line { stroke: #4d7ed0; stroke-width: 2.5 }
-.indicator-trend-chart circle { fill: #fff; stroke: #4d7ed0; stroke-width: 2 }
-.indicator-trend-chart text { fill: #3c5f92; stroke: none; font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace }
-.indicator-trend-labels { display: flex; justify-content: space-between; gap: 8px; color: #8090a9; font-size: 10px }
-.indicator-trend-labels time { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; text-align: center }
-.indicator-trend-labels time:first-child { text-align: left }
-.indicator-trend-labels time:last-child { text-align: right }
-.indicator-first-record { margin: 0; padding: 30px 12px; border-radius: 15px; color: #788aa5; background: #f5f9fe; text-align: center; font-size: 13px }
-.indicator-actions { background: #edf5ff }
-.indicator-actions ul { margin: 0; padding: 0; list-style: none }
-.indicator-actions li { display: flex; align-items: flex-start; gap: 12px; padding: 16px 0; border-top: 1px solid rgba(97, 134, 177, .16); font-size: 15px; line-height: 1.55 }
-.indicator-actions li>span { color: #4b7f9a; font-size: 20px; line-height: 1 }
-.indicator-disclaimer { margin: 22px 20px 0; color: #8a99ad; text-align: center; font-size: 11px; line-height: 1.5 }
-.indicator-error-wrap { min-height: 100vh; background: #f5f9ff }
-.indicator-error-back { display: block; width: max-content; margin: 12px auto; color: #456fa9; font-size: 14px }
+.indicator-detail-page .eyebrow {
+    color: #4b70a9;
+    font: 700 10px/1.4 var(--font-report);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .18em
+}
 
-.indicator-skeleton .indicator-hero { background: #e8f2ff }
-.indicator-skeleton-line { display: block; border-radius: 8px; background: linear-gradient(90deg, #dce7f4 20%, #edf3fa 50%, #dce7f4 80%); background-size: 200% 100%; animation: indicator-skeleton-shimmer 1.4s linear infinite }
-.indicator-skeleton-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0) }
-.indicator-skeleton-back { width: 25px; height: 25px; margin-left: 12px }
-.indicator-skeleton-title { width: 95px; height: 18px; margin: auto }
-.indicator-skeleton-copy { flex: 1 }
-.indicator-skeleton-pill { width: 112px; height: 24px; border-radius: 20px }
-.indicator-skeleton-name { width: 112px; height: 39px; margin: 25px 0 13px }
-.indicator-skeleton-subtitle { width: 90px; height: 13px }
-.indicator-skeleton-ring { width: 132px; height: 132px; flex: 0 0 132px; border-radius: 50% }
-.indicator-skeleton-fact { width: 75%; height: 34px }
-.indicator-skeleton-eyebrow { width: 130px; height: 11px }
-.indicator-skeleton-heading { width: 105px; height: 26px; margin: 14px 0 22px }
-.indicator-skeleton-copyline { width: 100%; height: 14px; margin: 12px 0 }
-.indicator-skeleton-copyline.short { width: 69% }
-.indicator-skeleton-chart { width: 100%; height: 145px; border-radius: 15px }
-.indicator-skeleton-action { width: 100%; height: 20px; margin: 16px 0 }
-@keyframes indicator-skeleton-shimmer { to { background-position-x: -200% } }
-@media (prefers-reduced-motion: reduce) { .indicator-skeleton-line { animation: none } }
+.indicator-panel h2,
+.indicator-actions h2 {
+    margin: 10px 0 18px;
+    font-size: 22px;
+    line-height: 1.25
+}
+
+.indicator-profile p {
+    margin: 0;
+    color: #53657f;
+    font-size: 15px;
+    line-height: 1.85
+}
+
+.indicator-profile .indicator-interpretation {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e8eef5
+}
+
+.indicator-panel-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px
+}
+
+.indicator-panel-heading>span {
+    padding-bottom: 19px;
+    color: #8595ab;
+    font-size: 11px;
+    white-space: nowrap
+}
+
+.indicator-trend-chart {
+    padding: 13px 12px 8px;
+    border-radius: 15px;
+    background: #f5f9fe
+}
+
+.indicator-trend-chart svg {
+    display: block;
+    width: 100%;
+    height: 130px;
+    overflow: visible
+}
+
+.indicator-chart-area {
+    fill: rgba(87, 150, 224, .13);
+    stroke: none
+}
+
+.indicator-chart-line {
+    stroke: #4d7ed0;
+    stroke-width: 2.5
+}
+
+.indicator-trend-chart circle {
+    fill: #fff;
+    stroke: #4d7ed0;
+    stroke-width: 2
+}
+
+.indicator-trend-chart text {
+    fill: #3c5f92;
+    stroke: none;
+    font: 700 10px var(--font-report-number);
+    font-variant-numeric: tabular-nums
+}
+
+.indicator-trend-labels {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: #8090a9;
+    font-size: 10px
+}
+
+.indicator-trend-labels time {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.35;
+    text-align: center
+}
+
+.indicator-trend-labels time:first-child {
+    text-align: left
+}
+
+.indicator-trend-labels time:last-child {
+    text-align: right
+}
+
+.indicator-first-record {
+    margin: 0;
+    padding: 30px 12px;
+    border-radius: 15px;
+    color: #788aa5;
+    background: #f5f9fe;
+    text-align: center;
+    font-size: 13px
+}
+
+.indicator-actions {
+    background: #edf5ff
+}
+
+.indicator-actions ul {
+    margin: 0;
+    padding: 0;
+    list-style: none
+}
+
+.indicator-actions li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 0;
+    border-top: 1px solid rgba(97, 134, 177, .16);
+    font-size: 15px;
+    line-height: 1.55
+}
+
+.indicator-actions li>span {
+    color: #4b7f9a;
+    font-size: 20px;
+    line-height: 1
+}
+
+.indicator-disclaimer {
+    margin: 22px 20px 0;
+    color: #8a99ad;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.5
+}
+
+.indicator-error-wrap {
+    min-height: 100vh;
+    background: #f5f9ff
+}
+
+.indicator-error-back {
+    display: block;
+    width: max-content;
+    margin: 12px auto;
+    color: #456fa9;
+    font-size: 14px
+}
+
+.indicator-skeleton .indicator-hero {
+    background: #e8f2ff
+}
+
+.indicator-skeleton-line {
+    display: block;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #dce7f4 20%, #edf3fa 50%, #dce7f4 80%);
+    background-size: 200% 100%;
+    animation: indicator-skeleton-shimmer 1.4s linear infinite
+}
+
+.indicator-skeleton-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0)
+}
+
+.indicator-skeleton-back {
+    width: 25px;
+    height: 25px;
+    margin-left: 12px
+}
+
+.indicator-skeleton-title {
+    width: 95px;
+    height: 18px;
+    margin: auto
+}
+
+.indicator-skeleton-copy {
+    flex: 1
+}
+
+.indicator-skeleton-pill {
+    width: 112px;
+    height: 24px;
+    border-radius: 20px
+}
+
+.indicator-skeleton-name {
+    width: 112px;
+    height: 39px;
+    margin: 25px 0 13px
+}
+
+.indicator-skeleton-subtitle {
+    width: 90px;
+    height: 13px
+}
+
+.indicator-skeleton-ring {
+    width: 132px;
+    height: 132px;
+    flex: 0 0 132px;
+    border-radius: 50%
+}
+
+.indicator-skeleton-fact {
+    width: 75%;
+    height: 34px
+}
+
+.indicator-skeleton-eyebrow {
+    width: 130px;
+    height: 11px
+}
+
+.indicator-skeleton-heading {
+    width: 105px;
+    height: 26px;
+    margin: 14px 0 22px
+}
+
+.indicator-skeleton-copyline {
+    width: 100%;
+    height: 14px;
+    margin: 12px 0
+}
+
+.indicator-skeleton-copyline.short {
+    width: 69%
+}
+
+.indicator-skeleton-chart {
+    width: 100%;
+    height: 145px;
+    border-radius: 15px
+}
+
+.indicator-skeleton-action {
+    width: 100%;
+    height: 20px;
+    margin: 16px 0
+}
+
+@keyframes indicator-skeleton-shimmer {
+    to {
+        background-position-x: -200%
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .indicator-skeleton-line {
+        animation: none
+    }
+}
+
 @media (max-width: 370px) {
-    .indicator-hero { padding-inline: 18px }
-    .indicator-ring, .indicator-skeleton-ring { flex-basis: 112px; width: 112px; height: 112px }
-    .indicator-ring strong { font-size: 37px }
+    .indicator-hero {
+        padding-inline: 18px
+    }
+
+    .indicator-ring,
+    .indicator-skeleton-ring {
+        flex-basis: 112px;
+        width: 112px;
+        height: 112px
+    }
+
+    .indicator-ring strong {
+        font-size: 37px
+    }
 }
 
 /* V2.20 — 肺功能卡片：左侧总分环，右侧展示三个实际子级指标。 */
@@ -2973,7 +3334,8 @@ body {
 .report-v2 .lung-indicator-item strong {
     flex: 0 0 auto;
     color: #29486f;
-    font: 700 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 16px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
 }
 
 .report-v2 .lung-indicator-item i {
@@ -3032,7 +3394,7 @@ body {
     padding: 7px 6px 6px;
 }
 
-.report-v2 .two-grid .lung-card .lung-indicator-item > div {
+.report-v2 .two-grid .lung-card .lung-indicator-item>div {
     display: block;
 }
 
@@ -3101,7 +3463,7 @@ body {
     background: rgba(255, 255, 255, .78);
 }
 
-.report-v2 .male-metric-item > div {
+.report-v2 .male-metric-item>div {
     display: flex;
     min-width: 0;
     align-items: center;
@@ -3124,7 +3486,8 @@ body {
     flex: 0 0 auto;
     margin: 0;
     color: #4269a4;
-    font: 700 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 16px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
 }
 
 .report-v2 .male-metric-item i {
@@ -3162,7 +3525,8 @@ body {
     align-items: center;
     justify-content: space-between;
     color: #5c708b;
-    font: 700 12px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 12px/1.35 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .06em
 }
 
@@ -3175,7 +3539,8 @@ body {
     border-radius: 99px;
     color: #3d6e67;
     background: rgba(255, 255, 255, .72);
-    font: 700 13px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    font: 700 13px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: 0
 }
 
@@ -3238,7 +3603,8 @@ body {
     left: 10px;
     bottom: 9px;
     color: #536f69;
-    font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 10px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .08em
 }
 
@@ -3361,6 +3727,7 @@ body {
 }
 
 @media(prefers-reduced-motion:reduce) {
+
     .detail-product-recommendation,
     .detail-product-action {
         animation: none;
@@ -3400,7 +3767,6 @@ body {
 /* V2.12 — 手机端消化系统改为上下结构，指标链路获得完整横向空间。 */
 @media(max-width:430px) {
     .report-v2 .digest-card {
-        min-height: 520px;
         padding: 24px;
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto 1fr;
@@ -3677,7 +4043,8 @@ body {
     right: 9px;
     bottom: 9px;
     color: #5f76a4;
-    font: 700 8px/1.25 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 8px/1.25 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .08em;
     text-align: right
 }
@@ -3782,7 +4149,7 @@ body {
 }
 
 /* Vue migration: rendered data order is authoritative and assets probe silently. */
-.systems-section.vue-flow > * {
+.systems-section.vue-flow>* {
     order: initial !important
 }
 
@@ -3838,7 +4205,8 @@ body {
 .report-v2 .cycle-metric em {
     margin-top: 3px;
     color: #536da8;
-    font: 700 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 13px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .report-v2 .cycle-metric-1 {
@@ -3874,5 +4242,55 @@ body {
 
     .report-v2 .cycle-metric-4 {
         left: 18px
+    }
+}
+
+.report-v2 .focus-card>strong {
+    margin: 12px 0 0;
+    line-height: 1.28
+}
+
+/* 子指标名称共用可读字号，窄屏通过换行保留完整名称。 */
+.report-v2 .endo-metric-name,
+.report-v2 .male-metric-item span,
+.report-v2 .bone-bars b,
+.report-v2 .stat-row small,
+.detail-v2 .detail-matrix article>span,
+.detail-v2 .detail-chart-values small,
+.detail-v2 .detail-horizontal-bars label,
+.detail-v2 .detail-vertical-bars article>span,
+.detail-v2 .detail-network-item-head>span {
+    font-size: var(--report-indicator-label-size);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.report-v2 .male-metric-item span {
+    white-space: normal;
+}
+
+.report-v2 .focus-card>small {
+    margin-top: 12px
+}
+
+.report-v2 .editorial-intro {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 8px
+}
+
+@media (max-width: 430px) {
+    .report-v2 .digest-flow div {
+        min-height: 56px;
+        grid-template-columns: 36px minmax(0, 1fr)
+    }
+
+    .report-v2 .digest-flow span {
+        width: 36px;
+        height: 36px;
+        font-size: 14px
+    }
+
+    .report-v2 .digest-flow b {
+        font-size: 16px
     }
 }

@@ -70,6 +70,10 @@ const test = base.extend({
         return json(response, { id: 7, generation_id: 9, status: 'completed', can_retry: false,
           question, answer, evidence })
       }
+      if (url.pathname.endsWith(`/sessions/${sessionId}/end`) && request.method === 'POST') {
+        request.resume()
+        return json(response, { id: sessionId, status: 'ended' })
+      }
       if (url.pathname === `/api/v1/report-view/${report}/indicators/SYS_LUNG_SLEEP_BREATHING`) {
         return json(response, {
           report_code: report, system: { system_code: 'SYS_LUNG', name: '肺功能' },
@@ -123,6 +127,8 @@ for (const width of [320, 414]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
     await page.getByTestId('ai-evidence').locator('summary').click()
     await page.getByTestId('ai-evidence').getByRole('link', { name: '查看详情' }).click()
+    await expect(page.getByRole('dialog', { name: '结束本次咨询？' })).toBeVisible()
+    await page.getByTestId('ai-leave-confirm').click()
     await expect(page.getByRole('heading', { name: '呼吸睡眠', exact: true })).toBeVisible()
     await page.getByRole('link', { name: '返回 AI 咨询' }).click()
     await expect(page.getByTestId('ai-consult-welcome')).toBeVisible()

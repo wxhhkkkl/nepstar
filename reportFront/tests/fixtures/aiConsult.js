@@ -19,11 +19,13 @@ export const welcomeDesignPayload = {
     {
       plan_id: 7, plan_name: '睡眠健康管理方案', system_code: 'SYS_ENDOCRINE',
       indicator_code: 'SYS_ENDOCRINE_PINEAL', indicator_name: '松果体', indicator_score: 48,
+      trigger_score_below: 80,
       description: '从睡眠节律开始管理', image_url: '/assets/sleep-health-management-plan.png', image_alt: '睡眠管理方案产品',
     },
     {
       plan_id: 8, plan_name: '钙流失健康管理方案', system_code: 'SYS_BONE',
       indicator_code: 'SYS_BONE_DENSITY', indicator_name: '骨质疏松', indicator_score: 60,
+      trigger_score_below: 80,
       description: '从骨骼健康开始管理', image_url: '/assets/calcium-loss-health-management-plan.png', image_alt: '骨骼管理方案产品',
     },
   ],

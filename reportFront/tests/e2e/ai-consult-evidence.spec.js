@@ -32,6 +32,8 @@ for (const width of [320, 390, 430]) {
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
           code: 200, message: 'ok', data: { id: sessionId, report_code: 'R1', source: 'home' },
         }) })
+      } else if (url.endsWith('/end')) {
+        await route.fulfill({ json: { code: 200, data: { id: sessionId, status: 'ended' } } })
       } else if (url.includes('/turns?')) {
         const body = [
           event('accepted', 1), event('status', 2, { phase: 'answering' }),
@@ -61,7 +63,11 @@ for (const width of [320, 390, 430]) {
     await expect(page.getByText('呼吸睡眠活力值 98 分。')).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
     await page.getByTestId('ai-evidence').locator('summary').click()
+    await expect(page.getByTestId('ai-evidence').locator('summary')).toHaveCSS('font-size', '14px')
+    await expect(page.getByTestId('ai-evidence').locator('small')).toHaveCSS('font-size', '14px')
     await page.getByTestId('ai-evidence').getByText('查看详情').click()
+    await expect(page.getByRole('dialog', { name: '结束本次咨询？' })).toBeVisible()
+    await page.getByTestId('ai-leave-confirm').click()
     await expect(page.getByRole('heading', { name: '呼吸睡眠' })).toBeVisible()
     await page.getByRole('link', { name: '返回 AI 咨询' }).click()
     await expect(page.getByTestId('ai-consult-welcome')).toBeVisible()

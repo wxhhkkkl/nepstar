@@ -111,22 +111,22 @@ for (const width of [320, 375, 414]) {
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
     }
     await expect(page.getByTestId('ai-composer')).toBeInViewport()
-    const input = page.getByPlaceholder('问问我的长寿报告', { exact: true })
+    const input = page.getByLabel('问问我的长寿报告', { exact: true })
     await expect(input).toBeVisible()
     await expect(input).toHaveCSS('padding-left', '12px')
     await expect(input).toHaveCSS('padding-right', '12px')
-    await expect(input).toHaveCSS('font-size', '14px')
+    await expect(input).toHaveCSS('font-size', '16px')
     await expect(input).toHaveCSS('color', 'rgb(46, 70, 103)')
     const placeholder = await input.evaluate(element => {
       const style = getComputedStyle(element, '::placeholder')
       return { fontSize: style.fontSize, fontWeight: style.fontWeight,
         color: style.color, opacity: style.opacity }
     })
-    expect(placeholder).toEqual({ fontSize: '14px', fontWeight: '400',
+    expect(placeholder).toEqual({ fontSize: '16px', fontWeight: '400',
       color: 'rgb(149, 163, 184)', opacity: '1' })
     await input.fill('想了解这次报告')
     await expect(input).toHaveValue('想了解这次报告')
-    await expect(input).toHaveCSS('font-size', '14px')
+    await expect(input).toHaveCSS('font-size', '16px')
     await input.fill('')
     await page.locator('.ai-plan-visual img').first().evaluate((img) => img.decode())
     for (const visual of await page.locator('.ai-plan-visual').all()) {
@@ -200,7 +200,7 @@ test('a narrow keyboard viewport and interrupted stream keep the current questio
   await page.setViewportSize({ width: 390, height: 740 })
   await mockConsultApi(page, state)
   await page.goto('/#/ai-consult?reportId=R1&userId=1001')
-  const input = page.getByPlaceholder('问问我的长寿报告')
+  const input = page.getByLabel('问问我的长寿报告', { exact: true })
   await input.focus()
   await page.setViewportSize({ width: 390, height: 470 })
   await expect(input).toBeVisible()

@@ -1,4 +1,6 @@
 :root {
+    --font-report: "PingFang SC", "Microsoft YaHei", "Microsoft YaHei UI", "Segoe UI", Arial, sans-serif;
+    --font-report-number: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", var(--font-report);
     --ink: #101119;
     --muted: #6f7380;
     --paper: #f4f5f7;
@@ -10,6 +12,7 @@
     --peach: #ff7b58;
     --line: #e4e7ec;
     --radius: 26px;
+    --report-indicator-label-size: 14px;
     --shadow: 0 18px 55px rgba(27, 38, 70, .09)
 }
 
@@ -18,6 +21,8 @@
 }
 
 html {
+    font-family: var(--font-report);
+    font-variant-numeric: tabular-nums;
     background: #e5e7ec
 }
 
@@ -25,7 +30,7 @@ body {
     margin: 0;
     background: #e5e7ec;
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif
+    font-family: var(--font-report)
 }
 
 a {
@@ -37,6 +42,13 @@ button,
 a {
     font: inherit;
     -webkit-tap-highlight-color: transparent
+}
+
+input,
+textarea,
+select,
+option {
+    font: inherit;
 }
 
 svg {
@@ -136,7 +148,8 @@ svg {
     position: relative;
     display: flex;
     justify-content: space-between;
-    font: 600 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 600 7px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .12em;
     color: #b9c8f7
 }
@@ -192,6 +205,8 @@ svg {
     stroke: #77d8ff;
     stroke-width: 2;
     stroke-dasharray: 2 12;
+    transform-box: view-box;
+    transform-origin: center;
     opacity: .5
 }
 
@@ -202,7 +217,8 @@ svg {
 }
 
 .score-core>span {
-    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 8px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .28em;
     color: #89cfff
 }
@@ -215,7 +231,7 @@ svg {
 }
 
 .score-core strong {
-    font: 750 112px/.9 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 750 112px/.9 var(--font-report-number);
     letter-spacing: -.1em;
     font-variant-numeric: tabular-nums
 }
@@ -293,6 +309,10 @@ svg {
     animation: drawScore 1.55s cubic-bezier(.16, 1, .3, 1) forwards
 }
 
+.is-animated .ring-dash {
+    animation: dashOrbit 1.7s cubic-bezier(.22, .8, .2, 1) forwards
+}
+
 .is-animated .orbit-a {
     animation: orbitA 1.5s cubic-bezier(.22, .8, .2, 1) forwards
 }
@@ -312,6 +332,20 @@ svg {
 @keyframes drawScore {
     to {
         stroke-dashoffset: 116
+    }
+}
+
+@keyframes dashOrbit {
+    from {
+        transform: rotate(-180deg);
+        stroke-dashoffset: 56;
+        opacity: .15
+    }
+
+    to {
+        transform: rotate(0deg);
+        stroke-dashoffset: 0;
+        opacity: .5
     }
 }
 
@@ -378,7 +412,8 @@ svg {
 .score-foot strong {
     display: block;
     margin-top: 4px;
-    font: 700 20px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 20px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .score-foot small {
@@ -416,13 +451,15 @@ svg {
 }
 
 .index-no {
-    font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 10px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #9aa0aa
 }
 
 .eyebrow {
     display: block;
-    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 8px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .18em;
     color: var(--blue)
 }
@@ -472,7 +509,8 @@ svg {
 .quick-card>strong {
     display: block;
     margin: 8px 0 5px;
-    font: 700 29px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 29px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .age-card {
@@ -543,7 +581,8 @@ svg {
     position: absolute;
     right: 16px;
     top: 10px;
-    font: 700 29px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 29px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #d45c3a
 }
 
@@ -587,7 +626,8 @@ svg {
 }
 
 .card-index {
-    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 8px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .14em;
     color: #8b91a0
 }
@@ -628,7 +668,8 @@ svg {
 }
 
 .cardio-card .card-head strong {
-    font: 700 50px/.9 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 50px/.9 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #58cfff
 }
 
@@ -672,13 +713,15 @@ svg {
 }
 
 .stat-row span {
-    font: 700 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 12px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .stat-row small {
     display: block;
     margin-bottom: 5px;
-    font: 500 7px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    font: 500 7px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     color: #8494bd
 }
 
@@ -690,7 +733,8 @@ svg {
     border-radius: 12px;
     background: #1c2a4c;
     color: #a8ddff;
-    font: 600 8px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif !important
+    font: 600 8px/1 var(--font-report) !important;
+    font-variant-numeric: tabular-nums !important
 }
 
 .two-grid {
@@ -744,7 +788,8 @@ svg {
 }
 
 .lung-gauge strong {
-    font: 700 37px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 37px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .lung-gauge span {
@@ -767,7 +812,8 @@ svg {
 
 .oxygen strong {
     float: right;
-    font: 700 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 14px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .oxygen i {
@@ -788,7 +834,8 @@ svg {
 }
 
 .card-mini-head strong {
-    font: 700 33px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 33px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #693fe0
 }
 
@@ -854,14 +901,16 @@ svg {
 .digest-copy>strong {
     display: block;
     margin-top: 25px;
-    font: 700 46px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 46px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #c36f08
 }
 
 .digest-copy>strong small {
     display: block;
     margin-top: 7px;
-    font: 600 7px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    font: 600 7px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     color: #9b6e32
 }
 
@@ -889,7 +938,8 @@ svg {
     border-radius: 50%;
     background: #1b1c20;
     color: #fff;
-    font: 600 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 600 7px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .digest-flow i {
@@ -968,7 +1018,8 @@ svg {
 .cycle-center strong {
     display: block;
     margin-top: 3px;
-    font: 700 18px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 18px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .cycle-orbit>i {
@@ -1005,7 +1056,8 @@ svg {
     right: -39px;
     top: 66px;
     transform: rotate(90deg);
-    font: 600 6px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 600 6px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     letter-spacing: .15em;
     color: #777b84
 }
@@ -1022,7 +1074,8 @@ svg {
 .male-card strong {
     display: block;
     margin-top: 22px;
-    font: 700 34px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 34px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .male-card p {
@@ -1056,7 +1109,8 @@ svg {
 .immune-copy>strong {
     display: block;
     margin-top: 10px;
-    font: 700 58px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 58px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #4fe0bc
 }
 
@@ -1106,7 +1160,8 @@ svg {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    font: 700 20px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 20px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #4fe0bc
 }
 
@@ -1121,7 +1176,8 @@ svg {
 }
 
 .bone-head strong {
-    font: 700 47px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 47px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #d45e3d
 }
 
@@ -1138,7 +1194,8 @@ svg {
     flex-direction: column;
     justify-content: space-between;
     color: #9c776e;
-    font: 600 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 600 7px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .bone-bars {
@@ -1162,7 +1219,8 @@ svg {
     top: -17px;
     width: 100%;
     text-align: center;
-    font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 700 8px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums
 }
 
 .bone-bars b {
@@ -1185,7 +1243,8 @@ svg {
 
 .bone-tip span {
     margin-right: 8px;
-    font: 700 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 7px/1 var(--font-report);
+    font-variant-numeric: tabular-nums;
     color: #c24f31
 }
 
@@ -1228,16 +1287,16 @@ svg {
 
 .report-v2 footer,
 .detail-v2 footer {
-    padding: 24px 18px 36px;
+    padding: 10px;
     display: flex;
     justify-content: space-between;
     color: #9a9da6;
-    font: 500 7px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace
+    font: 500 7px/1.6 var(--font-report);
+    font-variant-numeric: tabular-nums
 }
 
 .report-v2 footer p {
     margin: 0;
-    max-width: 230px
 }
 
 .detail-nav {
@@ -1275,7 +1334,8 @@ svg {
 }
 
 .detail-score-block>strong {
-    font: 700 96px/.82 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 96px/.82 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     letter-spacing: -.08em
 }
 
@@ -1309,7 +1369,8 @@ svg {
 }
 
 .indicator-no {
-    font: 600 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 600 8px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: #9ba0aa
 }
 
@@ -1341,7 +1402,8 @@ svg {
 }
 
 .detail-indicator-list>article>strong {
-    font: 700 22px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font: 700 22px/1 var(--font-report-number);
+    font-variant-numeric: tabular-nums;
     color: var(--blue)
 }
 

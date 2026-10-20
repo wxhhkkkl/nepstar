@@ -1,19 +1,20 @@
 <script setup>
-import { saveHomeScroll } from '@/composables/useScrollRestoration.js'
+import { computed } from 'vue'
+import FemaleFunctionChart from '@/components/FemaleFunctionChart.vue'
+import LungOverview from '@/components/LungOverview.vue'
+import { saveHomeScroll, shouldRestoreHomeScroll } from '@/composables/useScrollRestoration.js'
 import { useCardReveal } from '@/composables/useCardReveal.js'
 import { reportRouteQueryFromLocation } from '@/api/reportClient.js'
+import { indicatorProgressColor } from '@/utils/indicatorColor.js'
 
-const props = defineProps({ system: { type: Object, required: true } })
-const { element, isVisible } = useCardReveal()
+const props = defineProps({
+  system: { type: Object, required: true },
+  displayIndex: { type: Number, default: 1 },
+})
+// 返回首页时直接展示卡片，避免滚动恢复后仍等待入场动画的视口回调。
+const { element, isVisible } = useCardReveal({ initiallyVisible: shouldRestoreHomeScroll() })
 const reportQuery = reportRouteQueryFromLocation()
-const legacyIndexes = { cardio: '01', lung: '02', digest: '03', endocrine: '04', female: '05', male: '06', immune: '07', bone: '08' }
-const indexLabel = legacyIndexes[props.system.id] ?? '00'
-const lungIndicators = props.system.id === 'lung'
-  ? (props.system.indicators?.length
-      ? props.system.indicators
-      : props.system.visualization.categories.map((name, index) => ({ name, score: props.system.visualization.series?.[index] })))
-    .slice(0, 3)
-  : []
+const indexLabel = computed(() => String(props.displayIndex).padStart(2, '0'))
 </script>
 
 <template>
@@ -25,30 +26,34 @@ const lungIndicators = props.system.id === 'lung'
     </template>
 
     <template v-else-if="system.id === 'lung'">
-      <div class="card-index">{{ indexLabel }} / LUNG</div>
-      <h3>{{ system.name }}</h3>
-      <div class="lung-overview">
-        <div class="lung-gauge"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="47" /><circle class="lung-progress" cx="60" cy="60" r="47" /></svg><div class="lung-score-copy"><strong>{{ system.score }}</strong><span>活力值</span></div></div>
-        <div class="lung-indicator-list" aria-label="肺功能子级指标">
-          <div v-for="item in lungIndicators" :key="item.name" class="lung-indicator-item">
-            <div><span>{{ item.name }}</span><strong>{{ item.score ?? '—' }}</strong></div>
-            <i><b :style="{ width: `${item.score ?? 0}%` }" /></i>
-          </div>
-        </div>
-      </div>
+      <LungOverview :system="system" :index-label="indexLabel" />
       <p>肺活量良好 · 睡眠呼吸可提升</p>
     </template>
 
     <template v-else-if="system.id === 'endocrine'">
-      <div class="card-index">{{ indexLabel }} / ENDO</div><div class="card-mini-head"><h3>{{ system.name }}</h3><strong>{{ system.score }}</strong></div><div class="endo-matrix"><span v-for="(name, itemIndex) in system.visualization.categories" :key="name" :style="{ '--v': system.visualization.series[itemIndex] / 100 }">{{ name }}<i></i></span></div><div class="endo-note"><i></i><span>松果体节律与睡眠<br>是当前改善重点</span></div>
+      <div class="card-index">{{ indexLabel }} / ENDO</div>
+      <div class="card-mini-head"><h3>{{ system.name }}</h3><strong>{{ system.score }}</strong></div>
+      <div class="endo-matrix">
+        <span v-for="(name, itemIndex) in system.visualization.categories" :key="name" :style="{ '--v': (system.visualization.series[itemIndex] ?? 0) / 100 }">
+          <b class="endo-metric-name">{{ name }}</b>
+          <strong class="endo-metric-score">{{ system.visualization.series[itemIndex] ?? '—' }}</strong>
+          <i aria-hidden="true"></i>
+        </span>
+      </div>
+      <div class="endo-note"><i></i><span>松果体节律与睡眠是当前改善重点</span></div>
     </template>
 
     <template v-else-if="system.id === 'digest'">
-      <div class="digest-copy"><div class="card-index">{{ indexLabel }} / DIGESTION</div><h3>{{ system.name }}</h3><p>五项指标沿消化链路依次展开，整体吸收效率良好。</p><strong>{{ system.score }}<small>活力值</small></strong></div><div class="digest-flow" aria-label="消化系统五项指标流程"><div v-for="(name, itemIndex) in system.visualization.categories" :key="name"><span>{{ String(itemIndex + 1).padStart(2, '0') }}</span><i :style="{ '--w': `${system.visualization.series[itemIndex]}%` }"></i><b>{{ name }} {{ system.visualization.series[itemIndex] }}</b></div></div>
+      <div class="digest-copy"><div class="card-index">{{ indexLabel }} / DIGESTION</div><h3>{{ system.name }}</h3><p>五项指标沿消化链路依次展开，整体吸收效率良好。</p><strong>{{ system.score }}<small>活力值</small></strong></div><div class="digest-flow" aria-label="消化系统五项指标流程"><div v-for="(name, itemIndex) in system.visualization.categories" :key="name"><span>{{ String(itemIndex + 1).padStart(2, '0') }}</span><i :style="{ '--w': `${system.visualization.series[itemIndex]}%`, '--score-color': indicatorProgressColor(itemIndex) }"></i><b>{{ name }} {{ system.visualization.series[itemIndex] }}</b></div></div>
     </template>
 
     <template v-else-if="system.id === 'female'">
-      <div class="card-index">{{ indexLabel }} / FEMALE</div><div class="card-mini-head"><div><h3>{{ system.name }}</h3><p>周期与内分泌专项</p></div><strong>{{ system.score }}</strong></div><div class="cycle-visual" role="img" :aria-label="`${system.visualization.title}：${system.visualization.categories.map((name, index) => `${name}${system.visualization.series[index]}`).join('，')}`"><div class="cycle-orbit" aria-hidden="true"><div class="cycle-center"><span>稳定度</span><strong>{{ system.score }}%</strong></div><i v-for="angle in [0,72,144,216,288]" :key="angle" :style="{ '--a': `${angle}deg` }"></i></div><span v-for="(name, itemIndex) in system.visualization.categories" :key="name" class="cycle-metric" :class="`cycle-metric-${itemIndex + 1}`"><b>{{ name }}</b><em>{{ system.visualization.series[itemIndex] }}</em></span></div>
+      <div class="card-index">{{ indexLabel }} / FEMALE</div>
+      <div class="card-mini-head">
+        <div><h3>{{ system.name }}</h3><p>周期与内分泌专项</p></div>
+        <strong>{{ system.score ?? '—' }}</strong>
+      </div>
+      <FemaleFunctionChart :system="system" />
     </template>
 
     <template v-else-if="system.id === 'male'">
@@ -71,3 +76,76 @@ const lungIndicators = props.system.id === 'lung'
     </template>
   </RouterLink>
 </template>
+
+<style scoped>
+.data-card {
+  border: 1px solid #d2dce8;
+  border-radius: 24px;
+  box-shadow: 0 6px 20px rgba(44, 67, 103, .07), 0 1px 3px rgba(44, 67, 103, .04);
+}
+
+.data-card:active {
+  border-color: #a9bbd2;
+  box-shadow: 0 3px 10px rgba(44, 67, 103, .08);
+}
+
+.data-card:focus-visible {
+  outline: 2px solid #4269d8;
+  outline-offset: 3px;
+}
+
+.data-card.female-card {
+  min-height: 0;
+}
+
+.data-card.lung-card {
+  min-height: 0;
+  background: #fff;
+}
+
+.data-card.endocrine-card {
+  min-height: 0;
+  height: auto;
+  align-self: start;
+}
+
+.data-card.endocrine-card .endo-matrix {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 10px;
+}
+
+.data-card.endocrine-card .endo-matrix>span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: auto;
+  min-height: 88px;
+}
+
+.endo-metric-name,
+.endo-metric-score {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
+.endo-metric-name {
+  font-weight: 500;
+}
+
+.endo-metric-score {
+  margin-top: 8px;
+  color: #53689c;
+  font: 700 24px/1 var(--font-report-number);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-card.endocrine-card .endo-note {
+  align-items: center;
+}
+
+.data-card.endocrine-card .endo-note>i {
+  flex: 0 0 6px;
+}
+
+</style>

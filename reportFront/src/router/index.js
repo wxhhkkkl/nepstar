@@ -15,8 +15,9 @@ export const router = createRouter({
     { path: '/:pathMatch(.*)*', name: 'route-not-found', component: RouteNotFound },
   ],
   scrollBehavior(to, from, savedPosition) {
+    // 首页由真实报告渲染后统一定位，避免浏览器返回时先在骨架屏上恢复滚动。
+    if (to.name === 'home') return false
     if (savedPosition) return savedPosition
-    if (to.name === 'home' && from.name === 'system-detail') return false
     if (to.name === 'system-detail' && from.name === 'indicator-detail') return false
     if (to.name === 'ai-consult' && ['system-detail', 'indicator-detail'].includes(from.name)) return false
     return { top: 0 }

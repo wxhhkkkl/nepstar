@@ -57,10 +57,12 @@ describe('AI consultation welcome route', () => {
     const wrapper = mountWelcome()
     await flushPromises()
     expect(wrapper.get('.ai-topbar-title').text()).toContain('AI 长寿咨询')
-    expect(wrapper.get('.ai-hero .ai-eyebrow').text()).toBe('YOUR LONGEVITY COMPANION')
+    expect(wrapper.find('.ai-eyebrow').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('YOUR LONGEVITY COMPANION')
     expect(wrapper.get('[data-testid="ai-report-score"]').text()).toBe('82分')
     expect(wrapper.get('.ai-report-focus').text()).toContain('肺功能 · 活力值 80')
-    expect(wrapper.get('.ai-hero').text()).toContain('想先了解哪项长寿指标？')
+    expect(wrapper.get('.ai-hero').text()).toContain('一起读懂你的长寿报告')
+    expect(wrapper.get('.ai-avatar img').attributes('src')).toContain('ai-longevity-doctor-avatar.png')
     expect(wrapper.get('.ai-topbar').findAll('button')).toHaveLength(0)
     expect(wrapper.text()).not.toContain('最近咨询')
     expect(wrapper.text()).not.toContain('GOOD MORNING · LEE')
@@ -73,21 +75,42 @@ describe('AI consultation welcome route', () => {
       management_plans: [{
         plan_id: 7, plan_name: '睡眠健康管理方案', system_code: 'SYS_ENDOCRINE',
         indicator_code: 'SYS_ENDOCRINE_PINEAL', indicator_name: '松果体', indicator_score: 48,
+        trigger_score_below: 80,
         description: '从睡眠节律开始管理', image_url: '/assets/sleep-health-management-plan.png',
         image_alt: '睡眠管理方案产品',
       }],
     })
     const wrapper = mountWelcome()
     await flushPromises()
-    expect(wrapper.get('[data-testid="ai-management-plans"]').text()).toContain('1 项健康管理方案')
+    expect(wrapper.get('[data-testid="ai-management-plans"] h2').text()).toBe('为你匹配的健康管理方案 1 项')
     const plan = wrapper.get('[data-testid="ai-management-plan"]')
     expect(plan.text()).toContain('松果体 · 活力值 48')
     expect(plan.text()).toContain('从睡眠节律开始管理')
+    expect(plan.get('[data-testid="ai-plan-description"]').classes()).not.toContain('ai-accessibility-only')
+    expect(plan.find('[data-testid="ai-plan-reason"]').exists()).toBe(false)
+    expect(plan.text()).not.toContain('推荐原因')
     expect(plan.findComponent(RouterLinkStub).props('to')).toEqual({
       name: 'system-detail', params: { systemId: 'SYS_ENDOCRINE' },
       query: { reportId: 'R1', userId: '1001', fromAiConsult: '1' },
     })
     expect(plan.find('img').attributes('alt')).toBe('睡眠管理方案产品')
+    wrapper.unmount()
+  })
+
+  it.each([
+    { indicator_name: '松果体', indicator_score: 48 },
+    { indicator_name: '松果体', indicator_score: 80, trigger_score_below: 80 },
+    { indicator_name: '松果体', indicator_score: null, trigger_score_below: 80 },
+    { indicator_name: '松果体', indicator_score: 48, trigger_score_below: 101 },
+  ])('does not invent descriptions or matching reasons when the data is absent or inconsistent (%j)', async fields => {
+    loadConsultBootstrap.mockResolvedValueOnce({ ...structuredClone(bootstrapPayload),
+      management_plans: [{ plan_id: 7, plan_name: '睡眠健康管理方案', system_code: 'SYS_ENDOCRINE',
+        indicator_code: 'SYS_ENDOCRINE_PINEAL', description: '   ', ...fields }],
+    })
+    const wrapper = mountWelcome()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="ai-plan-description"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="ai-plan-reason"]').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -118,7 +141,8 @@ describe('AI consultation welcome route', () => {
     await flushPromises()
     expect(loadConsultBootstrap).toHaveBeenCalledWith('R1', 1001, { planId: null, indicatorCode: null })
     expect(wrapper.text()).toContain('本次报告总分 82 分')
-    expect(wrapper.text()).toContain('2026-10-08')
+    expect(wrapper.get('time').attributes('datetime')).toBe('2026-10-08')
+    expect(wrapper.get('time').text()).toBe('2026.10.08')
     expect(wrapper.text()).toContain('我的肺功能活力值80分')
     expect(wrapper.text()).toContain('咨询服务暂未开放')
     expect(wrapper.find('textarea').exists()).toBe(false)

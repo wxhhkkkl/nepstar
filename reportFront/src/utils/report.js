@@ -13,7 +13,8 @@ export function getSystemById(report, id) {
  * 首页渲染顺序。
  *
  * 顺序完全取接口返回的 systemOrder —— 前端不推断业务顺序（FR-013、FR-014）。
- * 只有布局分组是前端的：前两个系统并排，其余逐个展示（V2 既有版式）。
+ * 只有布局分组是前端的：前两个系统放入布局组，其余逐个展示。
+ * 内分泌、肺功能在布局组内各占一整行。
  * 每个系统的推荐紧跟在它自己后面（分组内的系统，其推荐紧随分组）。
  */
 export function buildHomeFlow(report) {

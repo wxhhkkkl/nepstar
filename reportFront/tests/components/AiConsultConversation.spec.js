@@ -103,6 +103,34 @@ describe('AI consultation conversation candidate', () => {
     wrapper.unmount()
   })
 
+  it('appends typed questions in the same page and session without replacing the report or welcome content', async () => {
+    let turnId = 0
+    client.streamConsultQuestion.mockImplementation(async (_report, _customer, _session, question, options) => {
+      turnId++
+      options.onEvent('accepted', { turn_id: turnId, generation_id: turnId })
+      options.onEvent('completed', { answer: `本次回答：${question}` })
+    })
+    const wrapper = mountConversation()
+    await flushPromises()
+    const reportCard = wrapper.get('.ai-report-strip').element
+    const hero = wrapper.get('.ai-hero').element
+    const composer = wrapper.get('[data-testid="ai-composer"]').element
+    for (const question of ['我的肺功能怎么样？', '可以再详细解释一下吗？']) {
+      await wrapper.get('#aiQuestionInput').setValue(question)
+      await wrapper.get('[data-testid="ai-composer"]').trigger('submit')
+      await flushPromises()
+      expect(wrapper.get('.ai-report-strip').element).toBe(reportCard)
+      expect(wrapper.get('.ai-hero').element).toBe(hero)
+      expect(wrapper.get('[data-testid="ai-composer"]').element).toBe(composer)
+      expect(wrapper.findAll('[data-testid="ai-question"]')).toHaveLength(3)
+      expect(wrapper.find('.ai-report-compact').exists()).toBe(false)
+    }
+    expect(wrapper.findAll('.ai-user-question').map(node => node.text())).toEqual(['我的肺功能怎么样？', '可以再详细解释一下吗？'])
+    expect(wrapper.findAll('.ai-answer-text')).toHaveLength(2)
+    expect(client.createConsultSession).toHaveBeenCalledTimes(1)
+    expect(client.streamConsultQuestion).toHaveBeenCalledTimes(2)
+  })
+
   it.each(['daily_limit', 'global_budget_exhausted'])('stops duplicate submissions after %s', async (kind) => {
     client.loadConsultBootstrap.mockResolvedValueOnce({ ...available(), remaining_today: 2 })
     client.streamConsultQuestion.mockRejectedValueOnce(new client.AiConsultApiError(kind, 429))
@@ -188,7 +216,7 @@ describe('AI consultation conversation candidate', () => {
     expect(wrapper.get('#aiQuestionInput').attributes('maxlength')).toBeUndefined()
     const question = '问'.repeat(600)
     await wrapper.get('#aiQuestionInput').setValue(question)
-    expect(wrapper.get('.ai-composer-note small').text()).toBe('600')
+    expect(wrapper.get('.ai-composer-count').text()).toBe('600')
     await wrapper.get('[data-testid="ai-composer"]').trigger('submit')
     await flushPromises()
     expect(client.createConsultSession).toHaveBeenCalledTimes(1)
@@ -636,7 +664,13 @@ describe('AI consultation conversation candidate', () => {
     await wrapper.get('[data-testid="ai-feedback"]').findAll('button').find((node) => node.text() === '看不懂').trigger('click')
     await flushPromises()
     expect(client.submitConsultFeedback).toHaveBeenCalledWith('R1', 1001, SESSION_ID, 7, false, 'unclear')
-    expect(wrapper.get('[data-testid="ai-feedback"]').text()).toContain('已记录：没有帮助')
+    expect(wrapper.get('[data-testid="ai-feedback"]').text()).not.toContain('已记录：')
+    expect(wrapper.get('[data-testid="ai-feedback"]').findAll('button')[1].attributes('aria-pressed')).toBe('true')
+    client.submitConsultFeedback.mockResolvedValueOnce({ turn_id: 7, feedback_value: 'helpful', feedback_reason: null })
+    await wrapper.get('[data-testid="ai-feedback"]').findAll('button')[0].trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[data-testid="ai-feedback"]').text()).not.toContain('已记录：')
+    expect(wrapper.get('[data-testid="ai-feedback"]').findAll('button')[0].attributes('aria-pressed')).toBe('true')
   })
 
   it('does not claim feedback was saved when the request fails', async () => {

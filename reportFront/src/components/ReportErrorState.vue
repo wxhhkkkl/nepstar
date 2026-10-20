@@ -164,19 +164,20 @@ function retry() {
 
 .error-state {
   display: flex;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: min(100%, 400px);
   margin: 0 auto;
-  padding: 0 0 46px;
+  padding: 16px 0 32px;
   text-align: center;
 }
 
 .report-error-art { width: min(100%, 280px); margin: 0 0 10px; }
 .report-error-art svg { display: block; width: 100%; height: auto; stroke: none; }
-.error-eyebrow { color: #5b83b8; font: 700 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .16em; }
+.error-eyebrow { color: #5b83b8; font: 700 11px/1.4 var(--font-report);
+font-variant-numeric: tabular-nums; letter-spacing: .16em; }
 .error-state h1 { margin: 12px 0 0; color: #1d3150; font-size: 28px; line-height: 1.25; letter-spacing: .02em; }
 .error-state p { max-width: 290px; margin: 13px 0 0; color: #6a7b92; font-size: 14px; line-height: 1.75; }
 
@@ -208,7 +209,7 @@ function retry() {
 @media (max-height: 640px) {
   .report-error-brand { min-height: 58px; }
   .report-error-art { width: min(100%, 215px); }
-  .error-state { padding-bottom: 16px; }
+  .error-state { padding: 8px 0 16px; }
   .report-error-retry { margin-top: 22px; }
 }
 </style>

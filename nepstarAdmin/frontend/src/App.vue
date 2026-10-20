@@ -87,8 +87,8 @@ function logout() { authStore.logout(); router.push('/login'); }
 </script>
 
 <style>
-.layout { display: flex; min-height: 100vh; }
-.sidebar { position: relative; z-index: 30; display: flex; width: 250px; flex-shrink: 0; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 20% 0%, #155055 0, transparent 38%), var(--sidebar-bg); box-shadow: 8px 0 30px rgba(23,23,47,.08); }
+.layout { display: flex; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+.sidebar { position: relative; z-index: 30; display: flex; width: 250px; height: 100%; min-height: 0; flex-shrink: 0; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 20% 0%, #155055 0, transparent 38%), var(--sidebar-bg); box-shadow: 8px 0 30px rgba(23,23,47,.08); }
 .logo { display: flex; align-items: center; gap: 12px; height: 82px; padding: 0 22px; color: white; }
 .logo-mark { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid rgba(255,255,255,.22); border-radius: 13px; background: linear-gradient(145deg, #17b3b7, #02787d); box-shadow: 0 8px 22px rgba(2,155,160,.38); font-size: 14px; font-weight: 800; letter-spacing: .05em; }
 .logo-copy { display: flex; flex-direction: column; gap: 2px; }
@@ -97,7 +97,7 @@ function logout() { authStore.logout(); router.push('/login'); }
 .nav-label { padding: 17px 24px 7px; }
 .sidebar-footer { display: flex; align-items: center; gap: 9px; margin: 16px; padding: 13px; border: 1px solid rgba(255,255,255,.06); border-radius: 12px; color: #898daa; background: rgba(255,255,255,.035); font-size: 11px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #3ad6a1; box-shadow: 0 0 0 4px rgba(58,214,161,.12); }
-.right { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.right { display: flex; min-width: 0; min-height: 0; height: 100%; flex: 1; flex-direction: column; overflow: hidden; }
 .topbar { display: flex; height: 74px; flex-shrink: 0; align-items: center; justify-content: space-between; padding: 0 30px; border-bottom: 1px solid rgba(232,233,241,.8); background: rgba(255,255,255,.82); backdrop-filter: blur(18px); }
 .page-context { display: flex; flex-direction: column; gap: 3px; }
 .eyebrow { color: #9699aa; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
@@ -110,7 +110,7 @@ function logout() { authStore.logout(); router.push('/login'); }
 .user-copy { display: flex; min-width: 76px; flex-direction: column; align-items: flex-start; }
 .user-copy strong { max-width: 120px; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .user-copy small { color: #9a9dae; font-size: 10px; }
-.content { flex: 1; overflow: auto; padding: 28px 30px 36px; background: radial-gradient(circle at 95% 0, rgba(116,103,218,.07), transparent 24%), var(--content-bg); }
+.content { min-width: 0; min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; padding: 28px 30px 36px; background: radial-gradient(circle at 95% 0, rgba(116,103,218,.07), transparent 24%), var(--content-bg); }
 .content > * { width: 100%; max-width: 1540px; margin-inline: auto; }
 .menu-button { display: none; border: 0; color: var(--text); background: transparent; font-size: 22px; }
 .mobile-mask { display: none; }
