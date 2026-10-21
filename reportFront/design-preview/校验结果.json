@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-21",
+  "status": "passed",
+  "deployment": "same-origin subdirectory /report-ui-review/",
+  "versions": [
+    {
+      "version": "light",
+      "name": "轻盈健康",
+      "systems": 7,
+      "indicators": 25,
+      "measurements": 4,
+      "plans": 2,
+      "images": true,
+      "fixed": true,
+      "AI收展": true,
+      "动画重播": true
+    },
+    {
+      "version": "gallery",
+      "name": "器官画廊",
+      "systems": 7,
+      "indicators": 25,
+      "measurements": 4,
+      "plans": 2,
+      "images": true,
+      "fixed": true,
+      "AI收展": true,
+      "动画重播": true
+    },
+    {
+      "version": "data",
+      "name": "静谧数据",
+      "systems": 7,
+      "indicators": 25,
+      "measurements": 4,
+      "plans": 2,
+      "images": true,
+      "fixed": true,
+      "AI收展": true,
+      "动画重播": true
+    }
+  ],
+  "width430": true,
+  "directHashLinks": true,
+  "mobileStandalonePages": true,
+  "pageErrors": [],
+  "failedResources": [],
+  "externalRequests": []
+}

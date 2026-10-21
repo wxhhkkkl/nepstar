@@ -1,0 +1,101 @@
+/* Airy mobile report: independent sections, editable text, honest data charts. */
+html{font-size:16px}
+body{max-width:480px;width:100%;margin-inline:auto}
+.page{padding:28px 20px 88px}
+.page-header{margin-bottom:24px}
+.page-header h1,.theme-gallery .page-header h1,.theme-data .page-header h1{font-size:30px;line-height:1.3}
+.eyebrow{font-size:11px;margin-bottom:8px;letter-spacing:.14em}
+.report-date{font-size:15px;line-height:1.6;margin-top:7px}
+.hero,.theme-gallery .hero,.theme-data .hero{padding:24px 22px;border-radius:24px}
+.hero-top{gap:12px}
+.hero-kicker{font-size:18px;line-height:1.6}
+.score-big,.gallery-hero-top .score-big{font-size:60px;line-height:1.1;margin:6px 0}
+.score-big small{font-size:17px}
+.hero-ring{width:112px}
+.score-context{font-size:14px;line-height:1.6}
+.age-facts,.theme-data .age-facts{margin-top:24px;padding-top:20px;column-gap:8px}
+.age-facts>div+div{padding-left:8px}
+.age-facts span,.secondary-facts span{font-size:14px;line-height:1.6}
+.age-facts b{font-size:24px;margin-top:7px;line-height:1.35}
+.age-facts small,.secondary-facts small{font-size:13px}
+.secondary-facts{gap:16px;margin-top:20px}
+.secondary-facts b{font-size:23px;line-height:1.5;margin-top:5px}
+.focus-line{margin-top:20px;padding-top:16px;font-size:15px;line-height:1.8}
+.focus-line span{display:block;margin-bottom:3px}
+.focus-line b{font-size:15px}
+.gallery-hero-top{min-height:155px}
+.anatomy{width:124px;height:164px;margin-right:-6px}
+.data-arc{width:210px;margin:0 auto 4px}
+.atlas-title{margin:36px 0 24px}
+.atlas-title h2{font-size:25px;line-height:1.4}
+.atlas-title p{font-size:15px;line-height:1.7;margin-top:7px}
+.system,.theme-data .system{padding:26px 20px 28px;margin-bottom:28px;border-radius:24px}
+.theme-gallery .system{border-radius:24px}
+.system-head,.theme-data .system-head{margin-bottom:26px;gap:12px;align-items:center}
+.system-identity{gap:10px}
+.system h2,.theme-data .system h2{font-size:22px;line-height:1.4;font-weight:600}
+.system-head p{font-size:14px;line-height:1.6;margin-top:5px}
+.index{height:30px;width:30px;font-size:13px}
+.theme-data .index{width:24px}
+.system-total{padding-top:0;align-self:center}
+.system-total b,.theme-data .system-total b{font-size:34px;line-height:1.1}
+.system-total span{font-size:13px;margin-left:3px}
+.metric-label{font-size:16px;line-height:1.75;gap:12px;margin-bottom:10px}
+.metric-label b{font-size:21px}
+.metric-row+.metric-row{margin-top:23px}
+.points-track{height:14px;margin:0 5px}
+.axis{font-size:13px;margin-top:9px}
+.rails-track{height:9px}
+.rings-layout{gap:18px}
+.rings-layout>svg{width:116px}
+.legend li{font-size:15px;line-height:1.85;padding:11px 0;gap:10px}
+.legend b{font-size:19px}
+.key{width:5px;height:5px}
+.chart-note{font-size:14px;line-height:1.8;margin-top:20px}
+.radar-chart{max-width:270px;margin-bottom:20px}
+.immune-legend li{font-size:16px;line-height:1.75;padding:13px 0}
+.immune-legend em{font-size:13px;min-width:22px}
+.direct{margin-top:26px;padding-top:20px}
+.direct-label{font-size:15px;line-height:1.75}
+.direct-label>span{font-size:13px;margin-left:8px}
+.direct-values{margin-top:16px;gap:12px}
+.direct-item span{font-size:14px;line-height:1.7}
+.direct-item b{font-size:22px;line-height:1.5;margin-top:4px}
+.direct-item small{font-size:13px}
+.count-1 .direct-item span{font-size:16px}
+.count-1 .direct-item b{font-size:23px}
+.plan,.theme-gallery .plan,.theme-data .plan{margin:-10px 0 30px;padding:25px 20px;grid-template-columns:minmax(0,1fr) 98px;gap:18px;border-radius:22px}
+.plan h3,.theme-data .plan h3{font-size:18px;line-height:1.8;margin:10px 0 8px;font-weight:550}
+.plan p{font-size:15px;line-height:1.8}
+.plan-tag{font-size:13px;padding:3px 7px}
+.plan-link{font-size:16px;line-height:1.6;margin-top:16px}
+.plan img,.theme-gallery .plan img{height:156px}
+.theme-data .system{border-radius:0;padding-inline:5px;margin-bottom:24px}
+.footer{font-size:14px;line-height:1.8;margin-top:32px}
+.footer .report-caption{font-size:13px;line-height:1.8;margin-top:6px}
+.ai-float{right:12px;bottom:24px;width:148px;min-height:52px;padding:5px 10px 5px 5px;gap:7px;border-radius:28px}
+.ai-float img{width:40px;height:40px}
+.ai-float b{font-size:14px;line-height:1.5}
+.ai-float.is-compact{width:52px;padding:5px}
+@media(min-width:481px){.ai-float{right:calc((100vw - 480px)/2 + 12px)}}
+@media(max-width:350px){
+  .page{padding-inline:16px}
+  .hero,.theme-gallery .hero,.theme-data .hero{padding:22px 18px}
+  .hero-ring{width:90px}
+  .score-big,.gallery-hero-top .score-big{font-size:52px}
+  .age-facts span{font-size:13px}
+  .age-facts b{font-size:22px}
+  .system,.theme-data .system{padding:24px 16px}
+  .system h2{font-size:21px}
+  .system-total b{font-size:31px}
+  .system-identity{gap:7px}
+  .index{width:25px;height:25px}
+  .rings-layout{flex-direction:column;gap:22px}
+  .rings-layout>svg{width:170px}
+  .rings-layout .legend{width:100%}
+  .plan,.theme-gallery .plan,.theme-data .plan{padding:24px 18px;grid-template-columns:minmax(0,1fr) 84px;gap:14px}
+  .anatomy{width:100px;height:150px}
+}
+/* Static exports are derived from this layout; do not apply mobile PNG scaling. */
+html.export-artboard{font-size:16px}
+html.export-artboard body,html.export-artboard .page{width:390px}
