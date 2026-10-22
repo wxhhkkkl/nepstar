@@ -72,6 +72,56 @@ describe('AI consultation conversation candidate', () => {
     vi.unstubAllGlobals()
   })
 
+  it('sends consecutive questions without randomUUID and restores the composer after each reply', async () => {
+    const getRandomValues = globalThis.crypto.getRandomValues.bind(globalThis.crypto)
+    vi.stubGlobal('crypto', { getRandomValues })
+    const answer = async (_r, _c, _s, question, options) => {
+      options.onEvent('accepted', { turn_id: 1, generation_id: 2 })
+      options.onEvent('completed', { answer: `回答：${question}` })
+    }
+    client.streamConsultQuestion.mockImplementationOnce(answer).mockImplementationOnce(answer)
+    const wrapper = mountConversation()
+    await flushPromises()
+    for (const question of ['我的肺功能怎么样？', '可以再解释一下吗？']) {
+      await wrapper.get('#aiQuestionInput').setValue(question)
+      await wrapper.get('[data-testid="ai-composer"]').trigger('submit')
+      await flushPromises()
+      expect(wrapper.get('#aiQuestionInput').attributes('disabled')).toBeUndefined()
+    }
+    expect(client.createConsultSession).toHaveBeenCalledTimes(1)
+    expect(client.streamConsultQuestion).toHaveBeenCalledTimes(2)
+    const keys = client.streamConsultQuestion.mock.calls.map(call => call[4].requestId)
+    expect(keys[0]).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    expect(keys[1]).not.toBe(keys[0])
+    expect(wrapper.findAll('.ai-answer-text')).toHaveLength(2)
+  })
+
+  it('keeps the question and composer usable if message initialization fails', async () => {
+    const browserCrypto = globalThis.crypto
+    vi.stubGlobal('crypto', {})
+    const wrapper = mountConversation()
+    await flushPromises()
+    await wrapper.get('#aiQuestionInput').setValue('保留这条问题')
+    await wrapper.get('[data-testid="ai-composer"]').trigger('submit')
+    await flushPromises()
+    expect(wrapper.get('.ai-chat-error').text()).toContain('本次回答未完成')
+    expect(wrapper.get('#aiQuestionInput').element.value).toBe('保留这条问题')
+    expect(wrapper.get('[aria-label="发送问题"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.findAll('.ai-user-question')).toHaveLength(0)
+    expect(client.createConsultSession).not.toHaveBeenCalled()
+    expect(client.streamConsultQuestion).not.toHaveBeenCalled()
+
+    vi.stubGlobal('crypto', browserCrypto)
+    client.streamConsultQuestion.mockImplementationOnce(async (_r, _c, _s, _q, options) => {
+      options.onEvent('accepted', { turn_id: 1, generation_id: 2 })
+      options.onEvent('completed', { answer: '恢复成功' })
+    })
+    await wrapper.get('[data-testid="ai-composer"]').trigger('submit')
+    await flushPromises()
+    expect(wrapper.get('.ai-answer-text').text()).toBe('恢复成功')
+    expect(wrapper.find('.ai-chat-error').exists()).toBe(false)
+  })
+
   it.each(['disabled', 'consult.disabled'])('keeps the conversation but blocks send and retry after an emergency pause (%s)', async kind => {
     client.streamConsultQuestion.mockRejectedValueOnce(new client.AiConsultApiError(kind, 503))
     const wrapper = mountConversation()

@@ -33,6 +33,8 @@ import AiConsultReportCard from "@/components/AiConsultReportCard.vue";
 import AiConsultAnswer from "@/components/AiConsultAnswer.vue";
 import avatar from "@/assets/ai-longevity-doctor-avatar.png";
 import { resolveProductImageUrl } from "@/data/reportAdapter.js";
+import { createUuid } from "@/utils/uuid.js";
+import { scoreAppearance, scoreStyle } from "@/utils/scoreColor.js";
 
 defineOptions({ name: "AiConsult" });
 
@@ -672,12 +674,11 @@ async function sendQuestion(rawQuestion, existingMessage = null) {
   }
   const { reportCode, customerId } = reportParamsFromLocation();
   if (!reportCode || customerId === null) return;
-  sending.value = true;
-  chatError.value = "";
-  const message =
-    existingMessage ||
-    reactive({
-      id: crypto.randomUUID(),
+  let message;
+  let controller;
+  try {
+    message = existingMessage || reactive({
+      id: createUuid(),
       turnId: null,
       generationId: null,
       question,
@@ -694,6 +695,13 @@ async function sendQuestion(rawQuestion, existingMessage = null) {
       retryable: false,
       statusChecking: false,
     });
+    controller = new AbortController();
+  } catch (error) {
+    chatError.value = chatErrorText(error);
+    return;
+  }
+  sending.value = true;
+  chatError.value = "";
   if (existingMessage) {
     message.status = "loading";
     message.answer = "";
@@ -701,7 +709,6 @@ async function sendQuestion(rawQuestion, existingMessage = null) {
     message.retryable = false;
     message.retryError = "";
   }
-  const controller = new AbortController();
   activeController = controller;
   activeMessage = message;
   if (!existingMessage) {
@@ -1270,9 +1277,9 @@ onUnmounted(() => {
               </div>
               <div class="ai-plan-copy">
                 <h3>{{ plan.plan_name }}</h3>
-                <span class="ai-plan-issue"
+                <span class="ai-plan-issue" :style="scoreStyle(plan.indicator_score)" :data-score-level="scoreAppearance(plan.indicator_score).key"
                   >{{ plan.indicator_name }} · 活力值
-                  {{ plan.indicator_score ?? "—" }}</span
+                  <b class="score-value">{{ plan.indicator_score ?? "—" }}</b></span
                 >
               </div>
               <span class="ai-plan-arrow" aria-hidden="true"><span>查看方案</span
@@ -1296,9 +1303,9 @@ onUnmounted(() => {
               ? entryContext.plan_name
               : entryContext.indicator_name
           }}</strong>
-          <p v-if="entryContext.type === 'plan'">
+          <p v-if="entryContext.type === 'plan'" :style="scoreStyle(entryContext.indicator_score)" :data-score-level="scoreAppearance(entryContext.indicator_score).key">
             已关联 {{ entryContext.indicator_name }}，本次
-            {{ entryContext.indicator_score ?? "—" }} 分；触发条件为低于
+            <b class="score-value">{{ entryContext.indicator_score ?? "—" }}</b> 分；触发条件为低于
             {{ entryContext.trigger_score_below }} 分。
           </p>
           <p v-else-if="entryContext.stale_plan">

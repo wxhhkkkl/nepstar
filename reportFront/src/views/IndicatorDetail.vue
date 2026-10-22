@@ -10,6 +10,7 @@ import {
 } from '@/api/reportClient.js'
 import ReportErrorState from '@/components/ReportErrorState.vue'
 import IndicatorDetailSkeleton from '@/components/IndicatorDetailSkeleton.vue'
+import { scoreAppearance, scoreStyle } from '@/utils/scoreColor.js'
 
 const props = defineProps({
   systemId: { type: String, default: '' },
@@ -115,7 +116,7 @@ watchEffect(() => {
       <span aria-hidden="true" />
     </header>
 
-    <section class="indicator-hero" aria-labelledby="indicatorTitle">
+    <section class="indicator-hero" :style="scoreStyle(indicator.score)" :data-score-level="scoreAppearance(indicator.score).key" aria-labelledby="indicatorTitle">
       <div class="indicator-hero-main">
         <div class="indicator-hero-copy">
           <span class="indicator-system-pill">{{ detail.system.name }} · 单项指标</span>
@@ -128,7 +129,7 @@ watchEffect(() => {
             <circle class="indicator-ring-progress" cx="60" cy="60" r="49"
               :style="{ strokeDashoffset: 308 * (1 - scorePercent / 100) }" />
           </svg>
-          <div><strong>{{ indicator.score ?? '—' }}</strong><span>活力值</span></div>
+          <div><strong class="score-value">{{ indicator.score ?? '—' }}</strong><span>活力值</span></div>
         </div>
       </div>
       <div class="indicator-hero-facts">
@@ -138,6 +139,7 @@ watchEffect(() => {
       </div>
     </section>
 
+
     <section v-if="hasProfile" class="indicator-panel indicator-profile" aria-labelledby="indicatorProfileTitle">
       <span class="eyebrow">INDICATOR PROFILE</span>
       <h2 id="indicatorProfileTitle">指标解读</h2>
@@ -145,7 +147,7 @@ watchEffect(() => {
       <p v-if="hasInterpretation" class="indicator-interpretation">{{ indicator.interpretation }}</p>
     </section>
 
-    <section class="indicator-panel indicator-history" aria-labelledby="indicatorHistoryTitle">
+    <section class="indicator-panel indicator-history" :style="scoreStyle(indicator.score)" :data-score-level="scoreAppearance(indicator.score).key" aria-labelledby="indicatorHistoryTitle">
       <div class="indicator-panel-heading">
         <div><span class="eyebrow">HISTORY TREND</span><h2 id="indicatorHistoryTitle">历史趋势</h2></div>
         <span v-if="validTrend.length > 1">最近 {{ validTrend.length }} 次</span>
@@ -155,7 +157,7 @@ watchEffect(() => {
           <svg viewBox="0 0 320 130" preserveAspectRatio="none" aria-hidden="true">
             <path class="indicator-chart-area" :d="areaPath" />
             <path class="indicator-chart-line" :d="linePath" />
-            <g v-for="(point, index) in chartPoints" :key="`${point.date}-${index}`">
+            <g v-for="(point, index) in chartPoints" :key="`${point.date}-${index}`" :style="scoreStyle(point.score)">
               <circle :cx="point.x" :cy="point.y" r="3.8" />
               <text :x="point.x" :y="point.y - 12" text-anchor="middle">{{ point.score }}</text>
             </g>

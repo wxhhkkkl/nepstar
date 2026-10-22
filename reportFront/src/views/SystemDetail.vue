@@ -9,7 +9,7 @@ import {
 } from "@/api/reportClient.js";
 import { toSystemViewModel } from "@/data/reportAdapter.js";
 import DetailChart from "@/components/DetailChart.vue";
-import { indicatorProgressColor } from "@/utils/indicatorColor.js";
+import { scoreAppearance, scoreStyle } from "@/utils/scoreColor.js";
 import RecommendationCard from "@/components/RecommendationCard.vue";
 import ReportErrorState from "@/components/ReportErrorState.vue";
 import SystemDetailSkeleton from "@/components/SystemDetailSkeleton.vue";
@@ -119,43 +119,15 @@ watchEffect(() => {
         <strong>{{ system.name }}详情</strong>
       </div>
     </header>
-    <section class="detail-score-block">
+    <section class="detail-score-block" :style="scoreStyle(system.score)" :data-score-level="scoreAppearance(system.score).key">
       <div class="detail-score-identity">
-        <div class="detail-module-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <template v-if="system.icon === 'heart'">
-              <path
-                d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"
-              />
-              <path d="M4 12h4l1.4-3 2.2 6 1.5-3H20" />
-            </template>
-            <template v-else-if="system.icon === 'lungs'">
-              <path d="M12 4v8" />
-              <path d="M10 12c-1-3-2-5-3.5-5S3 10 3 15s3 5 7 3V12Z" />
-              <path d="M14 12c1-3 2-5 3.5-5S21 10 21 15s-3 5-7 3V12Z" />
-            </template>
-            <template v-else-if="system.icon === 'bone'">
-              <path
-                d="M6.2 9.2a3 3 0 1 1-3.4-4.8A3 3 0 1 1 7.6 1l8.8 8.8a3 3 0 1 1 4.8 3.4 3 3 0 1 1-3.4 4.8L9 9.2a3 3 0 0 1-2.8 0Z"
-              />
-            </template>
-            <template v-else>
-              <path
-                d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2Z"
-              />
-              <path
-                d="m18 15 .8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15Z"
-              />
-            </template>
-          </svg>
-        </div>
         <div>
-          <span v-if="system.status">{{ system.status }}</span>
+          <span v-if="system.status">{{ scoreAppearance(system.score).label }}</span>
           <h1>{{ system.name }}</h1>
           <p v-if="system.summary">{{ system.summary }}</p>
         </div>
       </div>
-      <strong>{{ system.score ?? "—" }}</strong>
+      <strong class="score-value">{{ system.score ?? "—" }}</strong>
     </section>
     <section
       v-if="!['lung', 'digest'].includes(system.id)"
@@ -188,6 +160,8 @@ watchEffect(() => {
           v-for="(item, index) in system.indicators"
           :key="item.indicator_code"
           class="detail-indicator-link"
+          :style="scoreStyle(item.score)"
+          :data-score-level="scoreAppearance(item.score).key"
           :data-indicator-code="item.indicator_code"
           :to="{
             name: 'indicator-detail',
@@ -206,9 +180,9 @@ watchEffect(() => {
             <div>
               <h3>{{ item.name }}</h3>
               <small>权重 {{ item.weight }}%</small
-              ><i><b :style="{ width: `${item.score}%`, background: system.id === 'digest' ? indicatorProgressColor(index) : undefined }"></b></i>
+              ><i><b :style="{ width: `${item.score ?? 0}%` }"></b></i>
             </div>
-            <strong>{{ item.score }}</strong>
+            <strong class="score-value">{{ item.score ?? '—' }}</strong>
           </article></RouterLink
         >
       </div>

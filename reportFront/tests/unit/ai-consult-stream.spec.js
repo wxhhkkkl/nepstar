@@ -55,6 +55,23 @@ describe('AI consultation SSE client', () => {
     expect(fetchMock.mock.calls[0][1].headers['Idempotency-Key']).toBe(REQUEST)
   })
 
+  it('sends a generated idempotency key when randomUUID is unavailable on HTTP', async () => {
+    const getRandomValues = globalThis.crypto.getRandomValues.bind(globalThis.crypto)
+    vi.stubGlobal('crypto', { getRandomValues })
+    const fetchMock = vi.fn().mockResolvedValue(streamedResponse([
+      frame('accepted', 1), frame('completed', 2, { answer: 'HTTP 兼容回答' }),
+    ]))
+    vi.stubGlobal('fetch', fetchMock)
+    try {
+      const completed = await streamConsultQuestion('R1', 1001, SESSION, '问题')
+      expect(completed.answer).toBe('HTTP 兼容回答')
+      expect(fetchMock.mock.calls[0][1].headers['Idempotency-Key'])
+        .toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('discards a stale generation and rejects a stream without completion', async () => {
     const stale = frame('delta', 0, { generation_id: 999, text: '过期内容' })
     const fetchMock = vi.fn().mockResolvedValueOnce(streamedResponse([

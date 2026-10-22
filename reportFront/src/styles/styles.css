@@ -331,7 +331,7 @@ svg {
 
 @keyframes drawScore {
     to {
-        stroke-dashoffset: 116
+        stroke-dashoffset: var(--score-offset, 829)
     }
 }
 
@@ -444,7 +444,7 @@ svg {
 
 .editorial-intro,
 .ending-editorial {
-    padding: 50px 18px 26px;
+    padding: 18px;
     display: grid;
     grid-template-columns: 46px 1fr;
     gap: 8px
@@ -587,7 +587,7 @@ svg {
 }
 
 .systems-section {
-    padding: 52px 12px 0
+    padding: 40px 12px 0
 }
 
 .section-heading {
@@ -1510,6 +1510,6 @@ svg {
     }
 
     .ring-progress {
-        stroke-dashoffset: 116 !important
+        stroke-dashoffset: var(--score-offset, 829) !important
     }
 }

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useCardReveal } from '@/composables/useCardReveal.js'
 import { clampScore } from '@/utils/chartGeometry.js'
+import { scoreAppearance, scoreStyle } from '@/utils/scoreColor.js'
 
 const props = defineProps({
   system: { type: Object, required: true },
@@ -9,8 +10,6 @@ const props = defineProps({
 })
 const { element, isVisible } = useCardReveal()
 const gaugePath = 'M20.2 59.8A28 28 0 1 1 59.8 59.8'
-const colors = ['#d7a16e', '#a18cbd', '#63a98c']
-const backgrounds = ['#fbf7f1', '#f6f3fb', '#f2f8f4']
 const scoreValue = value => typeof value === 'number' && Number.isFinite(value) ? value : null
 const totalScore = computed(() => scoreValue(props.system.score))
 const metrics = computed(() => {
@@ -23,31 +22,31 @@ const metrics = computed(() => {
     key: item.indicator_code || `${item.name}-${index}`,
     name: item.name || `指标 ${index + 1}`,
     score: scoreValue(item.score),
-    color: colors[index],
-    background: backgrounds[index],
+    color: scoreAppearance(item.score).color,
+    background: scoreAppearance(item.score).soft,
     delay: `${220 + index * 120}ms`,
   }))
 })
 </script>
 
 <template>
-  <div ref="element" class="lung-overview-panel" :class="{ 'is-visible': isVisible }">
+  <div ref="element" class="lung-overview-panel" :class="{ 'is-visible': isVisible }" :style="scoreStyle(system.score)" :data-score-level="scoreAppearance(system.score).key">
     <div class="lung-summary-row">
       <div class="card-index">{{ indexLabel }} / LUNG</div>
       <div class="card-mini-head">
         <h3>{{ system.name }}</h3>
-        <strong :aria-label="`综合活力值 ${totalScore ?? '未提供'}，满分 100`">{{ totalScore ?? '—' }}</strong>
+        <strong class="score-value" :aria-label="`综合活力值 ${totalScore ?? '未提供'}，满分 100`">{{ totalScore ?? '—' }}</strong>
       </div>
     </div>
     <div v-if="metrics.length" class="lung-metric-grid" aria-label="肺功能子级指标，满分 100 分">
-      <div v-for="item in metrics" :key="item.key" class="lung-metric-tile" :style="{ '--gauge-color': item.color, '--gauge-background': item.background, '--gauge-fill': `${clampScore(item.score)} 100`, '--gauge-delay': item.delay }">
+      <div v-for="item in metrics" :key="item.key" class="lung-metric-tile" :style="{ ...scoreStyle(item.score), '--gauge-color': item.color, '--gauge-background': item.background, '--gauge-fill': `${clampScore(item.score)} 100`, '--gauge-delay': item.delay }">
         <span class="lung-metric-name">{{ item.name }}</span>
         <div class="lung-metric-gauge">
           <svg class="lung-mini-gauge" viewBox="0 0 80 80" aria-hidden="true">
             <path class="lung-gauge-track" :d="gaugePath" />
             <path v-if="item.score !== null && item.score > 0" class="lung-gauge-fill" :d="gaugePath" pathLength="100" />
           </svg>
-          <strong class="lung-metric-value">{{ item.score ?? '—' }}</strong>
+          <strong class="lung-metric-value score-value">{{ item.score ?? '—' }}</strong>
         </div>
       </div>
     </div>

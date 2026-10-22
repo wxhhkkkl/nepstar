@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useCardReveal } from '@/composables/useCardReveal.js'
+import { scoreAppearance, scoreStyle } from '@/utils/scoreColor.js'
 
 const props = defineProps({
   system: { type: Object, required: true },
@@ -8,7 +9,6 @@ const props = defineProps({
 })
 const { element, isVisible } = useCardReveal()
 
-const colors = ['#a18cbd', '#32ae91', '#5589e0', '#9b79cf', '#d59a45', '#4aa5b7']
 const metrics = computed(() => {
   const items = props.system.indicators?.length
     ? props.system.indicators
@@ -21,7 +21,7 @@ const metrics = computed(() => {
     key: item.indicator_code || `${item.name}-${index}`,
     name: item.name || `指标 ${index + 1}`,
     score: typeof item.score === 'number' && Number.isFinite(item.score) ? item.score : null,
-    color: colors[index % colors.length],
+    color: scoreAppearance(item.score).color,
     radius: items.length === 1 ? 76 : 84 - index * spacing,
     stroke: items.length === 1 ? 12 : Math.max(2, Math.min(12, spacing * .65)),
   }))
@@ -29,7 +29,7 @@ const metrics = computed(() => {
 </script>
 
 <template>
-  <div ref="element" class="female-overview" :class="{ 'female-overview--detail': variant === 'detail', 'is-visible': isVisible }">
+  <div ref="element" class="female-overview" :class="{ 'female-overview--detail': variant === 'detail', 'is-visible': isVisible }" :style="scoreStyle(system.score)" :data-score-level="scoreAppearance(system.score).key">
     <div class="female-rings" aria-hidden="true">
       <svg viewBox="0 0 200 200">
         <g v-for="(item, index) in metrics" :key="item.key" :style="{ '--metric-color': item.color, '--ring-fill': `${Math.min(100, Math.max(0, item.score ?? 0))} 100`, '--ring-delay': `${100 + index * 140}ms` }">
@@ -37,12 +37,12 @@ const metrics = computed(() => {
           <circle v-if="item.score !== null && item.score > 0" class="female-ring-progress" cx="100" cy="100" :r="item.radius" :stroke-width="item.stroke" pathLength="100" :stroke-dasharray="`${Math.min(100, Math.max(0, item.score))} 100`" transform="rotate(-90 100 100)" />
         </g>
       </svg>
-      <div class="female-rings-center"><strong>{{ system.score ?? '—' }}</strong><span>活力值</span></div>
+      <div class="female-rings-center"><strong class="score-value">{{ system.score ?? '—' }}</strong><span>活力值</span></div>
     </div>
     <ul v-if="metrics.length" class="female-indicators" aria-label="女性功能指标活力值，满分 100 分">
-      <li v-for="item in metrics" :key="item.key" :style="{ '--metric-color': item.color }">
+      <li v-for="item in metrics" :key="item.key" :style="{ ...scoreStyle(item.score), '--metric-color': item.color }">
         <span class="female-indicator-label"><i aria-hidden="true" />{{ item.name }}</span>
-        <span class="female-indicator-score"><strong>{{ item.score ?? '—' }}</strong><small>{{ item.score === null ? '未提供' : '/100' }}</small></span>
+        <span class="female-indicator-score"><strong class="score-value">{{ item.score ?? '—' }}</strong><small>{{ item.score === null ? '未提供' : '/100' }}</small></span>
       </li>
     </ul>
     <p v-else class="female-indicators-empty">暂无子项指标</p>

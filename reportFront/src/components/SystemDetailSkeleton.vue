@@ -14,7 +14,6 @@
 
     <section class="detail-skeleton-score" aria-hidden="true">
       <div class="detail-skeleton-identity">
-        <span class="detail-skeleton-icon" />
         <div>
           <span class="detail-skeleton-line detail-skeleton-line--status" />
           <span class="detail-skeleton-line detail-skeleton-line--system-title" />
@@ -83,7 +82,6 @@
 
 .detail-skeleton-line,
 .detail-skeleton-back,
-.detail-skeleton-icon,
 .detail-skeleton-score-number,
 .detail-skeleton-chart-card,
 .detail-skeleton-value {
@@ -110,14 +108,13 @@
 .detail-skeleton-score {
   display: flex;
   min-height: 187px;
-  padding: 29px 25px;
+  padding: 29px var(--detail-page-gutter);
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(115deg, #e9f4ff, #d9eafc);
 }
 
-.detail-skeleton-identity { display: flex; max-width: 68%; align-items: center; gap: 15px; }
-.detail-skeleton-icon { width: 52px; height: 52px; flex: 0 0 auto; border-radius: 16px; background-color: rgba(255, 255, 255, 0.78); }
+.detail-skeleton-identity { flex: 1 1 0; min-width: 0; }
 .detail-skeleton-line--status { width: 58px; height: 10px; }
 .detail-skeleton-line--system-title { width: 108px; height: 29px; margin-top: 13px; border-radius: 8px; }
 .detail-skeleton-line--summary { width: min(176px, 100%); height: 11px; margin-top: 14px; }
@@ -181,7 +178,6 @@
 
 @media (max-width: 360px) {
   .detail-skeleton-nav { padding-right: 18px; padding-left: 18px; }
-  .detail-skeleton-score { padding-right: 19px; padding-left: 19px; }
   .detail-skeleton-chart-panel,
   .detail-skeleton-editorial,
   .detail-skeleton-conclusion { padding: 20px; }
@@ -190,7 +186,6 @@
 @media (prefers-reduced-motion: reduce) {
   .detail-skeleton-line,
   .detail-skeleton-back,
-  .detail-skeleton-icon,
   .detail-skeleton-score-number,
   .detail-skeleton-chart-card,
   .detail-skeleton-value { animation: none; }

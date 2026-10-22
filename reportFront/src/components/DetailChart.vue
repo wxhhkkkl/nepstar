@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import FemaleFunctionChart from '@/components/FemaleFunctionChart.vue'
 import { buildLinePoints, buildRadialOffset, buildRadarPoints } from '@/utils/chartGeometry.js'
+import { scoreAppearance, scoreStyle } from '@/utils/scoreColor.js'
 
 const props = defineProps({ system: { type: Object, required: true } })
 const viz = computed(() => props.system.visualization)
@@ -17,30 +18,30 @@ const networkNodes = computed(() => {
 })
 const networkOutline = computed(() => networkNodes.value.map(([x, y]) => `${x},${y}`).join(' '))
 const average = computed(() => {
-  const values = viz.value.series ?? []
-  return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0
+  const values = (viz.value.series ?? []).filter(value => scoreAppearance(value).key !== 'unknown').map(Number)
+  return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : null
 })
 </script>
 
 <template>
-  <div class="detail-chart" :class="{ 'detail-chart--female': system.id === 'female' }" :data-chart-type="viz.type" :role="system.id === 'female' ? 'group' : 'img'" :aria-label="`${system.name}：${viz.title}，综合活力值 ${system.score ?? '未参与评分'}`">
+  <div class="detail-chart" :class="{ 'detail-chart--female': system.id === 'female' }" :data-chart-type="viz.type" :style="scoreStyle(system.score)" :data-score-level="scoreAppearance(system.score).key" :role="system.id === 'female' ? 'group' : 'img'" :aria-label="`${system.name}：${viz.title}，综合活力值 ${system.score ?? '未参与评分'}`">
     <FemaleFunctionChart v-if="system.id === 'female'" :system="system" variant="detail" />
     <template v-else-if="viz.type === 'line'">
-      <svg class="detail-line-chart" viewBox="0 0 320 168" aria-hidden="true"><path class="detail-chart-grid" d="M18 34H302M18 80H302M18 126H302" /><path class="detail-chart-area" :d="`${linePath}L302 140H18Z`" /><path class="detail-chart-stroke" :d="linePath" /><g v-for="(point, index) in linePoints" :key="index"><circle :cx="point.x" :cy="point.y" r="5" /><text :x="point.x" :y="point.y - 11">{{ point.value }}</text><text class="axis-label" :x="point.x" y="158">{{ index + 1 }}</text></g></svg>
+      <svg class="detail-line-chart" viewBox="0 0 320 168" aria-hidden="true"><path class="detail-chart-grid" d="M18 34H302M18 80H302M18 126H302" /><path class="detail-chart-area" :d="`${linePath}L302 140H18Z`" /><path class="detail-chart-stroke" :d="linePath" /><g v-for="(point, index) in linePoints" :key="index" :style="scoreStyle(viz.series[index])"><circle :cx="point.x" :cy="point.y" r="5" /><text class="score-value" :x="point.x" :y="point.y - 11">{{ viz.series[index] ?? '—' }}</text><text class="axis-label" :x="point.x" y="158">{{ index + 1 }}</text></g></svg>
       <div class="detail-axis-caption"><span>第 1 次</span><span>{{ viz.period }} · {{ viz.unit }}</span><span>第 {{ linePoints.length }} 次</span></div>
     </template>
 
     <div v-else-if="viz.type === 'radial-gauge'" class="detail-radial-layout">
-      <div class="detail-radial"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" /><circle class="progress" cx="60" cy="60" r="48" :style="{ strokeDashoffset: buildRadialOffset(viz.value, 302) }" /></svg><strong>{{ viz.value }}</strong><span>{{ viz.unit }}</span></div>
+      <div class="detail-radial"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" /><circle class="progress" cx="60" cy="60" r="48" :style="{ strokeDashoffset: buildRadialOffset(viz.value, 302) }" /></svg><strong class="score-value">{{ viz.value ?? '—' }}</strong><span>{{ viz.unit }}</span></div>
       <div v-if="viz.secondary" class="detail-secondary-stat"><span>{{ viz.secondary.name }}</span><strong>{{ viz.secondary.value }}<small>{{ viz.secondary.unit }}</small></strong><i><b :style="{ width: `${viz.secondary.value}%` }"></b></i><p>直接采集结果</p></div>
     </div>
 
-    <div v-else-if="viz.type === 'horizontal-bars'" class="detail-horizontal-bars"><article v-for="(name, index) in viz.categories" :key="name"><span>{{ String(index + 1).padStart(2, '0') }}</span><div><label>{{ name }}</label><i><b :style="{ width: `${viz.series[index]}%` }"></b></i></div><strong>{{ viz.series[index] }}</strong></article></div>
+    <div v-else-if="viz.type === 'horizontal-bars'" class="detail-horizontal-bars"><article v-for="(name, index) in viz.categories" :key="name" :style="scoreStyle(viz.series[index])"><span>{{ String(index + 1).padStart(2, '0') }}</span><div><label>{{ name }}</label><i><b :style="{ width: `${viz.series[index] ?? 0}%` }"></b></i></div><strong class="score-value">{{ viz.series[index] ?? '—' }}</strong></article></div>
 
-    <div v-else-if="viz.type === 'matrix'" class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name"><small>{{ name }}</small><strong>{{ viz.series[index] }}</strong></span></div>
+    <div v-else-if="viz.type === 'matrix'" class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name" :style="scoreStyle(viz.series[index])"><small>{{ name }}</small><strong class="score-value">{{ viz.series[index] ?? '—' }}</strong></span></div>
 
     <template v-else-if="viz.type === 'radial-orbit'">
-      <div class="detail-radar-wrap"><svg class="detail-radar" viewBox="0 0 200 200" aria-hidden="true"><g class="web"><polygon points="100,28 168,78 142,158 58,158 32,78" /><polygon points="100,52 145,85 128,138 72,138 55,85" /><path v-for="index in 5" :key="index" :d="`M100 100L${[100,168,142,58,32][index - 1]} ${[28,78,158,158,78][index - 1]}`" /></g><polygon class="shape" :points="radarPoints" /><text x="100" y="96">{{ viz.value || average }}</text><text class="radar-unit" x="100" y="111">{{ viz.unit }}</text></svg><div class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name"><small>{{ name }}</small><strong>{{ viz.series[index] }}</strong></span></div></div>
+      <div class="detail-radar-wrap"><svg class="detail-radar" viewBox="0 0 200 200" aria-hidden="true"><g class="web"><polygon points="100,28 168,78 142,158 58,158 32,78" /><polygon points="100,52 145,85 128,138 72,138 55,85" /><path v-for="index in 5" :key="index" :d="`M100 100L${[100,168,142,58,32][index - 1]} ${[28,78,158,158,78][index - 1]}`" /></g><polygon class="shape" :points="radarPoints" /><text class="score-value" x="100" y="96">{{ viz.value ?? '—' }}</text><text class="radar-unit" x="100" y="111">{{ viz.unit }}</text></svg><div class="detail-chart-values"><span v-for="(name, index) in viz.categories" :key="name" :style="scoreStyle(viz.series[index])"><small>{{ name }}</small><strong class="score-value">{{ viz.series[index] ?? '—' }}</strong></span></div></div>
     </template>
 
     <template v-else-if="viz.type === 'network'">
@@ -50,20 +51,20 @@ const average = computed(() => {
             <path v-for="(node, index) in networkNodes" :key="index" :d="`M100 100L${node[0]} ${node[1]}`" />
             <polygon v-if="networkNodes.length > 2" :points="networkOutline" />
           </g>
-          <circle class="center" cx="100" cy="100" r="31" />
-          <circle v-for="(node, index) in networkNodes" :key="index" :cx="node[0]" :cy="node[1]" r="13" />
-          <text class="network-score" x="100" y="105">{{ average }}</text>
+          <circle class="center" cx="100" cy="100" r="31" :style="scoreStyle(average)" />
+          <circle v-for="(node, index) in networkNodes" :key="index" :cx="node[0]" :cy="node[1]" r="13" :style="scoreStyle(viz.series[index])" />
+          <text class="network-score score-value" x="100" y="105" :style="scoreStyle(average)">{{ average ?? '—' }}</text>
         </svg>
         <div class="detail-network-values">
-          <div v-for="(name, index) in viz.categories" :key="name" class="detail-network-item">
-            <div class="detail-network-item-head"><span>{{ name }}</span><strong>{{ viz.series[index] }}</strong></div>
-            <i><b :style="{ width: `${viz.series[index]}%` }"></b></i>
+          <div v-for="(name, index) in viz.categories" :key="name" class="detail-network-item" :style="scoreStyle(viz.series[index])">
+            <div class="detail-network-item-head"><span>{{ name }}</span><strong class="score-value">{{ viz.series[index] ?? '—' }}</strong></div>
+            <i><b :style="{ width: `${viz.series[index] ?? 0}%` }"></b></i>
           </div>
         </div>
       </div>
     </template>
 
-    <div v-else-if="viz.type === 'vertical-bars'" class="detail-vertical-bars"><article v-for="(name, index) in viz.categories" :key="name"><strong>{{ viz.series[index] }}</strong><i><b :style="{ height: `${viz.series[index]}%` }"></b></i><span>{{ name }}</span></article></div>
+    <div v-else-if="viz.type === 'vertical-bars'" class="detail-vertical-bars"><article v-for="(name, index) in viz.categories" :key="name" :style="scoreStyle(viz.series[index])"><strong class="score-value">{{ viz.series[index] ?? '—' }}</strong><i><b :style="{ height: `${viz.series[index] ?? 0}%` }"></b></i><span>{{ name }}</span></article></div>
     <div v-else class="empty-module">该模块图表数据暂未生成。</div>
   </div>
 </template>

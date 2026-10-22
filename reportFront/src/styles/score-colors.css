@@ -1,0 +1,82 @@
+/* Score semantics take precedence over decorative system palettes. */
+.app-shell [data-score-level] .score-value {
+    color: var(--score-color) !important
+}
+
+.app-shell [data-score-level] text.score-value {
+    fill: var(--score-color) !important;
+    stroke: none
+}
+
+.score-panel[data-score-level] {
+    color: var(--ink);
+    background: radial-gradient(circle at 50% 40%, #fff 0, var(--score-soft) 65%, var(--score-border) 100%);
+    box-shadow: 0 18px 48px color-mix(in srgb, var(--score-color) 14%, transparent)
+}
+
+.score-panel[data-score-level] .ring-progress {
+    stroke: url(#scoreGradient);
+    filter: drop-shadow(0 0 8px var(--score-accent))
+}
+
+.score-panel[data-score-level] .ring-track,
+.score-panel[data-score-level] .ring-fine,
+.score-panel[data-score-level] .orbit {
+    stroke: var(--score-border);
+    border-color: var(--score-border)
+}
+
+.score-panel[data-score-level] .score-core > span,
+.score-panel[data-score-level] .score-core small,
+.score-panel[data-score-level] .ring-dash,
+.score-panel[data-score-level] .score-core em {
+    color: var(--score-color);
+    stroke: var(--score-accent)
+}
+
+.score-panel[data-score-level] .score-core em {
+    border-color: var(--score-border);
+    background: #ffffffa8
+}
+
+.score-panel[data-score-level] .score-foot > div { border-color: var(--score-accent); }
+.score-panel[data-score-level] .score-meta,
+.score-panel[data-score-level] .score-foot span { color: var(--muted); }
+.score-panel[data-score-level] .score-foot strong { color: var(--ink); }
+.score-panel[data-score-level] .orbit i { background: var(--score-accent); box-shadow: 0 0 12px var(--score-accent); }
+.score-panel[data-score-level] .scan-beam { background: linear-gradient(90deg, transparent, var(--score-accent), transparent); box-shadow: none; }
+
+.data-card[data-score-level] .chart-line { stroke: var(--score-color); }
+.data-card[data-score-level] .cardio-chart circle { stroke: var(--score-color); }
+.data-card[data-score-level] .endo-matrix i { background: linear-gradient(0deg, var(--score-accent), transparent); }
+.data-card[data-score-level] .endo-matrix > span { background: var(--score-soft); }
+.data-card[data-score-level] .digest-flow i { background: linear-gradient(90deg, var(--score-color) var(--w), #dfe6ec var(--w)); }
+.data-card[data-score-level] .male-metric-item i b { background: linear-gradient(90deg, var(--score-accent), var(--score-color)); }
+.data-card[data-score-level] .bone-bars > span { background: linear-gradient(180deg, var(--score-accent), var(--score-color)); }
+.data-card[data-score-level] .immune-map circle { stroke: var(--score-color); fill: var(--score-soft); }
+.data-card[data-score-level] .immune-map .score-node { fill: var(--score-color); }
+
+.detail-v2 .detail-score-block[data-score-level],
+.indicator-hero[data-score-level] {
+    background: linear-gradient(135deg, var(--score-soft), #f8fbfd)
+}
+.detail-v2 .detail-score-block[data-score-level] span { color: var(--score-color); border-color: var(--score-border); background: #ffffff8a; }
+.detail-indicator-link[data-score-level] article > div > i > b { background: var(--score-color); }
+.detail-chart[data-score-level] .detail-horizontal-bars i b,
+.detail-chart[data-score-level] .detail-network-item > i b { background: var(--score-color); }
+.detail-v2 .detail-chart[data-score-level] .detail-vertical-bars i b { background: linear-gradient(var(--score-accent), var(--score-color)); }
+.detail-chart[data-score-level] .detail-chart-values > span { background: var(--score-soft); border-color: var(--score-border); }
+.detail-chart[data-score-level] .detail-chart-stroke { stroke: var(--score-color); }
+.detail-chart[data-score-level] .detail-chart-area { fill: var(--score-soft); }
+.detail-chart[data-score-level] .detail-line-chart circle { stroke: var(--score-color); }
+.detail-chart[data-score-level] .detail-radial circle.progress { stroke: var(--score-color); }
+.detail-chart[data-score-level] .detail-radar .shape { fill: var(--score-soft); stroke: var(--score-color); }
+.detail-chart[data-score-level] .detail-network circle { fill: var(--score-color); }
+.detail-chart[data-score-level] .detail-network circle.center { fill: var(--score-soft); stroke: var(--score-color); }
+
+.indicator-hero[data-score-level] .indicator-ring-progress { stroke: var(--score-color); }
+.indicator-hero[data-score-level] .indicator-system-pill { color: var(--score-color); border-color: var(--score-border); }
+.indicator-history[data-score-level] .indicator-chart-line { stroke: var(--score-color); }
+.indicator-history[data-score-level] .indicator-chart-area { fill: var(--score-soft); }
+.indicator-history[data-score-level] circle { stroke: var(--score-color); }
+.indicator-history[data-score-level] text { fill: var(--score-color); }

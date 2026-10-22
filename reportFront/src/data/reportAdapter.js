@@ -95,7 +95,7 @@ function toVisualization(dto) {
   const meta = CHART_META[chart] || {}
   // 心血管的图是跨报告趋势；其余系统用本次报告的指标序列
   const trend = dto.trend?.series || []
-  const series = trend.length ? trend : dto.categories.map((_, i) => dto.series[i] ?? 0)
+  const series = trend.length ? trend : dto.categories.map((_, i) => dto.series[i] ?? null)
   // 只有仪表盘用单值代替序列；轨道图两者都有（见 V2 既有数据形状）
   const valueOnly = chart === 'radial-gauge'
   return {

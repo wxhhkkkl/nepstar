@@ -90,8 +90,8 @@ describe('SystemDetail', () => {
 
     const wrapper = await mountDetail('SYS_BONE', dto)
 
-    expect(wrapper.find('.detail-score-identity > div:nth-child(2) > span').exists()).toBe(false)
-    expect(wrapper.find('.detail-score-identity > div:nth-child(2) > p').exists()).toBe(false)
+    expect(wrapper.find('.detail-score-identity span').exists()).toBe(false)
+    expect(wrapper.find('.detail-score-identity p').exists()).toBe(false)
     expect(wrapper.find('.detail-conclusion').exists()).toBe(false)
   })
 

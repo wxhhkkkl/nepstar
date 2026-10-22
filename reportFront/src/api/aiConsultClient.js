@@ -1,4 +1,5 @@
 /** 匿名咨询候选接口；凭证只留在当前标签页，绝不进 URL。 */
+import { createUuid } from '@/utils/uuid.js'
 
 const DEFAULT_API_BASE = 'https://nepstar.kangjia.online/api/v1'
 const BASE = (import.meta.env?.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/+$/, '')
@@ -388,7 +389,7 @@ export async function streamConsultQuestion(reportCode, customerId, sessionId, q
   }
   return streamConsultGeneration(
     reportCode, customerId, sessionId, `/ai-consult/sessions/${sessionId}/turns`,
-    { question: question.trim() }, { ...options, requestId: options.requestId || crypto.randomUUID() },
+    { question: question.trim() }, { ...options, requestId: options.requestId || createUuid() },
   )
 }
 

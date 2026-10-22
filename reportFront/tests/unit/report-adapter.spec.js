@@ -87,6 +87,14 @@ describe('report adapter (DTO → ViewModel)', () => {
     expect(vm.visualization.series).toEqual([1])
   })
 
+  it('preserves missing chart scores separately from actual zero scores', () => {
+    const vm = toSystemViewModel({
+      system_code: 'SYS_ENDOCRINE', name: '内分泌', score: 80,
+      visualization: { categories: ['缺失', '零分', '未返回'], series: [null, 0] },
+    })
+    expect(vm.visualization.series).toEqual([null, 0, null])
+  })
+
   it('falls back to empty structures for missing optional fields', () => {
     const vm = toSystemViewModel({ system_code: 'SYS_X', name: 'X', score: null })
     expect(vm.tags).toEqual([])
