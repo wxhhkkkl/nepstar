@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import FemaleFunctionChart from '@/components/FemaleFunctionChart.vue'
+import ImmuneOverview from '@/components/ImmuneOverview.vue'
 import LungOverview from '@/components/LungOverview.vue'
 import { saveHomeScroll, shouldRestoreHomeScroll } from '@/composables/useScrollRestoration.js'
 import { useCardReveal } from '@/composables/useCardReveal.js'
@@ -68,11 +69,11 @@ const indexLabel = computed(() => String(props.displayIndex).padStart(2, '0'))
     </template>
 
     <template v-else-if="system.id === 'immune'">
-      <div class="immune-copy"><div class="card-index">{{ indexLabel }} / IMMUNITY</div><h3>{{ system.name }}</h3><strong class="score-value">{{ system.score ?? '—' }}</strong><span>{{ scoreAppearance(system.score).label }}</span><p>各项指标活力值如下，可点击查看详情。</p></div><div class="immune-map" aria-label="六项免疫指标点阵图"><svg viewBox="0 0 210 210"><path class="network" d="M105 35 166 70 164 139 105 175 45 140 44 70Z M105 35 105 105 166 70M105 105 164 139M105 105 105 175M105 105 45 140M105 105 44 70" /><circle cx="105" cy="105" r="28" /><circle class="score-node" cx="105" cy="35" r="9" :style="scoreStyle(system.visualization.series[0])" /><circle class="score-node" cx="166" cy="70" r="8" :style="scoreStyle(system.visualization.series[1])" /><circle class="score-node" cx="164" cy="139" r="9" :style="scoreStyle(system.visualization.series[2])" /><circle class="score-node" cx="105" cy="175" r="8" :style="scoreStyle(system.visualization.series[3])" /><circle class="score-node" cx="45" cy="140" r="9" :style="scoreStyle(system.visualization.series[4])" /><circle class="score-node" cx="44" cy="70" r="8" :style="scoreStyle(system.visualization.series[5])" /></svg><span class="map-center score-value">{{ system.score ?? '—' }}</span></div>
+      <ImmuneOverview :system="system" :index-label="indexLabel" />
     </template>
 
     <template v-else-if="system.id === 'bone'">
-      <div class="card-index">{{ indexLabel }} / BONE</div><div class="bone-head"><div><h3>{{ system.name }}</h3><p>骨骼相关指标活力值</p></div><strong class="score-value">{{ system.score ?? '—' }}</strong></div><div class="density-scale"><div class="scale-axis"><span>100</span><span>90</span><span>80</span><span>70</span><span>60</span></div><div class="bone-bars"><span v-for="(name, itemIndex) in system.visualization.categories" :key="name" :style="{ ...scoreStyle(system.visualization.series[itemIndex]), '--h': `${system.visualization.series[itemIndex] ?? 0}%` }"><i class="score-value">{{ system.visualization.series[itemIndex] ?? '—' }}</i><b :aria-label="name">{{ name.slice(0, 2) }}</b></span></div></div><div class="bone-tip"><span>VITALITY</span>分数越高，表现越好</div>
+      <div class="card-index">{{ indexLabel }} / BONE</div><div class="bone-head"><div><h3>{{ system.name }}</h3><p>骨骼相关指标活力值</p></div><strong class="score-value">{{ system.score ?? '—' }}</strong></div><div class="density-scale"><div class="scale-axis"><span>100</span><span>90</span><span>80</span><span>70</span><span>60</span></div><div class="bone-bars"><span v-for="(name, itemIndex) in system.visualization.categories" :key="name" :style="{ ...scoreStyle(system.visualization.series[itemIndex]), '--h': `${system.visualization.series[itemIndex] ?? 0}%` }"><i class="score-value">{{ system.visualization.series[itemIndex] ?? '—' }}</i><b :aria-label="name">{{ name }}</b></span></div></div><div class="bone-tip"><span>VITALITY</span>分数越高，表现越好</div>
     </template>
   </RouterLink>
 </template>
@@ -96,6 +97,23 @@ const indexLabel = computed(() => String(props.displayIndex).padStart(2, '0'))
 
 .data-card.female-card {
   min-height: 0;
+}
+
+.data-card.immune-card {
+  display: block;
+  min-height: 0;
+}
+
+.data-card.bone-card .bone-bars b {
+  top: calc(100% + 10px);
+  bottom: auto;
+  width: 100%;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.data-card.bone-card .bone-tip {
+  margin-top: 58px;
 }
 
 .data-card.lung-card {

@@ -306,25 +306,25 @@ body {
 }
 
 .bone-bars>span:nth-child(4n+1),
-.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+1) {
+.detail-v2[data-system-id="bone"] .detail-vertical-bars>button:nth-child(4n+1) article {
     --bone-bar-top: #d3e0f1;
     --bone-bar-bottom: #8ca6c8
 }
 
 .bone-bars>span:nth-child(4n+2),
-.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+2) {
+.detail-v2[data-system-id="bone"] .detail-vertical-bars>button:nth-child(4n+2) article {
     --bone-bar-top: #e1ddef;
     --bone-bar-bottom: #aaa0c6
 }
 
 .bone-bars>span:nth-child(4n+3),
-.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+3) {
+.detail-v2[data-system-id="bone"] .detail-vertical-bars>button:nth-child(4n+3) article {
     --bone-bar-top: #d5e7e3;
     --bone-bar-bottom: #8fb6ae
 }
 
 .bone-bars>span:nth-child(4n+4),
-.detail-v2[data-system-id="bone"] .detail-vertical-bars article:nth-child(4n+4) {
+.detail-v2[data-system-id="bone"] .detail-vertical-bars>button:nth-child(4n+4) article {
     --bone-bar-top: #f1e1cf;
     --bone-bar-bottom: #cea77e
 }

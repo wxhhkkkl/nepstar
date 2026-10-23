@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { citationToReportRoute } from '@/data/aiConsultEvidence.js'
+import { scoreAppearance, scoreStyle } from '@/utils/scoreColor.js'
 
 const props = defineProps({
   answer: { type: String, default: '' },
@@ -49,9 +50,9 @@ const blocks = computed(() => {
     <template v-for="(block, index) in blocks" :key="index">
       <h2 v-if="block.type === 'heading'">{{ block.text }}</h2>
       <div v-else-if="block.type === 'metrics'" class="ai-answer-metrics" data-testid="ai-answer-metrics">
-        <div v-for="(metric, metricIndex) in block.items" :key="`${metric.label}-${metricIndex}`" class="ai-answer-metric">
+        <div v-for="(metric, metricIndex) in block.items" :key="`${metric.label}-${metricIndex}`" class="ai-answer-metric" :style="scoreStyle(metric.score)" :data-score-level="scoreAppearance(metric.score).key">
           <span>{{ metric.label }}</span>
-          <strong>{{ metric.score }}</strong>
+          <strong class="score-value">{{ metric.score }}</strong>
           <span class="ai-visually-hidden">{{ metric.original }}</span>
         </div>
       </div>
@@ -70,13 +71,9 @@ const blocks = computed(() => {
 .ai-answer-text h2 { margin: 0; color: #172e51; font-size: 18px; line-height: 1.6; font-weight: 750; }
 .ai-answer-text > h2:not(:first-child) { margin-top: 16px; }
 .ai-answer-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
-.ai-answer-metric { display: flex; flex-direction: column; min-width: 0; padding: 14px 8px; border-radius: 15px; background: #edf8f4; }
-.ai-answer-metric:nth-child(3n + 2) { background: #eef5ff; }
-.ai-answer-metric:nth-child(3n) { background: #f4efff; }
+.ai-answer-metric { display: flex; flex-direction: column; min-width: 0; padding: 14px 8px; border-radius: 15px; background: var(--score-soft); }
 .ai-answer-metric > span:first-child { display: block; color: #2e4a6d; font-size: 14px; line-height: 1.5; }
-.ai-answer-metric > strong { display: block; margin-top: auto; padding-top: 3px; color: #159176; font-size: 26px; font-weight: 750; line-height: 1.2; }
-.ai-answer-metric:nth-child(3n + 2) > strong { color: #3a7de8; }
-.ai-answer-metric:nth-child(3n) > strong { color: #8c6cda; }
+.ai-answer-metric > strong { display: block; margin-top: auto; padding-top: 3px; color: var(--score-color); font-size: 26px; font-weight: 750; line-height: 1.2; }
 .ai-answer-list { display: grid; gap: 9px; padding: 0; margin-bottom: 0; list-style: none; }
 .ai-answer-list li { display: flex; align-items: baseline; gap: 9px; }
 .ai-answer-list li > span { display: grid; place-items: center; min-width: 25px; height: 25px; flex: none; border-radius: 50%; background: #dff5eb; color: #1a9a78; font-weight: 700; }

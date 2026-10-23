@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, watchEffect } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import {
   ReportApiError,
   fetchSystemDetail,
@@ -20,6 +20,7 @@ import {
 
 const props = defineProps({ systemId: { type: String, default: "" } });
 const route = props.systemId ? null : useRoute();
+const router = useRouter();
 const currentId = computed(
   () => props.systemId || route?.params.systemId || "",
 );
@@ -87,6 +88,19 @@ function rememberIndicatorPosition() {
   saveSystemDetailScroll(reportCode, currentSystemCode.value);
 }
 
+function openIndicator(item) {
+  if (!item?.indicator_code) return;
+  rememberIndicatorPosition();
+  router.push({
+    name: "indicator-detail",
+    params: {
+      systemId: currentSystemCode.value,
+      indicatorCode: item.indicator_code,
+    },
+    query: reportQuery.value,
+  });
+}
+
 onMounted(load);
 
 watchEffect(() => {
@@ -120,12 +134,12 @@ watchEffect(() => {
       </div>
     </header>
     <section class="detail-score-block" :style="scoreStyle(system.score)" :data-score-level="scoreAppearance(system.score).key">
+      <div class="detail-score-heading">
+        <h1>{{ system.name }}</h1>
+        <span v-if="system.status" class="detail-score-status">{{ scoreAppearance(system.score).label }}</span>
+      </div>
       <div class="detail-score-identity">
-        <div>
-          <span v-if="system.status">{{ scoreAppearance(system.score).label }}</span>
-          <h1>{{ system.name }}</h1>
-          <p v-if="system.summary">{{ system.summary }}</p>
-        </div>
+        <p v-if="system.summary">{{ system.summary }}</p>
       </div>
       <strong class="score-value">{{ system.score ?? "—" }}</strong>
     </section>
@@ -147,7 +161,7 @@ watchEffect(() => {
             : `当前报告 · ${system.visualization.unit}`
         }}</span>
       </div>
-      <DetailChart :system="system" />
+      <DetailChart :system="system" @indicator-click="openIndicator" />
     </section>
     <section class="detail-editorial">
       <span class="eyebrow">SCORE STRUCTURE</span>
@@ -227,3 +241,39 @@ watchEffect(() => {
     <footer><p>结果仅用于健康趋势管理，不构成临床诊断。</p></footer>
   </main>
 </template>
+
+<style scoped>
+.detail-v2 .detail-score-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 20px;
+}
+
+.detail-score-heading {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-score-heading h1 {
+  margin: 0;
+}
+
+.detail-score-status {
+  flex: none;
+}
+
+.detail-score-identity {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+}
+
+.detail-score-block > strong {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: end;
+}
+</style>

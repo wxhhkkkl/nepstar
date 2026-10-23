@@ -13,12 +13,12 @@
     </header>
 
     <section class="detail-skeleton-score" aria-hidden="true">
+      <div class="detail-skeleton-heading">
+        <span class="detail-skeleton-line detail-skeleton-line--system-title" />
+        <span class="detail-skeleton-line detail-skeleton-line--status" />
+      </div>
       <div class="detail-skeleton-identity">
-        <div>
-          <span class="detail-skeleton-line detail-skeleton-line--status" />
-          <span class="detail-skeleton-line detail-skeleton-line--system-title" />
-          <span class="detail-skeleton-line detail-skeleton-line--summary" />
-        </div>
+        <span class="detail-skeleton-line detail-skeleton-line--summary" />
       </div>
       <span class="detail-skeleton-score-number" />
     </section>
@@ -106,19 +106,21 @@
 .detail-skeleton-line--nav-title { width: 116px; height: 20px; justify-self: center; border-radius: 7px; }
 
 .detail-skeleton-score {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 20px;
   min-height: 187px;
   padding: 29px var(--detail-page-gutter);
   align-items: center;
-  justify-content: space-between;
   background: linear-gradient(115deg, #e9f4ff, #d9eafc);
 }
 
-.detail-skeleton-identity { flex: 1 1 0; min-width: 0; }
-.detail-skeleton-line--status { width: 58px; height: 10px; }
-.detail-skeleton-line--system-title { width: 108px; height: 29px; margin-top: 13px; border-radius: 8px; }
-.detail-skeleton-line--summary { width: min(176px, 100%); height: 11px; margin-top: 14px; }
-.detail-skeleton-score-number { width: 72px; height: 94px; border-radius: 22px; }
+.detail-skeleton-heading { grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; gap: 12px; }
+.detail-skeleton-identity { min-width: 0; align-self: start; }
+.detail-skeleton-line--status { width: 58px; height: 32px; }
+.detail-skeleton-line--system-title { width: 136px; height: 40px; border-radius: 8px; }
+.detail-skeleton-line--summary { width: min(176px, 100%); height: 11px; }
+.detail-skeleton-score-number { grid-column: 2; grid-row: 1 / 3; align-self: end; width: 72px; height: 94px; border-radius: 22px; }
 
 .detail-skeleton-chart-panel,
 .detail-skeleton-editorial,

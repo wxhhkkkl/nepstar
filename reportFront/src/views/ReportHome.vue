@@ -65,3 +65,10 @@ onMounted(load)
     </footer>
   </main>
 </template>
+
+<style scoped>
+.report-v2 footer {
+  justify-content: center;
+  text-align: center;
+}
+</style>

@@ -18,6 +18,24 @@ describe('AI consultation answer presentation', () => {
     expect(render({ answer: fact.replace('90', '0') }).get('.ai-answer-metric > strong').text()).toBe('0')
   })
 
+  it('colors each cited score by the shared report bands regardless of card order', async () => {
+    const scores = [80, 60, 90, 95, 74, 75, 84, 85, 94, 100, 0]
+    const levels = ['improve', 'attention', 'good', 'excellent', 'attention', 'improve', 'improve', 'good', 'good', 'excellent', 'attention']
+    const colors = ['#946316', '#b34d43', '#2475b5', '#18785d']
+    const backgrounds = ['#fff5e4', '#fbeeea', '#eaf2fc', '#e8f5ee']
+    const wrapper = render({ answer: scores.map(score => fact.replace('90', String(score))).join('\n') })
+    const cards = wrapper.findAll('.ai-answer-metric')
+    expect(cards.map(card => card.attributes('data-score-level'))).toEqual(levels)
+    cards.slice(0, 4).forEach((card, index) => {
+      expect(card.element.style.getPropertyValue('--score-color')).toBe(colors[index])
+      expect(card.element.style.getPropertyValue('--score-soft')).toBe(backgrounds[index])
+      expect(card.get('strong').classes()).toContain('score-value')
+    })
+
+    await wrapper.setProps({ answer: [...scores].reverse().map(score => fact.replace('90', String(score))).join('\n') })
+    expect(wrapper.findAll('.ai-answer-metric').map(card => card.attributes('data-score-level'))).toEqual([...levels].reverse())
+  })
+
   it.each([
     { evidence: [] },
     { evidence: [{ ...evidence[0], report_date: '2026-07-30' }] },

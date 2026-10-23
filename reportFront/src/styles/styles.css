@@ -1306,7 +1306,7 @@ svg {
 }
 
 .detail-score-block {
-    padding: 33px 24px;
+    padding: 24px;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;

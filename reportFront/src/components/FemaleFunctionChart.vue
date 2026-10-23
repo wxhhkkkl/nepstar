@@ -7,6 +7,7 @@ const props = defineProps({
   system: { type: Object, required: true },
   variant: { type: String, default: 'card' },
 })
+const emit = defineEmits(['indicator-click'])
 const { element, isVisible } = useCardReveal()
 
 const metrics = computed(() => {
@@ -19,6 +20,7 @@ const metrics = computed(() => {
   const spacing = items.length > 1 ? (84 - innerRadius) / (items.length - 1) : 0
   return items.map((item, index) => ({
     key: item.indicator_code || `${item.name}-${index}`,
+    indicator: item,
     name: item.name || `指标 ${index + 1}`,
     score: typeof item.score === 'number' && Number.isFinite(item.score) ? item.score : null,
     color: scoreAppearance(item.score).color,
@@ -41,8 +43,21 @@ const metrics = computed(() => {
     </div>
     <ul v-if="metrics.length" class="female-indicators" aria-label="女性功能指标活力值，满分 100 分">
       <li v-for="item in metrics" :key="item.key" :style="{ ...scoreStyle(item.score), '--metric-color': item.color }">
-        <span class="female-indicator-label"><i aria-hidden="true" />{{ item.name }}</span>
-        <span class="female-indicator-score"><strong class="score-value">{{ item.score ?? '—' }}</strong><small>{{ item.score === null ? '未提供' : '/100' }}</small></span>
+        <button
+          v-if="variant === 'detail'"
+          type="button"
+          class="female-indicator-button"
+          :aria-label="`查看${item.name}详情`"
+          :disabled="!item.indicator?.indicator_code"
+          @click="emit('indicator-click', item.indicator)"
+        >
+          <span class="female-indicator-label"><i aria-hidden="true" />{{ item.name }}</span>
+          <span class="female-indicator-score"><strong class="score-value">{{ item.score ?? '—' }}</strong><small>{{ item.score === null ? '未提供' : '/100' }}</small></span>
+        </button>
+        <template v-else>
+          <span class="female-indicator-label"><i aria-hidden="true" />{{ item.name }}</span>
+          <span class="female-indicator-score"><strong class="score-value">{{ item.score ?? '—' }}</strong><small>{{ item.score === null ? '未提供' : '/100' }}</small></span>
+        </template>
       </li>
     </ul>
     <p v-else class="female-indicators-empty">暂无子项指标</p>
@@ -194,6 +209,35 @@ const metrics = computed(() => {
   font-size: 10px;
 }
 
+.female-overview--detail .female-indicators li {
+  display: block;
+  padding-block: 0;
+}
+
+.female-indicator-button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding-block: 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.female-indicator-button:focus-visible {
+  outline: 3px solid rgba(38, 157, 164, .5);
+  outline-offset: 2px;
+}
+
+.female-indicator-button:disabled {
+  cursor: default;
+}
+
 .female-indicators-empty {
   color: #8391a6;
   font-size: 12px;
@@ -262,7 +306,7 @@ const metrics = computed(() => {
   }
 
   .female-overview--detail .female-indicators li {
-    padding-block: 12px;
+    padding-block: 0;
   }
 }
 </style>
