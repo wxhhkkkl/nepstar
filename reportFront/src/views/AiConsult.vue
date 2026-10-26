@@ -116,6 +116,12 @@ function resizeQuestionInput() {
 watch([questionText, questionInput], resizeQuestionInput, { flush: 'post' });
 const sending = ref(false);
 const stopBusy = ref(false);
+const stoppableMessage = computed(() => {
+  const message = messages.value.at(-1);
+  return sending.value && message?.status === "loading" && message.turnId && message.generationId
+    ? message
+    : null;
+});
 const chatError = ref("");
 const admissionFailure = ref("");
 const cooldownKind = ref("");
@@ -131,6 +137,10 @@ let activeController = null;
 let activeMessage = null;
 let followLatest = true;
 let scrollListening = false;
+let latestScrollFrame = null;
+let latestScrollUsesTimeout = false;
+let pendingLatestScrollForce = false;
+let pendingLatestScrollAnnounce = false;
 let startFreshOnActivation = false;
 const sessionEnded = ref(false);
 const leaveConfirmOpen = ref(false);
@@ -389,7 +399,12 @@ function applyEntryContext(data) {
     );
     data.suggested_questions = [prompt, ...remaining].slice(0, 3);
   }
-  questionText.value = prompt;
+  // Entering from a management plan should keep the composer empty; the same
+  // contextual question remains available as a suggestion above the composer.
+  questionText.value =
+    reportQuery.value.fromPlan === "1" && entryContext.value?.type === "plan"
+      ? ""
+      : prompt;
 }
 
 function safeTurnId(value) {
@@ -449,6 +464,7 @@ function messageTime(value) {
 }
 
 async function load() {
+  cancelPendingLatestScroll();
   const { reportCode, customerId } = reportParamsFromLocation();
   reportQuery.value = { ...reportRouteQueryFromLocation(), ...(planRouter?.currentRoute.value.query || {}) };
   if (!reportCode || customerId === null) {
@@ -560,7 +576,18 @@ async function restoreChatPosition() {
   );
 }
 
-async function scrollToLatest({ force = false, announce = false } = {}) {
+function cancelPendingLatestScroll() {
+  if (latestScrollFrame !== null) {
+    if (latestScrollUsesTimeout) window.clearTimeout(latestScrollFrame);
+    else window.cancelAnimationFrame(latestScrollFrame);
+    latestScrollFrame = null;
+  }
+  latestScrollUsesTimeout = false;
+  pendingLatestScrollForce = false;
+  pendingLatestScrollAnnounce = false;
+}
+
+function scrollToLatest({ force = false, announce = false } = {}) {
   if (force) {
     followLatest = true;
     newReplyPending.value = false;
@@ -568,16 +595,34 @@ async function scrollToLatest({ force = false, announce = false } = {}) {
     if (announce) newReplyPending.value = true;
     return;
   }
-  await nextTick();
-  if (!followLatest && !force) {
-    if (announce) newReplyPending.value = true;
-    return;
+  pendingLatestScrollForce ||= force;
+  pendingLatestScrollAnnounce ||= announce;
+  if (latestScrollFrame !== null) return;
+
+  const flushLatestScroll = () => {
+    const shouldForce = pendingLatestScrollForce;
+    const shouldAnnounce = pendingLatestScrollAnnounce;
+    latestScrollFrame = null;
+    latestScrollUsesTimeout = false;
+    pendingLatestScrollForce = false;
+    pendingLatestScrollAnnounce = false;
+
+    if (!followLatest && !shouldForce) {
+      if (shouldAnnounce) newReplyPending.value = true;
+      return;
+    }
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      left: 0,
+      behavior: "auto",
+    });
+  };
+  if (typeof window.requestAnimationFrame === "function") {
+    latestScrollFrame = window.requestAnimationFrame(flushLatestScroll);
+  } else {
+    latestScrollUsesTimeout = true;
+    latestScrollFrame = window.setTimeout(flushLatestScroll, 0);
   }
-  window.scrollTo({
-    top: document.documentElement.scrollHeight,
-    left: 0,
-    behavior: "auto",
-  });
 }
 
 function revealValidatedAnswer(message, text, signal) {
@@ -784,9 +829,9 @@ async function sendQuestion(rawQuestion, existingMessage = null) {
             message.retryable = false;
             updateRemainingAnswers(data);
           }
-          scrollToLatest({
-            announce: event === "delta" || event === "completed",
-          });
+          if (event !== "delta") {
+            scrollToLatest({ announce: event === "completed" });
+          }
         },
       },
     );
@@ -1185,6 +1230,7 @@ onActivated(() => {
   }
 });
 onDeactivated(() => {
+  cancelPendingLatestScroll();
   unbindPageScroll();
   unbindLifecycle();
   if (!sessionEnded.value) void endCurrentSession(true);
@@ -1192,6 +1238,7 @@ onDeactivated(() => {
   if (activeIdentity) startFreshOnActivation = true;
 });
 onUnmounted(() => {
+  cancelPendingLatestScroll();
   unbindPageScroll();
   unbindLifecycle();
   if (!sessionEnded.value) void endCurrentSession(true);
@@ -1326,30 +1373,6 @@ onUnmounted(() => {
           </TransitionGroup>
         </section>
 
-        <section
-          v-if="entryContext"
-          class="ai-entry-context"
-          data-testid="ai-entry-context"
-        >
-          <small>{{
-            entryContext.type === "plan" ? "管理方案咨询" : "指标咨询"
-          }}</small>
-          <strong>{{
-            entryContext.type === "plan"
-              ? entryContext.plan_name
-              : entryContext.indicator_name
-          }}</strong>
-          <p v-if="entryContext.type === 'plan'" :style="scoreStyle(entryContext.indicator_score)" :data-score-level="scoreAppearance(entryContext.indicator_score).key">
-            已关联 {{ entryContext.indicator_name }}，本次
-            <b class="score-value">{{ entryContext.indicator_score ?? "—" }}</b> 分；触发条件为低于
-            {{ entryContext.trigger_score_below }} 分。
-          </p>
-          <p v-else-if="entryContext.stale_plan">
-            原方案已不在当前有效推荐中，下面只根据这份报告解释关联指标，不会把旧方案当作当前推荐。
-          </p>
-          <p v-else>问题已关联到这份报告中的该项指标。</p>
-        </section>
-
         <section class="ai-question-panel">
         <div class="ai-section-heading">
           <h2>{{ entryContext ? "已为你准备的问题" : "你可以这样问" }}</h2>
@@ -1436,6 +1459,7 @@ onUnmounted(() => {
             v-for="message in messages"
             :key="message.id"
             class="ai-turn"
+            :class="{ 'ai-turn--streaming': message.status === 'loading' }"
           >
             <small class="ai-user-source">我</small>
             <div class="ai-user-question">{{ message.question }}</div>
@@ -1496,20 +1520,6 @@ onUnmounted(() => {
                     >这是报告中的维护资料；如与专业人员意见不一致，请以专业人员意见为准。</small
                   >
                 </section>
-                <button
-                  v-if="
-                    message.status === 'loading' &&
-                    message.turnId &&
-                    message.generationId
-                  "
-                  type="button"
-                  class="ai-stop-button"
-                  data-testid="ai-stop"
-                  :disabled="stopBusy"
-                  @click="stopCurrent(message)"
-                >
-                  停止生成
-                </button>
                 <button
                   v-if="message.status === 'timed_out' && message.turnId"
                   type="button"
@@ -1640,6 +1650,7 @@ onUnmounted(() => {
           v-if="newReplyPending"
           type="button"
           class="ai-new-reply"
+          :class="{ 'ai-new-reply--with-stop': stoppableMessage }"
           data-testid="ai-new-reply"
           @click="scrollToLatest({ force: true })"
         >
@@ -1668,6 +1679,16 @@ onUnmounted(() => {
       </button>
 
       <footer v-if="serviceAvailable" class="ai-composer-dock">
+        <button
+          v-if="stoppableMessage"
+          type="button"
+          class="ai-stop-button ai-generation-stop"
+          data-testid="ai-stop"
+          :disabled="stopBusy"
+          @click="stopCurrent(stoppableMessage)"
+        >
+          停止生成
+        </button>
         <form
           class="ai-composer"
           data-testid="ai-composer"

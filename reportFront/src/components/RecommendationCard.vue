@@ -38,10 +38,10 @@ async function openPlan(event) {
 <template>
   <section v-if="recommendation && variant === 'home'" class="issue-plan" :data-plan-theme="system.id === 'bone' ? 'bone' : 'sleep'" :style="scoreStyle(recommendation.indicatorScore)" :data-score-level="scoreAppearance(recommendation.indicatorScore).key" :class="`issue-plan-${system.id === 'bone' ? 'bone' : 'sleep'}`" :aria-labelledby="`${system.id}PlanTitle`" :data-recommendation-for="system.id">
     <div class="issue-plan-label"><span>问题聚焦</span><strong :class="{ 'score-value': scoreAppearance(recommendation.indicatorScore).key !== 'unknown' }">{{ recommendation.issue }}</strong></div>
-    <div class="issue-plan-main">
+    <RouterLink class="issue-plan-main" :to="planRoute" aria-label="查看管理方案详情" @click="openPlan">
       <div class="issue-plan-copy"><span class="eyebrow">{{ recommendation.eyebrow }}</span><h2 :id="`${system.id}PlanTitle`"><template v-for="(line, index) in titleLines" :key="line">{{ line }}<br v-if="index < titleLines.length - 1"></template></h2><p>{{ recommendation.context }}</p><div class="issue-plan-tags"><span v-for="tag in recommendation.tags" :key="tag">{{ tag }}</span></div></div>
       <div class="issue-plan-visual product-contain"><img :src="recommendation.image" :alt="recommendation.imageAlt" width="180" height="270"></div>
-    </div>
+    </RouterLink>
     <RouterLink class="issue-plan-action" :to="planRoute" @click="openPlan"><span><b>查看方案</b><small v-if="recommendation.actionHint">{{ recommendation.actionHint }}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
     <p class="issue-plan-note">仅作日常健康管理参考，不能替代医学诊断或治疗。</p>
   </section>

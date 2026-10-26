@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch, watchEffect } from 'vue'
-import { planReturnRoute } from '@/utils/planNavigation.js'
+import { planBaseQuery, planReturnRoute } from '@/utils/planNavigation.js'
 import { useRoute } from 'vue-router'
 import {
   ERROR_KINDS,
@@ -183,5 +183,11 @@ watchEffect(() => {
     </section>
 
     <footer class="indicator-disclaimer">结果仅用于健康趋势管理，不构成临床诊断。</footer>
+    <RouterLink
+      v-if="reportQuery.reportId"
+      class="detail-back indicator-report-return"
+      :to="{ name: 'home', query: planBaseQuery(reportQuery) }"
+      aria-label="返回长寿指数报告首页"
+    >返回长寿指数报告 <span aria-hidden="true">→</span></RouterLink>
   </main>
 </template>

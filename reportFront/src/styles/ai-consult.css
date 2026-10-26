@@ -413,33 +413,6 @@
   color: #6f85a7;
 }
 
-.ai-entry-context {
-  display: grid;
-  gap: 5px;
-  margin-top: 12px;
-  padding: 14px 16px;
-  border: 1px solid #fff;
-  border-radius: 20px;
-  background: #ffffffc9;
-}
-
-.ai-entry-context small {
-  color: #7e71b9;
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.ai-entry-context strong {
-  font-size: 16px;
-}
-
-.ai-entry-context p {
-  margin: 0;
-  color: #7187a5;
-  font-size: 14px;
-  line-height: 1.65;
-}
-
 .ai-quota-note {
   margin: 10px 5px 0;
   color: #6d83a5;
@@ -495,6 +468,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 7px;
+}
+
+.ai-turn--streaming {
+  overflow-anchor: none;
 }
 
 .ai-user-source {
@@ -898,6 +875,20 @@
   display: flex;
   align-items: flex-end;
   gap: 7px;
+}
+
+/* Keep the stop control outside the growing answer and anchored to the fixed dock. */
+.ai-generation-stop {
+  position: absolute;
+  left: 16px;
+  bottom: calc(100% + 12px);
+  margin: 0;
+  background: #fbfdff;
+  box-shadow: 0 6px 24px #4f719c1a;
+}
+
+.ai-new-reply--with-stop {
+  bottom: calc(174px + var(--ai-composer-extra, 0px) + env(safe-area-inset-bottom));
 }
 
 .ai-composer-field {
