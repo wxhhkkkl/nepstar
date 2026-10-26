@@ -2445,7 +2445,7 @@ body {
 .issue-plan {
     position: relative;
     overflow: hidden;
-    margin: 16px 0 28px;
+    margin-bottom: 10px;
     padding: 20px;
     border: 1px solid var(--plan-edge);
     border-radius: 26px;

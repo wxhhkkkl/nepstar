@@ -40,7 +40,7 @@ const scoreFill = computed(() => `${props.score ?? 0} 100`)
         </div>
       </div>
       <div class="ai-report-focus">
-        <span class="ai-focus-label">本次关注</span>
+        <span class="ai-focus-label ai-accessibility-only">本次关注</span>
         <ul v-if="systems.length">
           <li v-for="system in systems" :key="system.name" :style="scoreStyle(system.score)">
             <svg v-if="system.name.includes('消化')" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v5c0 4 5-1 7 3 4 7-1 11-7 9-4-2-7-1-7-5 0-3 5-3 5-6V3" /></svg>
@@ -58,26 +58,26 @@ const scoreFill = computed(() => `${props.score ?? 0} 100`)
 </template>
 
 <style scoped>
-.ai-report-strip { padding: 12px 14px; border: 1px solid #fff; border-radius: 26px; background: #fffffff0; box-shadow: 0 12px 35px #628ac009; }
-.ai-report-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 10px; color: #7286a7; font-size: 14px; line-height: 1.4; }
+.ai-report-strip { padding: 12px 14px; border: 1px solid #fff; border-radius: 22px; background: #fffffff0; box-shadow: 0 12px 35px #628ac009; }
+.ai-report-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 6px; color: #7286a7; font-size: 13px; line-height: 1.3; }
+.ai-report-meta .ai-connected { font-size: 13px; }
 .ai-connected { display: inline-flex; align-items: center; gap: 8px; color: #233e65; font-size: 14px; font-weight: 650; white-space: nowrap; }
 .ai-connected i { width: 9px; height: 9px; flex: none; border-radius: 50%; background: #18b88b; box-shadow: 0 0 0 5px #dff6ee; margin-inline: 4px; }
-.ai-report-overview { display: grid; grid-template-columns: 108px minmax(0, 1fr); align-items: center; gap: 16px; }
-.ai-report-score { position: relative; width: 108px; height: 108px; }
+.ai-report-overview { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 14px; }
+.ai-report-score { position: relative; width: 84px; height: 84px; }
 .ai-score-ring { display: block; width: 100%; height: 100%; overflow: visible; transform: rotate(-90deg); fill: none; stroke-width: 7; }
 .ai-score-track { stroke: #edf0fc; }
 .ai-score-fill { stroke-linecap: round; animation: ai-score-draw 1s ease-out both; }
-.ai-score-copy { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; }
-.ai-score-copy > strong { color: #142951; font-size: 42px; font-weight: 750; line-height: 1; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+.ai-score-copy { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; }
+.ai-score-copy > strong { color: #142951; font-size: 36px; font-weight: 750; line-height: 1; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
 .ai-score-copy > .ai-score-missing { padding: 4px; font-size: 14px; letter-spacing: 0; }
-.ai-score-copy small { font-size: 14px; color: #5f7598; }
-.ai-report-focus { min-width: 0; padding-left: 14px; border-left: 1px solid #edf0fa; color: #3f567e; font-size: 14px; }
-.ai-focus-label { display: block; margin-bottom: 6px; }
+.ai-score-copy small { font-size: 12px; color: #5f7598; }
+.ai-report-focus { min-width: 0; padding-left: 12px; border-left: 1px solid #edf0fa; color: #3f567e; font-size: 14px; }
 .ai-report-focus ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.ai-report-focus li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 13px; background: var(--score-soft); }
-.ai-report-focus li > svg { width: 23px; height: 23px; flex: none; color: var(--score-color); }
+.ai-report-focus li { display: flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 10px; background: var(--score-soft); line-height: 1.4; }
+.ai-report-focus li > svg { width: 20px; height: 20px; flex: none; color: var(--score-color); }
 .ai-report-focus li > span { min-width: 0; overflow-wrap: anywhere; }
-.ai-report-focus li > strong { margin-left: auto; flex: none; color: #172c51; font-size: 18px; font-weight: 700; }
+.ai-report-focus li > strong { margin-left: auto; flex: none; color: #172c51; font-size: 16px; font-weight: 700; line-height: 1.25; }
 .ai-report-focus p { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
 .ai-report-compact { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 10px 13px; border: 1px solid #fff; border-radius: 18px; background: #ffffffec; box-shadow: 0 8px 28px #628ac008; }
 .ai-compact-score { flex: none; padding: 4px 10px; border: 1px solid var(--score-border); border-radius: 20px; color: var(--score-color); background: var(--score-soft); font-size: 18px; line-height: 1.3; }
@@ -91,13 +91,23 @@ const scoreFill = computed(() => `${props.score ?? 0} 100`)
   .ai-connected-extra { display: none; }
 }
 @media (max-width: 389px) {
-  .ai-report-overview { grid-template-columns: 102px minmax(0, 1fr); gap: 10px; }
-  .ai-report-score { width: 102px; height: 102px; }
+  .ai-report-overview { grid-template-columns: 76px minmax(0, 1fr); gap: 10px; }
+  .ai-report-score { width: 76px; height: 76px; }
   .ai-report-focus { padding-left: 10px; }
-  .ai-report-focus li { padding: 7px 8px; gap: 5px; }
+  .ai-report-focus li { padding: 5px 7px; gap: 5px; }
   .ai-report-focus li > svg { display: none; }
   .ai-report-compact { flex-wrap: wrap; gap: 8px; }
   .ai-compact-focus { order: 1; flex-basis: 100%; margin-left: 0; padding-left: 4px; }
+}
+@media (max-height: 760px) {
+  .ai-report-strip { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 9px 14px; padding: 13px 14px; }
+  .ai-report-meta { grid-column: 2; grid-row: 1; gap: 5px 10px; margin-bottom: 0; }
+  .ai-report-meta time { font-size: 13px; }
+  .ai-report-overview { display: contents; }
+  .ai-report-score { grid-column: 1; grid-row: 1 / 3; align-self: center; width: 82px; height: 82px; }
+  .ai-report-focus { grid-column: 2; grid-row: 2; padding-left: 0; border-left: 0; }
+  .ai-report-focus li { padding: 6px 9px; }
+  .ai-score-copy > strong { font-size: 34px; }
 }
 @media (prefers-reduced-motion: reduce) { .ai-score-fill { animation: none; } }
 </style>

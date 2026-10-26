@@ -1,7 +1,7 @@
 import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AiConsult from '@/views/AiConsult.vue'
-import { bootstrapPayload } from '../fixtures/aiConsult.js'
+import { bootstrapPayload, welcomeDesignPayload } from '../fixtures/aiConsult.js'
 
 vi.mock('@/api/aiConsultClient.js', () => ({
   loadConsultBootstrap: vi.fn(),
@@ -83,10 +83,11 @@ describe('AI consultation welcome route', () => {
     const wrapper = mountWelcome()
     await flushPromises()
     expect(wrapper.get('[data-testid="ai-management-plans"] h2').text()).toBe('为你匹配的健康管理方案 1 项')
+    expect(wrapper.find('[data-testid="ai-plans-toggle"]').exists()).toBe(false)
     const plan = wrapper.get('[data-testid="ai-management-plan"]')
     expect(plan.text()).toContain('松果体 · 活力值 48')
-    expect(plan.text()).toContain('从睡眠节律开始管理')
-    expect(plan.get('[data-testid="ai-plan-description"]').classes()).not.toContain('ai-accessibility-only')
+    expect(plan.text()).not.toContain('从睡眠节律开始管理')
+    expect(plan.find('[data-testid="ai-plan-description"]').exists()).toBe(false)
     expect(plan.find('[data-testid="ai-plan-reason"]').exists()).toBe(false)
     expect(plan.text()).not.toContain('推荐原因')
     expect(plan.findComponent(RouterLinkStub).props('to')).toEqual({
@@ -94,6 +95,41 @@ describe('AI consultation welcome route', () => {
       query: { reportId: 'R1', userId: '1001', fromAiConsult: '1' },
     })
     expect(plan.find('img').attributes('alt')).toBe('睡眠管理方案产品')
+    wrapper.unmount()
+  })
+
+  it.each([2, 3])('initially shows one of %i plans and expands or collapses the remaining plans', async count => {
+    const plans = [
+      ...structuredClone(welcomeDesignPayload.management_plans),
+      { plan_id: 9, plan_name: '日常管理方案', system_code: 'SYS_LUNG',
+        indicator_code: 'SYS_LUNG_VC', indicator_name: '肺活量', indicator_score: 70 },
+    ].slice(0, count)
+    loadConsultBootstrap.mockResolvedValueOnce({ ...structuredClone(bootstrapPayload), management_plans: plans })
+    const wrapper = mountWelcome()
+    await flushPromises()
+    const firstPlan = wrapper.get('[data-testid="ai-management-plan"]').element
+    const toggle = wrapper.get('[data-testid="ai-plans-toggle"]')
+    expect(wrapper.findAll('[data-testid="ai-management-plan"]')).toHaveLength(1)
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(toggle.attributes('aria-controls')).toBe('aiPlansList')
+    expect(toggle.attributes('aria-label')).toContain(`共 ${count} 项`)
+
+    await toggle.trigger('click')
+    const expandedPlans = wrapper.findAll('[data-testid="ai-management-plan"]')
+    expect(expandedPlans).toHaveLength(count)
+    expect(expandedPlans[0].element).toBe(firstPlan)
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(toggle.text()).toBe('收起')
+    expect(expandedPlans[1].findComponent(RouterLinkStub).props('to')).toEqual({
+      name: 'system-detail', params: { systemId: plans[1].system_code },
+      query: { reportId: 'R1', userId: '1001', fromAiConsult: '1' },
+    })
+    expect(wrapper.find('[data-testid="ai-plan-description"]').exists()).toBe(false)
+
+    await toggle.trigger('click')
+    expect(wrapper.findAll('[data-testid="ai-management-plan"]')).toHaveLength(1)
+    expect(wrapper.get('[data-testid="ai-management-plan"]').element).toBe(firstPlan)
+    expect(toggle.attributes('aria-expanded')).toBe('false')
     wrapper.unmount()
   })
 

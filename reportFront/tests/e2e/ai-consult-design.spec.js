@@ -68,13 +68,8 @@ for (const width of [320, 375, 414, 480]) {
     await expect(page.locator('.ai-hero h1')).toHaveText('你好，一起读懂你的长寿报告')
     await expect(page.getByTestId('ai-question')).toHaveCount(4)
     await expect(page.getByTestId('ai-report-score')).toHaveText('82分')
-    await expect(page.getByTestId('ai-plan-description')).toBeVisible()
+    await expect(page.getByTestId('ai-plan-description')).toHaveCount(0)
     await expect(page.getByTestId('ai-plan-reason')).toHaveCount(0)
-    const description = await page.getByTestId('ai-plan-description').evaluate(element => ({
-      height: element.getBoundingClientRect().height,
-      lineHeight: parseFloat(getComputedStyle(element).lineHeight),
-    }))
-    expect(description.height).toBeLessThanOrEqual(description.lineHeight * 2 + 1)
     const avatar = page.locator('.ai-avatar img')
     await avatar.evaluate(img => img.decode())
     await expect(avatar).toHaveAttribute('src', /ai-longevity-doctor-avatar\.png/)

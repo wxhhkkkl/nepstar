@@ -46,6 +46,21 @@ def test_validated_answer_renders_score_date_and_citation_from_server_evidence_o
     assert "customerId" not in result.candidate_text
 
 
+@pytest.mark.parametrize("already_in_summary", [False, True])
+def test_health_reminder_is_part_of_answer_after_all_report_facts(already_in_summary):
+    from app.services.ai_consult_answer import HEALTH_REMINDER, validate_answer_draft
+
+    summary = "可以结合报告中的呼吸睡眠指标理解本次结果。"
+    if already_in_summary:
+        summary += "\n\n" + HEALTH_REMINDER
+    result = validate_answer_draft(report_bundle(), draft(summary=summary, ids=["ev1", "ev2"]))
+
+    assert result.candidate_text.startswith("可以结合报告中的呼吸睡眠指标理解本次结果。")
+    assert result.candidate_text.endswith("\n\n" + HEALTH_REMINDER)
+    assert result.candidate_text.count(HEALTH_REMINDER) == 1
+    assert result.candidate_text.index("报告维护说明") < result.candidate_text.index(HEALTH_REMINDER)
+
+
 def test_answer_returns_two_structured_follow_up_questions():
     from app.services.ai_consult_answer import validate_answer_draft
 

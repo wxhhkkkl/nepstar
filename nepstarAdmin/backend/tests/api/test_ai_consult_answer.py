@@ -236,6 +236,8 @@ async def test_preparation_timeout_cancels_work_without_publishing_answer(
 
 @pytest.mark.asyncio
 async def test_valid_answer_is_saved_before_verified_events_are_emitted(isolated_answer):
+    from app.services.ai_consult_answer import HEALTH_REMINDER
+
     app, provider, stored, finalized = isolated_answer
     response = await post_question(app)
     events = parse_events(response)
@@ -250,8 +252,11 @@ async def test_valid_answer_is_saved_before_verified_events_are_emitted(isolated
     ]
     assert all(data["session_id"] == "session-1" for _, data in events)
     assert "呼吸睡眠活力值 98 分" in events[3][1]["text"]
+    assert events[3][1]["text"].endswith("\n\n" + HEALTH_REMINDER)
+    assert events[5][1]["answer"] == events[3][1]["text"]
     assert events[4][1]["items"][0]["id"] == "ev1"
     assert stored[next(iter(stored))]["status"] == "completed"
+    assert stored[next(iter(stored))]["answer"] == events[3][1]["text"]
     assert finalized[0].is_completed is False
     assert provider.calls == 1
 
@@ -299,6 +304,8 @@ async def test_unverified_model_claim_cannot_emit_delta_or_completed(isolated_an
 
 @pytest.mark.asyncio
 async def test_same_idempotency_key_replays_without_second_generation(isolated_answer):
+    from app.services.ai_consult_answer import HEALTH_REMINDER
+
     app, provider, stored, _ = isolated_answer
     key = str(uuid4())
     first = await post_question(app, key=key)
@@ -306,6 +313,10 @@ async def test_same_idempotency_key_replays_without_second_generation(isolated_a
     conflict = await post_question(app, key=key, question="其他问题")
     assert first.status_code == again.status_code == 200
     assert [name for name, _ in parse_events(again)] == ["accepted", "delta", "evidence", "completed"]
+    replayed_answer = parse_events(again)[-1][1]["answer"]
+    assert replayed_answer == parse_events(first)[-1][1]["answer"]
+    assert replayed_answer.endswith("\n\n" + HEALTH_REMINDER)
+    assert replayed_answer.count(HEALTH_REMINDER) == 1
     assert conflict.status_code == 409
     assert len(stored) == 1
     assert provider.calls == 1

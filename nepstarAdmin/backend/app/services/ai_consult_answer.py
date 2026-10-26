@@ -34,6 +34,11 @@ _NO_EVIDENCE = (
     "目前没有可核对且一致的本次报告事实，无法确认这项结果。"
     "请查看报告原文，必要时咨询专业人员。"
 )
+HEALTH_REMINDER = (
+    "也提醒你，以上分析是结合本次体检报告整理的健康参考，不能替代医生的专业评估。"
+    "如果你有持续不适，或对指标有疑问，可以带着报告咨询医生；"
+    "如果症状突然加重，请及时就医。"
+)
 
 
 def _evidence_index(bundle: EvidenceBundle) -> tuple[dict[str, dict], dict[str, dict]]:
@@ -166,7 +171,10 @@ def validate_answer_draft(bundle: EvidenceBundle, draft: Any) -> AnswerValidatio
     ):
         raise AnswerRejected("Model cited unknown or insufficient evidence")
 
-    lines = [summary.strip()]
+    # Keep one closing paragraph in the actual answer, after the cited facts.
+    # It is then reviewed, saved and streamed together with the answer body.
+    explanation = summary.strip().removesuffix(HEALTH_REMINDER).rstrip()
+    lines = [explanation] if explanation else []
     for evidence_id in selected_ids:
         fact = facts[evidence_id]
         if fact["kind"] == "report":
@@ -182,6 +190,7 @@ def validate_answer_draft(bundle: EvidenceBundle, draft: Any) -> AnswerValidatio
             )
             if fact.get("text"):
                 lines.append(f"方案说明（后台维护）：{fact['text']}")
+    lines.extend(["", HEALTH_REMINDER])
     return AnswerValidation(
         state="provenance_validated",
         candidate_text="\n".join(lines),

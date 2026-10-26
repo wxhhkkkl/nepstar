@@ -27,7 +27,6 @@ import {
   reportParamsFromLocation,
   reportRouteQueryFromLocation,
 } from "@/api/reportClient.js";
-import AiConsultEvidence from "@/components/AiConsultEvidence.vue";
 import AiConsultWelcomeSkeleton from "@/components/AiConsultWelcomeSkeleton.vue";
 import AiConsultReportCard from "@/components/AiConsultReportCard.vue";
 import AiConsultAnswer from "@/components/AiConsultAnswer.vue";
@@ -69,10 +68,10 @@ const reportScore = computed(() =>
 );
 const focusSystems = computed(() => welcome.value?.focus_systems || []);
 const managementPlans = computed(() => welcome.value?.management_plans || []);
-
-function planDescription(plan) {
-  return typeof plan.description === 'string' ? plan.description.trim() : '';
-}
+const plansExpanded = ref(false);
+const visibleManagementPlans = computed(() =>
+  plansExpanded.value ? managementPlans.value : managementPlans.value.slice(0, 1),
+);
 
 const failedPlanImages = ref(new Set());
 const messages = ref([]);
@@ -441,6 +440,7 @@ async function load() {
     return;
   }
   state.value = "loading";
+  plansExpanded.value = false;
   maintenanceText.value = "";
   feedbackReasonFor.value = null;
   messages.value = [];
@@ -1244,50 +1244,67 @@ onUnmounted(() => {
         >
           <h2 id="aiPlansTitle">
             为你匹配的健康管理方案
-            <span>{{ managementPlans.length }} 项</span>
-          </h2>
-          <article
-            v-for="plan in managementPlans"
-            :key="`${plan.plan_id}-${plan.indicator_code}`"
-            data-testid="ai-management-plan"
-          >
-            <RouterLink
-              class="ai-plan-card"
-              :to="{
-                name: 'system-detail',
-                params: { systemId: plan.system_code },
-                query: { ...reportQuery, fromAiConsult: '1' },
-              }"
-              :aria-label="`查看${plan.plan_name}及推荐依据`"
-              @click="rememberChatPosition"
+            <button
+              v-if="managementPlans.length > 1"
+              type="button"
+              class="ai-plans-toggle"
+              data-testid="ai-plans-toggle"
+              :aria-expanded="plansExpanded"
+              aria-controls="aiPlansList"
+              :aria-label="plansExpanded ? '收起更多管理方案' : `显示其余 ${managementPlans.length - 1} 项管理方案，共 ${managementPlans.length} 项`"
+              @click="plansExpanded = !plansExpanded"
             >
-              <div class="ai-plan-visual">
-                <img
-                  v-if="plan.image_url && !failedPlanImages.has(plan.image_url)"
-                  :src="resolveProductImageUrl(plan.image_url)"
-                  :alt="plan.image_alt || plan.plan_name"
-                  loading="lazy"
-                  @error="failedPlanImages.add(plan.image_url)"
-                />
-                <svg v-else viewBox="0 0 48 48" aria-hidden="true">
-                  <path
-                    d="M12 35c2-18 8-22 25-22-1 18-7 24-21 24M12 39l19-20M19 32h11M25 26v-6"
-                  />
-                </svg>
-              </div>
-              <div class="ai-plan-copy">
-                <h3>{{ plan.plan_name }}</h3>
-                <span class="ai-plan-issue" :style="scoreStyle(plan.indicator_score)" :data-score-level="scoreAppearance(plan.indicator_score).key"
-                  >{{ plan.indicator_name }} · 活力值
-                  <b class="score-value">{{ plan.indicator_score ?? "—" }}</b></span
+              {{ plansExpanded ? '收起' : '显示更多' }}
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <span v-else>{{ managementPlans.length }} 项</span>
+          </h2>
+          <TransitionGroup id="aiPlansList" name="ai-plan-expand" tag="div" class="ai-plan-list">
+            <article
+              v-for="plan in visibleManagementPlans"
+              :key="`${plan.plan_id}-${plan.indicator_code}`"
+              class="ai-plan-item"
+              data-testid="ai-management-plan"
+            >
+              <div class="ai-plan-item-clip">
+                <RouterLink
+                  class="ai-plan-card"
+                  :to="{
+                    name: 'system-detail',
+                    params: { systemId: plan.system_code },
+                    query: { ...reportQuery, fromAiConsult: '1' },
+                  }"
+                  :aria-label="`查看${plan.plan_name}及推荐依据`"
+                  @click="rememberChatPosition"
                 >
+                  <div class="ai-plan-visual">
+                    <img
+                      v-if="plan.image_url && !failedPlanImages.has(plan.image_url)"
+                      :src="resolveProductImageUrl(plan.image_url)"
+                      :alt="plan.image_alt || plan.plan_name"
+                      loading="lazy"
+                      @error="failedPlanImages.add(plan.image_url)"
+                    />
+                    <svg v-else viewBox="0 0 48 48" aria-hidden="true">
+                      <path
+                        d="M12 35c2-18 8-22 25-22-1 18-7 24-21 24M12 39l19-20M19 32h11M25 26v-6"
+                      />
+                    </svg>
+                  </div>
+                  <div class="ai-plan-copy">
+                    <h3>{{ plan.plan_name }}</h3>
+                    <span class="ai-plan-issue" :style="scoreStyle(plan.indicator_score)" :data-score-level="scoreAppearance(plan.indicator_score).key"
+                      >{{ plan.indicator_name }} · 活力值
+                      <b class="score-value">{{ plan.indicator_score ?? "—" }}</b></span
+                    >
+                  </div>
+                  <span class="ai-plan-arrow" aria-hidden="true"><span>查看方案</span
+                    ><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg
+                  ></span>
+                </RouterLink>
               </div>
-              <span class="ai-plan-arrow" aria-hidden="true"><span>查看方案</span
-                ><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg
-              ></span>
-              <p v-if="planDescription(plan)" class="ai-plan-description" data-testid="ai-plan-description">{{ planDescription(plan) }}</p>
-            </RouterLink>
-          </article>
+            </article>
+          </TransitionGroup>
         </section>
 
         <section
@@ -1524,14 +1541,6 @@ onUnmounted(() => {
                   role="alert"
                   >{{ message.retryError }}</small
                 >
-                <AiConsultEvidence
-                  v-if="message.status === 'completed'"
-                  :items="message.evidence"
-                  :report-code="reportParamsFromLocation().reportCode"
-                  :customer-id="reportParamsFromLocation().customerId"
-                  :report-query="reportQuery"
-                  @navigate="rememberChatPosition"
-                />
                 </div>
                 <div
                   v-if="message.status === 'completed' && message.turnId"

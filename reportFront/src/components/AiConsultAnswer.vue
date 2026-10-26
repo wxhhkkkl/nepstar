@@ -67,7 +67,7 @@ const blocks = computed(() => {
 <style scoped>
 .ai-answer-text { color: #3e5980; font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; }
 .ai-answer-text p { margin: 0; white-space: pre-wrap; }
-.ai-answer-text > * + * { margin-top: 12px; }
+.ai-answer-text > :not(:first-child) { margin-top: 12px; }
 .ai-answer-text h2 { margin: 0; color: #172e51; font-size: 18px; line-height: 1.6; font-weight: 750; }
 .ai-answer-text > h2:not(:first-child) { margin-top: 16px; }
 .ai-answer-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
