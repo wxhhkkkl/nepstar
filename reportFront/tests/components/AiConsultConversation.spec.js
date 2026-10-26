@@ -48,6 +48,16 @@ function mountConversation() {
   return wrapper
 }
 
+function waitForAnimationFrame() {
+  return new Promise((resolve) => {
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(resolve)
+    } else {
+      setTimeout(resolve, 0)
+    }
+  })
+}
+
 function available() {
   return { ...structuredClone(bootstrapPayload), service_status: 'available' }
 }
@@ -295,7 +305,7 @@ describe('AI consultation conversation candidate', () => {
     expect(client.loadConsultBootstrap).toHaveBeenCalledWith('R1', 1001, {
       planId: 17, indicatorCode: 'SYS_LUNG_SLEEP',
     })
-    expect(wrapper.get('[data-testid="ai-entry-context"]').text()).toContain('睡眠健康管理方案')
+    expect(wrapper.find('[data-testid="ai-entry-context"]').exists()).toBe(false)
     expect(wrapper.get('#aiQuestionInput').element.value).toBe('为什么会为我推荐「睡眠健康管理方案」？')
     expect(client.createConsultSession).not.toHaveBeenCalled()
     expect(client.ensureConsultSession).not.toHaveBeenCalled()
@@ -390,7 +400,7 @@ describe('AI consultation conversation candidate', () => {
     wrapper.unmount()
   })
 
-  it('shows a completed answer and expandable same-report citations', async () => {
+  it('shows a completed answer and follow-ups without an evidence section', async () => {
     client.streamConsultQuestion.mockImplementation(async (_report, _customer, _session, _question, options) => {
       options.onEvent('accepted', { turn_id: 7 })
       options.onEvent('delta', { text: '这项指标本次结果可以结合报告理解。' })
@@ -411,11 +421,9 @@ describe('AI consultation conversation candidate', () => {
       'R1', 1001, SESSION_ID, bootstrapPayload.suggested_questions[0], expect.any(Object),
     )
     expect(wrapper.get('[data-testid="ai-conversation"]').text()).toContain('这项指标本次结果')
-    expect(wrapper.get('[data-testid="ai-evidence"]').text()).toContain('呼吸睡眠')
+    expect(wrapper.find('[data-testid="ai-evidence"]').exists()).toBe(false)
     expect(wrapper.get('[data-testid="ai-feedback"]').text()).toContain('这条回答有帮助吗')
     expect(wrapper.get('.ai-followup-prompts').text()).toContain('你每晚是否容易醒来？')
-    const link = wrapper.findAllComponents(RouterLinkStub).find((node) => node.text() === '查看详情')
-    expect(link).toBeTruthy()
   })
 
   it('restores model follow-ups, hides old prompts, and filters questions already asked', async () => {
@@ -494,7 +502,7 @@ describe('AI consultation conversation candidate', () => {
     await flushPromises()
     expect(live.get('[data-testid="ai-maintained-actions"]').text()).toContain('保持规律作息')
     expect(live.get('[data-testid="ai-maintained-actions"]').text()).toContain('来自指标后台维护')
-    expect(live.get('[data-testid="ai-evidence"]').text()).toContain('后台维护行动建议')
+    expect(live.find('[data-testid="ai-evidence"]').exists()).toBe(false)
     live.unmount()
 
     const nextEntry = mountConversation()
@@ -531,6 +539,7 @@ describe('AI consultation conversation candidate', () => {
       expect(wrapper.get('[data-testid="ai-new-reply"]').text()).toContain('查看最新')
       await wrapper.get('[data-testid="ai-new-reply"]').trigger('click')
       await flushPromises()
+      await waitForAnimationFrame()
       expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 2000, left: 0, behavior: 'auto' })
       expect(wrapper.find('[data-testid="ai-new-reply"]').exists()).toBe(false)
       finish()
@@ -649,7 +658,7 @@ describe('AI consultation conversation candidate', () => {
     await flushPromises()
     expect(client.loadConsultTurn).toHaveBeenCalledWith('R1', 1001, SESSION_ID, 7)
     expect(wrapper.get('[data-testid="ai-conversation"]').text()).toContain('服务端已确认的回答')
-    expect(wrapper.get('[data-testid="ai-evidence"]').text()).toContain('本次报告')
+    expect(wrapper.find('[data-testid="ai-evidence"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('网络连接失败，本次回答未完成')
   })
 

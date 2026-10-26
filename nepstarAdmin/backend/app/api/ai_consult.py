@@ -50,7 +50,7 @@ from ..services.ai_consult_followups import (
     indicator_context_from_evidence,
 )
 from ..services.ai_consult_pipeline import CandidateOutcome, prepare_answer_candidate
-from ..services.ai_consult_plan_context import resolve_entry_context
+from ..services.ai_consult_plan_context import resolve_current_entry_context
 from ..services.ai_consult_provider import default_provider, provider_matches_configuration
 from ..services.ai_consult_rules import ConsultRuleUnavailable, load_rule_content
 from ..services.ai_consult_sessions import (
@@ -145,6 +145,14 @@ async def load_public_report_home(db: AsyncSession, report_code: str, customer_i
         raise HTTPException(status_code=exc.code, detail="consult.report_unavailable") from exc
     except report_source.ReportSourceUnavailableError as exc:
         raise HTTPException(status_code=503, detail="consult.report_unavailable") from exc
+
+
+async def load_public_entry_context(db, guest, home, *, plan_id, indicator_code):
+    from ..services import ai_consult_sources, report_source, report_view_service
+    try:
+        return await resolve_current_entry_context(db, guest, home, plan_id=plan_id, indicator_code=indicator_code)
+    except (ai_consult_sources.ReadBoundaryViolation, report_source.ReportSourceUnavailableError, report_view_service.ReportViewError) as exc:
+        raise HTTPException(status_code=503, detail='consult.report_unavailable') from exc
 
 
 @router.post("/guest-contexts")
@@ -247,13 +255,11 @@ async def get_bootstrap(
     async with async_session() as read_db:
         try:
             home = await load_public_report_home(read_db, guest.report_code, guest.customer_id)
+            entry_context = await load_public_entry_context(read_db, guest, home, plan_id=plan_id, indicator_code=indicator_code) if indicator_code else None
         except HTTPException as exc:
             return _error(exc.status_code, str(exc.detail))
 
     context = build_welcome_context(home)
-    entry_context = resolve_entry_context(
-        home, plan_id=plan_id, indicator_code=indicator_code
-    ) if indicator_code else None
     question_limit = getattr(notice_config, "max_question_chars", 500)
     if type(question_limit) is not int or not 0 <= question_limit <= 500:
         question_limit = 500
@@ -338,14 +344,10 @@ async def create_session(
             guest = await require_guest(lookup_db, token, req.report_code)
         async with async_session() as read_db:
             home = await load_public_report_home(read_db, guest.report_code, guest.customer_id)
+            entry_context = await load_public_entry_context(read_db, guest, home, plan_id=req.plan_id, indicator_code=req.indicator_code) if req.source != 'home' else None
         report_date = verified_report_date(home, guest.report_code)
-        entry_context = None
-        if req.source != "home":
-            entry_context = resolve_entry_context(
-                home, plan_id=req.plan_id, indicator_code=req.indicator_code
-            )
-            if entry_context is None or entry_context.get("type") != req.source:
-                return _error(409, "consult.entry_unavailable")
+        if req.source != 'home' and (entry_context is None or entry_context.get('type') != req.source):
+            return _error(409, 'consult.entry_unavailable')
         async with writer() as write_db:
             async with write_db.begin():
                 # 报告读取之后重新检查访问凭证。

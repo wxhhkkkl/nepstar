@@ -31,6 +31,7 @@ async function mockDesign(page, { empty = false } = {}) {
     else if (url.pathname.endsWith('/bootstrap')) data = empty ? { ...payload, report_score: null, management_plans: [], focus_systems: [] } : payload
     else if (url.pathname.endsWith('/sessions')) data = { id: sessionId, report_code: reportCode, source: 'home' }
     else if (url.pathname.endsWith('/end')) data = { id: sessionId, status: 'ended' }
+    else if (url.pathname.endsWith('/turns/7/stop')) data = { turn_id: 7, generation_id: 8, status: 'stopped' }
     else if (url.pathname.endsWith('/feedback')) data = { turn_id: 7, feedback_value: 'helpful', feedback_reason: null }
     else { unexpected.push(url.pathname); return route.fulfill({ status: 404, json: { code: 404 } }) }
     return route.fulfill({ json: { code: 200, message: 'ok', data } })
@@ -58,6 +59,50 @@ async function mockDesign(page, { empty = false } = {}) {
     }
   }, { id: sessionId })
   return unexpected
+}
+
+for (const width of [320, 414]) {
+  test(`stop control stays stationary through streaming line wraps at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 736 })
+    const unexpected = await mockDesign(page)
+    await page.goto(`/#/ai-consult?reportId=${reportCode}&userId=1001`)
+    await page.getByTestId('ai-question').first().click()
+    await expect(page.getByTestId('ai-stop')).toBeVisible()
+    const text = '这是模拟的流式报告解释，随着内容增加会持续换行，用于检查停止按钮在回答增高及页面自动滚动时的位置。\n'.repeat(12)
+    const samples = await page.evaluate(async text => {
+      window.__designFrame('delta', { text })
+      const samples = []
+      const deadline = performance.now() + 5000
+      while (performance.now() < deadline) {
+        await new Promise(requestAnimationFrame)
+        const stop = document.querySelector('[data-testid="ai-stop"]').getBoundingClientRect()
+        const answer = document.querySelector('.ai-answer-text--streaming')
+        samples.push({ top: stop.top, bottom: stop.bottom, height: answer?.getBoundingClientRect().height || 0, scrollY })
+        if (answer?.textContent.length >= text.length) break
+      }
+      return samples
+    }, text)
+    expect(samples.length).toBeGreaterThan(10)
+    expect(Math.max(...samples.map(item => item.height)) - Math.min(...samples.map(item => item.height))).toBeGreaterThan(200)
+    expect(Math.max(...samples.map(item => item.scrollY)) - Math.min(...samples.map(item => item.scrollY))).toBeGreaterThan(100)
+    expect(Math.max(...samples.map(item => item.top)) - Math.min(...samples.map(item => item.top))).toBeLessThan(1)
+    await expect(page.locator('.ai-composer-dock [data-testid="ai-stop"]')).toBeVisible()
+    await expect(page.locator('.ai-answer-body [data-testid="ai-stop"]')).toHaveCount(0)
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+    await page.evaluate(() => window.__designFrame('delta', { text: '继续追加用于检查新消息提醒。' }))
+    await expect(page.getByTestId('ai-new-reply')).toBeVisible()
+    const stop = await page.getByTestId('ai-stop').boundingBox()
+    const notice = await page.getByTestId('ai-new-reply').boundingBox()
+    const dock = await page.locator('.ai-composer-dock').boundingBox()
+    expect(notice.y + notice.height).toBeLessThanOrEqual(stop.y)
+    expect(stop.y + stop.height).toBeLessThan(dock.y)
+    if (width === 414) await page.screenshot({ path: '/private/tmp/nepstar-stream-stable-stop-414.png' })
+    await page.getByTestId('ai-stop').click()
+    await expect(page.getByTestId('ai-stop')).toHaveCount(0)
+    await expect(page.getByText('已停止，本次回答未完成')).toBeVisible()
+    expect(unexpected).toEqual([])
+  })
 }
 
 for (const width of [320, 375, 414, 480]) {
@@ -112,9 +157,7 @@ for (const width of [320, 375, 414, 480]) {
     await expect(page.getByTestId('ai-stop')).toHaveCount(0)
     await page.getByTestId('ai-feedback').getByRole('button', { name: '有帮助', exact: true }).click()
     await expect(page.getByTestId('ai-feedback').getByRole('button', { name: '有帮助', exact: true })).toHaveAttribute('aria-pressed', 'true')
-    await page.getByTestId('ai-evidence').locator('summary').click()
-    await expect(page.getByTestId('ai-evidence').getByText('查看详情')).toHaveCount(3)
-    await page.getByTestId('ai-evidence').locator('summary').click()
+    await expect(page.getByTestId('ai-evidence')).toHaveCount(0)
     await page.locator('.ai-user-source').scrollIntoViewIfNeeded()
     if (width === 414) {
       await page.screenshot({ path: '/private/tmp/nepstar-ai-inline-chat-414.png' })

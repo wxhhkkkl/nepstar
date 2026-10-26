@@ -1,0 +1,27 @@
+{
+  "samples": [
+    508,
+    297,
+    282,
+    276,
+    278,
+    275,
+    284,
+    276,
+    274,
+    281,
+    4195,
+    338,
+    307,
+    333,
+    305,
+    298,
+    308,
+    342,
+    308,
+    332
+  ],
+  "p95": 508,
+  "count": 20,
+  "environment": "Local Vite + isolated FastAPI + existing read-only SSH database sources; warm browser cache; controller reload-to-visible-heading wall time includes browser automation overhead"
+}

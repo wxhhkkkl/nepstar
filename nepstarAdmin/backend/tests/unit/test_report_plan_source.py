@@ -71,3 +71,17 @@ async def test_shared_plan_product_is_available_to_each_linked_indicator():
     assert result[12][0]["products"] == expected
     assert result[13][0]["products"] == expected
     assert db.queries[1][1]["ids"] == (17,)
+
+
+@pytest.mark.asyncio
+async def test_product_details_are_batched_ordered_and_filtered():
+    from app.services.report_plan_source import fetch_product_details
+    db = FakeDB([(30, '商品A', '简介', '<p>已维护正文</p>', '/assets/a.png'),
+                 (31, '商品B', None, None, None)],
+                [(30, '/assets/a.png'), (30, '/assets/b.png'), (31, '/assets/c.png')])
+    items = await fetch_product_details(db, [31, 30])
+    assert [p['product_id'] for p in items] == [31, 30]
+    assert [i['url'] for i in items[1]['images']] == ['/assets/a.png', '/assets/b.png']
+    assert len(db.queries) == 2
+    assert 'status = 1' in db.queries[0][0]
+    assert 'ORDER BY product_id, sort_order, id' in db.queries[1][0]

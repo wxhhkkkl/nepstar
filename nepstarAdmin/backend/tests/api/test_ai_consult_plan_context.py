@@ -61,9 +61,14 @@ class Reader:
         self.home = home
         self.detail = detail
 
-    async def __call__(self, _db, _scope, tool_name, *, indicator_code=None):
+    async def __call__(self, _db, _scope, tool_name, *, indicator_code=None, plan_id=None):
         if tool_name == "home":
             return self.home
+        if tool_name == 'plan_context':
+            context = resolve_entry_context(self.home, plan_id=plan_id, indicator_code=indicator_code)
+            if context and context.get('type') == 'plan':
+                return {**context, 'report_code': self.home['report_code'], 'description': self.home['systems'][0]['recommendation'].get('description')}
+            return {}
         assert tool_name == "indicator" and indicator_code == INDICATOR_CODE
         return self.detail
 

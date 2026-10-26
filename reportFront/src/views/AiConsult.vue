@@ -35,10 +35,27 @@ import { resolveProductImageUrl } from "@/data/reportAdapter.js";
 import { createUuid } from "@/utils/uuid.js";
 import { scoreAppearance, scoreStyle } from "@/utils/scoreColor.js";
 
+import { createPlanNavigation, discardPlanNavigation, planDetailRoute, consumeSourceReading, restoreScroll, planReturnRoute } from '@/utils/planNavigation.js';
+const planRouter = inject(routerKey, null);
+async function openManagementPlan(event, plan) {
+  if (!planRouter) return;
+  event.preventDefault();
+  if (!(await confirmPageLeave())) return;
+  const key = createPlanNavigation(
+    { ...reportQuery.value, planId: String(plan.plan_id), indicatorCode: plan.indicator_code },
+    { name: 'ai-consult', query: reportQuery.value },
+    { scrollY: window.scrollY, plansExpanded: plansExpanded.value },
+  );
+  const failure = await planRouter.push(planDetailRoute(reportQuery.value, plan.plan_id, plan.indicator_code, key));
+  if (failure) discardPlanNavigation(key);
+}
+
 defineOptions({ name: "AiConsult" });
 
 const reportQuery = ref(reportRouteQueryFromLocation());
 const backTo = computed(() => {
+  const planBack = planReturnRoute(reportQuery.value);
+  if (planBack) return planBack;
   const query = { ...reportQuery.value };
   const returnSystem = query.returnSystem;
   delete query.returnSystem;
@@ -99,6 +116,12 @@ function resizeQuestionInput() {
 watch([questionText, questionInput], resizeQuestionInput, { flush: 'post' });
 const sending = ref(false);
 const stopBusy = ref(false);
+const stoppableMessage = computed(() => {
+  const message = messages.value.at(-1);
+  return sending.value && message?.status === "loading" && message.turnId && message.generationId
+    ? message
+    : null;
+});
 const chatError = ref("");
 const admissionFailure = ref("");
 const cooldownKind = ref("");
@@ -114,6 +137,10 @@ let activeController = null;
 let activeMessage = null;
 let followLatest = true;
 let scrollListening = false;
+let latestScrollFrame = null;
+let latestScrollUsesTimeout = false;
+let pendingLatestScrollForce = false;
+let pendingLatestScrollAnnounce = false;
 let startFreshOnActivation = false;
 const sessionEnded = ref(false);
 const leaveConfirmOpen = ref(false);
@@ -372,7 +399,12 @@ function applyEntryContext(data) {
     );
     data.suggested_questions = [prompt, ...remaining].slice(0, 3);
   }
-  questionText.value = prompt;
+  // Entering from a management plan should keep the composer empty; the same
+  // contextual question remains available as a suggestion above the composer.
+  questionText.value =
+    reportQuery.value.fromPlan === "1" && entryContext.value?.type === "plan"
+      ? ""
+      : prompt;
 }
 
 function safeTurnId(value) {
@@ -432,8 +464,9 @@ function messageTime(value) {
 }
 
 async function load() {
+  cancelPendingLatestScroll();
   const { reportCode, customerId } = reportParamsFromLocation();
-  reportQuery.value = reportRouteQueryFromLocation();
+  reportQuery.value = { ...reportRouteQueryFromLocation(), ...(planRouter?.currentRoute.value.query || {}) };
   if (!reportCode || customerId === null) {
     errorKind.value = "report_unavailable";
     state.value = "error";
@@ -479,6 +512,12 @@ async function load() {
         : "";
     state.value = "ready";
     onPageScroll();
+    const savedReading = consumeSourceReading(reportQuery.value, 'ai-consult');
+    if (savedReading) {
+      plansExpanded.value = savedReading.plansExpanded;
+      await nextTick();
+      await restoreScroll(savedReading.scrollY);
+    }
   } catch (error) {
     if (activeIdentity !== requestedIdentity) return;
     errorKind.value =
@@ -537,7 +576,18 @@ async function restoreChatPosition() {
   );
 }
 
-async function scrollToLatest({ force = false, announce = false } = {}) {
+function cancelPendingLatestScroll() {
+  if (latestScrollFrame !== null) {
+    if (latestScrollUsesTimeout) window.clearTimeout(latestScrollFrame);
+    else window.cancelAnimationFrame(latestScrollFrame);
+    latestScrollFrame = null;
+  }
+  latestScrollUsesTimeout = false;
+  pendingLatestScrollForce = false;
+  pendingLatestScrollAnnounce = false;
+}
+
+function scrollToLatest({ force = false, announce = false } = {}) {
   if (force) {
     followLatest = true;
     newReplyPending.value = false;
@@ -545,16 +595,34 @@ async function scrollToLatest({ force = false, announce = false } = {}) {
     if (announce) newReplyPending.value = true;
     return;
   }
-  await nextTick();
-  if (!followLatest && !force) {
-    if (announce) newReplyPending.value = true;
-    return;
+  pendingLatestScrollForce ||= force;
+  pendingLatestScrollAnnounce ||= announce;
+  if (latestScrollFrame !== null) return;
+
+  const flushLatestScroll = () => {
+    const shouldForce = pendingLatestScrollForce;
+    const shouldAnnounce = pendingLatestScrollAnnounce;
+    latestScrollFrame = null;
+    latestScrollUsesTimeout = false;
+    pendingLatestScrollForce = false;
+    pendingLatestScrollAnnounce = false;
+
+    if (!followLatest && !shouldForce) {
+      if (shouldAnnounce) newReplyPending.value = true;
+      return;
+    }
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      left: 0,
+      behavior: "auto",
+    });
+  };
+  if (typeof window.requestAnimationFrame === "function") {
+    latestScrollFrame = window.requestAnimationFrame(flushLatestScroll);
+  } else {
+    latestScrollUsesTimeout = true;
+    latestScrollFrame = window.setTimeout(flushLatestScroll, 0);
   }
-  window.scrollTo({
-    top: document.documentElement.scrollHeight,
-    left: 0,
-    behavior: "auto",
-  });
 }
 
 function revealValidatedAnswer(message, text, signal) {
@@ -761,9 +829,9 @@ async function sendQuestion(rawQuestion, existingMessage = null) {
             message.retryable = false;
             updateRemainingAnswers(data);
           }
-          scrollToLatest({
-            announce: event === "delta" || event === "completed",
-          });
+          if (event !== "delta") {
+            scrollToLatest({ announce: event === "completed" });
+          }
         },
       },
     );
@@ -1162,6 +1230,7 @@ onActivated(() => {
   }
 });
 onDeactivated(() => {
+  cancelPendingLatestScroll();
   unbindPageScroll();
   unbindLifecycle();
   if (!sessionEnded.value) void endCurrentSession(true);
@@ -1169,6 +1238,7 @@ onDeactivated(() => {
   if (activeIdentity) startFreshOnActivation = true;
 });
 onUnmounted(() => {
+  cancelPendingLatestScroll();
   unbindPageScroll();
   unbindLifecycle();
   if (!sessionEnded.value) void endCurrentSession(true);
@@ -1186,7 +1256,7 @@ onUnmounted(() => {
     data-testid="ai-consult-welcome"
   >
     <header class="ai-topbar">
-      <RouterLink :to="backTo" class="ai-back" aria-label="返回报告"
+      <RouterLink :to="backTo" class="ai-back" :aria-label="backTo.name === 'plan-detail' ? '返回方案详情' : '返回报告'"
         ><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg
       ></RouterLink>
       <div class="ai-topbar-title">
@@ -1269,13 +1339,9 @@ onUnmounted(() => {
               <div class="ai-plan-item-clip">
                 <RouterLink
                   class="ai-plan-card"
-                  :to="{
-                    name: 'system-detail',
-                    params: { systemId: plan.system_code },
-                    query: { ...reportQuery, fromAiConsult: '1' },
-                  }"
+:to="planDetailRoute(reportQuery, plan.plan_id, plan.indicator_code)"
                   :aria-label="`查看${plan.plan_name}及推荐依据`"
-                  @click="rememberChatPosition"
+                  @click="openManagementPlan($event, plan)"
                 >
                   <div class="ai-plan-visual">
                     <img
@@ -1305,30 +1371,6 @@ onUnmounted(() => {
               </div>
             </article>
           </TransitionGroup>
-        </section>
-
-        <section
-          v-if="entryContext"
-          class="ai-entry-context"
-          data-testid="ai-entry-context"
-        >
-          <small>{{
-            entryContext.type === "plan" ? "管理方案咨询" : "指标咨询"
-          }}</small>
-          <strong>{{
-            entryContext.type === "plan"
-              ? entryContext.plan_name
-              : entryContext.indicator_name
-          }}</strong>
-          <p v-if="entryContext.type === 'plan'" :style="scoreStyle(entryContext.indicator_score)" :data-score-level="scoreAppearance(entryContext.indicator_score).key">
-            已关联 {{ entryContext.indicator_name }}，本次
-            <b class="score-value">{{ entryContext.indicator_score ?? "—" }}</b> 分；触发条件为低于
-            {{ entryContext.trigger_score_below }} 分。
-          </p>
-          <p v-else-if="entryContext.stale_plan">
-            原方案已不在当前有效推荐中，下面只根据这份报告解释关联指标，不会把旧方案当作当前推荐。
-          </p>
-          <p v-else>问题已关联到这份报告中的该项指标。</p>
         </section>
 
         <section class="ai-question-panel">
@@ -1417,6 +1459,7 @@ onUnmounted(() => {
             v-for="message in messages"
             :key="message.id"
             class="ai-turn"
+            :class="{ 'ai-turn--streaming': message.status === 'loading' }"
           >
             <small class="ai-user-source">我</small>
             <div class="ai-user-question">{{ message.question }}</div>
@@ -1477,20 +1520,6 @@ onUnmounted(() => {
                     >这是报告中的维护资料；如与专业人员意见不一致，请以专业人员意见为准。</small
                   >
                 </section>
-                <button
-                  v-if="
-                    message.status === 'loading' &&
-                    message.turnId &&
-                    message.generationId
-                  "
-                  type="button"
-                  class="ai-stop-button"
-                  data-testid="ai-stop"
-                  :disabled="stopBusy"
-                  @click="stopCurrent(message)"
-                >
-                  停止生成
-                </button>
                 <button
                   v-if="message.status === 'timed_out' && message.turnId"
                   type="button"
@@ -1621,6 +1650,7 @@ onUnmounted(() => {
           v-if="newReplyPending"
           type="button"
           class="ai-new-reply"
+          :class="{ 'ai-new-reply--with-stop': stoppableMessage }"
           data-testid="ai-new-reply"
           @click="scrollToLatest({ force: true })"
         >
@@ -1649,6 +1679,16 @@ onUnmounted(() => {
       </button>
 
       <footer v-if="serviceAvailable" class="ai-composer-dock">
+        <button
+          v-if="stoppableMessage"
+          type="button"
+          class="ai-stop-button ai-generation-stop"
+          data-testid="ai-stop"
+          :disabled="stopBusy"
+          @click="stopCurrent(stoppableMessage)"
+        >
+          停止生成
+        </button>
         <form
           class="ai-composer"
           data-testid="ai-composer"

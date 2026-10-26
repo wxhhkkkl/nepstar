@@ -10,6 +10,35 @@ from ..database import NEPSTAR_SCHEMA
 DEFAULT_PLAN_TRIGGER_SCORE_BELOW = 80
 
 
+async def fetch_product_details(db: AsyncSession, product_ids: list[int]) -> list[dict]:
+    """Read only already-authorized product IDs; preserve the effective plan's order."""
+    from sqlalchemy.exc import SQLAlchemyError
+    if not product_ids:
+        return []
+    ids = tuple(dict.fromkeys(product_ids))
+    try:
+        rows = (await db.execute(text(
+            f"SELECT id, product_name, description, detail_html, cover_url FROM {_t('sa_product')} "
+            "WHERE status = 1 AND id IN :ids"
+        ).bindparams(bindparam('ids', expanding=True, value=ids)))).all()
+        images = (await db.execute(text(
+            f"SELECT product_id, image_url FROM {_t('sa_product_image')} WHERE product_id IN :ids "
+            "ORDER BY product_id, sort_order, id"
+        ).bindparams(bindparam('ids', expanding=True, value=ids)))).all()
+    except SQLAlchemyError as exc:
+        from .report_source import ReportSourceUnavailableError
+        raise ReportSourceUnavailableError('Product source unavailable') from exc
+    by_id = {}
+    for product_id, name, description, html, cover in rows:
+        by_id[int(product_id)] = dict(product_id=int(product_id), name=name, description=description,
+                                      detail_html=html, images=[{'url': cover, 'alt': name}] if cover else [])
+    for product_id, url in images:
+        item = by_id.get(int(product_id))
+        if item and url and url not in [image['url'] for image in item['images']]:
+            item['images'].append({'url': url, 'alt': item['name']})
+    return [by_id[i] for i in ids if i in by_id]
+
+
 def _t(table: str) -> str:
     return f"{NEPSTAR_SCHEMA}.{table}" if NEPSTAR_SCHEMA else table
 

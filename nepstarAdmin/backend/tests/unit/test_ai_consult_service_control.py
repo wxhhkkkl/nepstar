@@ -34,3 +34,34 @@ async def test_no_pause_record_has_revision_zero():
         async def execute(self, statement):
             return SimpleNamespace(scalar_one_or_none=lambda: None)
     assert await last_pause_revision(Db()) == 0
+
+
+@pytest.mark.asyncio
+async def test_public_entry_state_is_read_only_and_failure_is_local(monkeypatch):
+    from app.services.ai_consult_control import public_entry_status
+    from unittest.mock import AsyncMock
+    config = SimpleNamespace(enabled=True, maintenance_text=None, provider_code='x', model_code='y')
+    db = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(scalar_one_or_none=lambda: config)))
+    for flag in ('GUEST_ENABLED', 'SESSIONS_ENABLED', 'ANSWERS_ENABLED', 'OPERATIONS_READY'):
+        monkeypatch.setattr(settings, f'AI_CONSULT_{flag}', True)
+    assert (await public_entry_status(db, provider_ready=True))['status'] == 'available'
+    config.maintenance_text = '维护中'
+    assert (await public_entry_status(db, provider_ready=True))['status'] == 'maintenance'
+    db.execute.side_effect = RuntimeError('private connection details')
+    result = await public_entry_status(db, provider_ready=True)
+    assert result['status'] == 'unavailable'
+    assert 'private' not in str(result)
+
+
+@pytest.mark.asyncio
+async def test_optional_status_read_has_a_deadline(monkeypatch):
+    import asyncio
+    from app.services import ai_consult_control as control
+    from unittest.mock import AsyncMock
+    monkeypatch.setattr(control, '_ENTRY_READ_TIMEOUT_SECONDS', .01)
+    for flag in ('GUEST_ENABLED', 'SESSIONS_ENABLED', 'ANSWERS_ENABLED', 'OPERATIONS_READY'):
+        monkeypatch.setattr(settings, f'AI_CONSULT_{flag}', True)
+    async def stalled(*args):
+        await asyncio.sleep(5)
+    result = await control.public_entry_status(SimpleNamespace(execute=AsyncMock(side_effect=stalled)), provider_ready=True)
+    assert result['status'] == 'unavailable'

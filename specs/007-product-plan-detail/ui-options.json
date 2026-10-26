@@ -1,0 +1,27 @@
+{
+  "ordering": "Actual generated-image display order in this conversation",
+  "status": "selected",
+  "selected_option": 3,
+  "selected_file": "assets/design-03.png",
+  "selected_at": "2026-10-26",
+  "options": [
+    {
+      "displayed_option": 1,
+      "file": "assets/design-01.png",
+      "width": 853,
+      "height": 1844
+    },
+    {
+      "displayed_option": 2,
+      "file": "assets/design-02.png",
+      "width": 853,
+      "height": 1844
+    },
+    {
+      "displayed_option": 3,
+      "file": "assets/design-03.png",
+      "width": 853,
+      "height": 1844
+    }
+  ]
+}

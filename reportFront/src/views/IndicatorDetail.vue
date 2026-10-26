@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch, watchEffect } from 'vue'
+import { planBaseQuery, planReturnRoute } from '@/utils/planNavigation.js'
 import { useRoute } from 'vue-router'
 import {
   ERROR_KINDS,
@@ -35,13 +36,13 @@ const consultReturnQuery = computed(() => {
   return query
 })
 const parentSystemCode = computed(() => detail.value?.system?.system_code || currentSystemCode.value)
-const parentRoute = computed(() => reportQuery.value.fromAiConsult === '1'
+const parentRoute = computed(() => planReturnRoute(reportQuery.value) || (reportQuery.value.fromAiConsult === '1'
   ? { name: 'ai-consult', query: consultReturnQuery.value }
   : {
       name: 'system-detail',
       params: { systemId: parentSystemCode.value },
       query: reportQuery.value,
-    })
+    }))
 const errorBackRoute = computed(() => reportQuery.value.reportId ? parentRoute.value : null)
 const indicator = computed(() => detail.value?.indicator || null)
 const hasActions = computed(() => Boolean(indicator.value?.actions?.length))
@@ -105,11 +106,11 @@ watchEffect(() => {
 
 <template>
   <IndicatorDetailSkeleton v-if="state === 'loading'" />
-  <ReportErrorState v-else-if="state !== 'ready'" :kind="errorKind" :back-to="errorBackRoute" back-label="返回系统详情" />
+  <ReportErrorState v-else-if="state !== 'ready'" :kind="errorKind" :back-to="errorBackRoute" :back-label="reportQuery.fromPlan === '1' ? '返回方案详情' : '返回系统详情'" />
 
   <main v-else class="app-shell indicator-detail-page" :data-indicator-code="indicator.indicator_code">
     <header class="indicator-detail-nav">
-      <RouterLink class="indicator-nav-back" :to="parentRoute" :aria-label="reportQuery.fromAiConsult === '1' ? '返回 AI 咨询' : `返回${detail.system.name}详情`">
+      <RouterLink class="indicator-nav-back" :to="parentRoute" :aria-label="reportQuery.fromPlan === '1' ? '返回方案详情' : (reportQuery.fromAiConsult === '1' ? '返回 AI 咨询' : `返回${detail.system.name}详情`)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
       </RouterLink>
       <strong>{{ indicator.name }}详情</strong>
@@ -182,5 +183,11 @@ watchEffect(() => {
     </section>
 
     <footer class="indicator-disclaimer">结果仅用于健康趋势管理，不构成临床诊断。</footer>
+    <RouterLink
+      v-if="reportQuery.reportId"
+      class="detail-back indicator-report-return"
+      :to="{ name: 'home', query: planBaseQuery(reportQuery) }"
+      aria-label="返回长寿指数报告首页"
+    >返回长寿指数报告 <span aria-hidden="true">→</span></RouterLink>
   </main>
 </template>

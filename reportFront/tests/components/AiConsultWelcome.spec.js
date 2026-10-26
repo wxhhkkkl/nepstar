@@ -69,7 +69,7 @@ describe('AI consultation welcome route', () => {
     wrapper.unmount()
   })
 
-  it('keeps actual report-matched plans and links to their same-report system details', async () => {
+  it('keeps actual matched plans and links to their own report-bound detail', async () => {
     loadConsultBootstrap.mockResolvedValueOnce({
       ...structuredClone(bootstrapPayload),
       management_plans: [{
@@ -91,8 +91,8 @@ describe('AI consultation welcome route', () => {
     expect(plan.find('[data-testid="ai-plan-reason"]').exists()).toBe(false)
     expect(plan.text()).not.toContain('推荐原因')
     expect(plan.findComponent(RouterLinkStub).props('to')).toEqual({
-      name: 'system-detail', params: { systemId: 'SYS_ENDOCRINE' },
-      query: { reportId: 'R1', userId: '1001', fromAiConsult: '1' },
+      name: 'plan-detail', params: { planId: '7' },
+      query: { reportId: 'R1', userId: '1001', indicatorCode: 'SYS_ENDOCRINE_PINEAL' },
     })
     expect(plan.find('img').attributes('alt')).toBe('睡眠管理方案产品')
     wrapper.unmount()
@@ -121,8 +121,8 @@ describe('AI consultation welcome route', () => {
     expect(toggle.attributes('aria-expanded')).toBe('true')
     expect(toggle.text()).toBe('收起')
     expect(expandedPlans[1].findComponent(RouterLinkStub).props('to')).toEqual({
-      name: 'system-detail', params: { systemId: plans[1].system_code },
-      query: { reportId: 'R1', userId: '1001', fromAiConsult: '1' },
+      name: 'plan-detail', params: { planId: String(plans[1].plan_id) },
+      query: { reportId: 'R1', userId: '1001', indicatorCode: plans[1].indicator_code },
     })
     expect(wrapper.find('[data-testid="ai-plan-description"]').exists()).toBe(false)
 

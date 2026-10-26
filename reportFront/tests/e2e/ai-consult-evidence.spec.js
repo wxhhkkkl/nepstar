@@ -14,7 +14,7 @@ function event(name, seq, extras = {}) {
 }
 
 for (const width of [320, 390, 430]) {
-  test(`AI answer evidence and fresh return fit ${width}px`, async ({ page }) => {
+  test(`AI answer without an evidence panel and fresh return fit ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 700 })
     await page.route('**/api/v1/ai-consult/**', async (route) => {
       const url = route.request().url()
@@ -46,30 +46,12 @@ for (const width of [320, 390, 430]) {
         await route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ code: 404, message: 'consult.session_not_found' }) })
       }
     })
-    await page.route('**/api/v1/report-view/R1/indicators/SYS_LUNG_SLEEP_BREATHING?**', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-        code: 200, message: 'ok', data: {
-          report_code: 'R1', system: { system_code: 'SYS_LUNG', name: '肺功能' },
-          indicator: {
-            indicator_code: 'SYS_LUNG_SLEEP_BREATHING', name: '呼吸睡眠', score: 98,
-            description: '关注睡眠期间的呼吸质量。', trend: [], actions: [],
-          },
-        },
-      }) })
-    })
-
     await page.goto('/#/ai-consult?reportId=R1&userId=1001')
     await page.getByTestId('ai-question').first().click()
     await expect(page.getByText('呼吸睡眠活力值 98 分。')).toBeVisible()
+    await expect(page.getByTestId('ai-evidence')).toHaveCount(0)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
-    await page.getByTestId('ai-evidence').locator('summary').click()
-    await expect(page.getByTestId('ai-evidence').locator('summary')).toHaveCSS('font-size', '14px')
-    await expect(page.getByTestId('ai-evidence').locator('small')).toHaveCSS('font-size', '14px')
-    await page.getByTestId('ai-evidence').getByText('查看详情').click()
-    await expect(page.getByRole('dialog', { name: '结束本次咨询？' })).toBeVisible()
-    await page.getByTestId('ai-leave-confirm').click()
-    await expect(page.getByRole('heading', { name: '呼吸睡眠' })).toBeVisible()
-    await page.getByRole('link', { name: '返回 AI 咨询' }).click()
+    await page.reload()
     await expect(page.getByTestId('ai-consult-welcome')).toBeVisible()
     await expect(page.getByTestId('ai-conversation')).toHaveCount(0)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)

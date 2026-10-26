@@ -98,3 +98,25 @@ def resolve_entry_context(
                 }
 
     return {"type": "indicator", "stale_plan": plan_id is not None, **common}
+
+
+async def resolve_current_entry_context(read_db, scope, home, *, plan_id, indicator_code, reader=None):
+    """Revalidate the complete effective plan set through the explicit read boundary."""
+    from .ai_consult_sources import read_report_tool
+    fallback = resolve_entry_context(home, plan_id=None, indicator_code=indicator_code)
+    if fallback is None or plan_id is None:
+        return fallback
+    stale = {**fallback, 'stale_plan': True}
+    if type(plan_id) is not int or plan_id <= 0:
+        return stale
+    data = await (reader or read_report_tool)(read_db, scope, 'plan_context', plan_id=plan_id, indicator_code=indicator_code)
+    if not isinstance(data, dict) or data.get('report_code') != scope.report_code or data.get('plan_id') != plan_id:
+        return stale
+    if not _safe_label(data.get('plan_name')) or any(data.get(key) != fallback.get(key) for key in ('system_code', 'system_name', 'indicator_code', 'indicator_name')):
+        return stale
+    score, threshold = _score(data.get('indicator_score')), _score(data.get('trigger_score_below'))
+    if score is None or score != fallback['indicator_score'] or threshold is None or score >= threshold:
+        return stale
+    return {**fallback, 'type': 'plan', 'stale_plan': False, 'plan_id': plan_id,
+            'plan_name': data['plan_name'], 'trigger_score_below': threshold,
+            'description': data.get('description')}

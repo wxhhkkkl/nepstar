@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Current feature plan: specs/006-ai-longevity-consult/plan.md
+Current feature plan: specs/007-product-plan-detail/plan.md
 (research.md, data-model.md, quickstart.md, and contracts/ live alongside it)
 <!-- SPECKIT END -->
 
