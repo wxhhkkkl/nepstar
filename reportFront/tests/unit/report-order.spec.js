@@ -21,19 +21,20 @@ describe('report data selectors', () => {
     // 把接口顺序倒过来，渲染顺序必须跟着变——前端不自行推断业务顺序（FR-013）
     const reversed = { ...report, systemOrder: [...report.systemOrder].reverse() }
     const ids = buildHomeFlow(reversed)
-      .filter((e) => e.type === 'system-group' || e.type === 'system')
-      .flatMap((e) => e.systemIds ?? [e.systemId])
+      .filter((e) => e.type === 'system')
+      .map((e) => e.systemId)
     expect(ids).toEqual([
       'immune', 'female', 'digest', 'cardio', 'bone', 'lung', 'endocrine',
     ])
   })
 
-  it('groups the first two systems and puts each recommendation right after its issue', () => {
+  it('puts each recommendation immediately after its own system, including the first system', () => {
     expect(
-      buildHomeFlow(report).map((e) => `${e.type}:${e.systemId ?? e.systemIds.join(',')}`),
+      buildHomeFlow(report).map((e) => `${e.type}:${e.systemId}`),
     ).toEqual([
-      'system-group:endocrine,lung',
+      'system:endocrine',
       'recommendation:endocrine',
+      'system:lung',
       'system:bone',
       'recommendation:bone',
       'system:cardio',
@@ -41,6 +42,19 @@ describe('report data selectors', () => {
       'system:female',
       'system:immune',
     ])
+  })
+
+  it.each([
+    ['endocrine', 'bone', 'lung', 'cardio', 'digest', 'female', 'immune'],
+    ['bone', 'endocrine', 'lung', 'cardio', 'digest', 'female', 'immune'],
+    ['immune', 'female', 'digest', 'cardio', 'lung', 'bone', 'endocrine'],
+  ])('keeps plans adjacent when the server changes system order (%s first)', (...systemOrder) => {
+    const flow = buildHomeFlow({ ...report, systemOrder })
+    expect(flow.filter(entry => entry.type === 'system').map(entry => entry.systemId)).toEqual(systemOrder)
+    flow.forEach((entry, index) => {
+      if (entry.type !== 'recommendation') return
+      expect(flow[index - 1]).toMatchObject({ type: 'system', systemId: entry.systemId, system: entry.system })
+    })
   })
 
   it('omits recommendation entries for systems without one', () => {
