@@ -10,9 +10,9 @@ test('home preserves score, systems, recommendation order and complete products'
   await expect(page.locator('#scorePanel')).toHaveClass(/is-warning-score/)
   await expect(page.locator('[data-system-id]')).toHaveCount(7)
 
-  const flow = await page.locator('[data-vue-flow] > [data-system-group], [data-vue-flow] > [data-system-id], [data-vue-flow] > [data-recommendation-for]').evaluateAll((nodes) => nodes.map((node) => node.dataset.systemGroup ? `system-group:${node.dataset.systemGroup}` : node.dataset.systemId ? `system:${node.dataset.systemId}` : `recommendation:${node.dataset.recommendationFor}`))
+  const flow = await page.locator('[data-vue-flow] > [data-system-id], [data-vue-flow] > [data-recommendation-for]').evaluateAll((nodes) => nodes.map((node) => node.dataset.systemId ? `system:${node.dataset.systemId}` : `recommendation:${node.dataset.recommendationFor}`))
   expect(flow).toEqual([
-    'system-group:endocrine,lung', 'recommendation:endocrine', 'system:bone',
+    'system:endocrine', 'recommendation:endocrine', 'system:lung', 'system:bone',
     'recommendation:bone', 'system:cardio', 'system:digest', 'system:female', 'system:immune',
   ])
 
