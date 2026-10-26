@@ -1,4 +1,5 @@
 <script setup>
+import { consumeSourceReading, restoreScroll } from '@/utils/planNavigation.js'
 import { computed, nextTick, onMounted, ref, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
@@ -77,6 +78,9 @@ async function load() {
     state.value = "ready";
     await nextTick();
     await restoreSystemDetailScroll(reportCode, currentSystemCode.value);
+    const navigationQuery = reportRouteQueryFromLocation()
+    const savedPlanSource = consumeSourceReading(navigationQuery, 'system-detail', currentSystemCode.value)
+    if (savedPlanSource) await restoreScroll(savedPlanSource.scrollY)
   } catch (error) {
     errorKind.value = error instanceof ReportApiError ? error.kind : "network";
     state.value = "error";

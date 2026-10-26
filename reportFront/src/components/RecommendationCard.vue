@@ -1,5 +1,7 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
+import { routerKey } from 'vue-router'
+import { createPlanNavigation, discardPlanNavigation, planDetailRoute } from '@/utils/planNavigation.js'
 import { reportParamsFromLocation, reportRouteQueryFromLocation } from '@/api/reportClient.js'
 import { saveHomeScroll, saveSystemDetailScroll } from '@/composables/useScrollRestoration.js'
 import { scoreAppearance, scoreStyle } from '@/utils/scoreColor.js'
@@ -11,25 +13,26 @@ const props = defineProps({
 const recommendation = computed(() => props.system.recommendation)
 const titleLines = computed(() => recommendation.value?.title.split('\n') ?? [])
 const reportQuery = reportRouteQueryFromLocation()
-const consultRoute = computed(() => {
-  const context = recommendation.value || {}
-  return {
-    name: 'ai-consult',
-    query: {
-      ...reportQuery,
-      returnSystem: props.system.systemCode,
-      ...(Number.isSafeInteger(Number(context.planId)) && Number(context.planId) > 0
-        ? { planId: String(context.planId) } : {}),
-      ...(typeof context.triggerIndicatorCode === 'string'
-        ? { indicatorCode: context.triggerIndicatorCode } : {}),
-    },
+const router = inject(routerKey, null)
+const planRoute = computed(() => planDetailRoute(reportQuery, recommendation.value?.planId, recommendation.value?.triggerIndicatorCode))
+async function openPlan(event) {
+  if (!router) return
+  event.preventDefault()
+  if (props.variant === 'home') saveHomeScroll()
+  else {
+    const { reportCode } = reportParamsFromLocation()
+    saveSystemDetailScroll(reportCode, props.system.systemCode)
   }
-})
-
-function rememberDetailPosition() {
-  const { reportCode } = reportParamsFromLocation()
-  saveSystemDetailScroll(reportCode, props.system.systemCode)
+  const context = recommendation.value
+  const identity = { ...reportQuery, planId: String(context.planId), indicatorCode: context.triggerIndicatorCode }
+  const origin = props.variant === 'home'
+    ? { name: 'home', query: reportQuery }
+    : { name: 'system-detail', params: { systemId: props.system.systemCode }, query: reportQuery }
+  const key = createPlanNavigation(identity, origin, { scrollY: window.scrollY })
+  const failure = await router.push(planDetailRoute(reportQuery, context.planId, context.triggerIndicatorCode, key))
+  if (failure) discardPlanNavigation(key)
 }
+
 </script>
 
 <template>
@@ -39,7 +42,7 @@ function rememberDetailPosition() {
       <div class="issue-plan-copy"><span class="eyebrow">{{ recommendation.eyebrow }}</span><h2 :id="`${system.id}PlanTitle`"><template v-for="(line, index) in titleLines" :key="line">{{ line }}<br v-if="index < titleLines.length - 1"></template></h2><p>{{ recommendation.context }}</p><div class="issue-plan-tags"><span v-for="tag in recommendation.tags" :key="tag">{{ tag }}</span></div></div>
       <div class="issue-plan-visual product-contain"><img :src="recommendation.image" :alt="recommendation.imageAlt" width="180" height="270"></div>
     </div>
-    <RouterLink class="issue-plan-action" :to="{ name: 'system-detail', params: { systemId: system.systemCode }, query: reportQuery }" @click="saveHomeScroll"><span><b>{{ recommendation.actionLabel }}</b><small v-if="recommendation.actionHint">{{ recommendation.actionHint }}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
+    <RouterLink class="issue-plan-action" :to="planRoute" @click="openPlan"><span><b>查看方案</b><small v-if="recommendation.actionHint">{{ recommendation.actionHint }}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
     <p class="issue-plan-note">仅作日常健康管理参考，不能替代医学诊断或治疗。</p>
   </section>
 
@@ -49,7 +52,7 @@ function rememberDetailPosition() {
       <div class="detail-product-visual product-contain"><img :src="recommendation.image" :alt="recommendation.imageAlt" width="208" height="160"><span>PREMIUM SUPPORT</span></div>
       <div class="detail-product-copy"><span class="detail-product-module" :class="{ 'score-value': scoreAppearance(recommendation.indicatorScore).key !== 'unknown' }">对应问题 · {{ recommendation.issue }}</span><h2 :id="`${system.id}DetailProductTitle`"><template v-for="(line, index) in titleLines" :key="line">{{ line }}<br v-if="index < titleLines.length - 1"></template></h2><p>{{ recommendation.context }}</p></div>
     </div>
-    <RouterLink class="detail-product-action" :to="consultRoute" aria-label="咨询 AI 长寿顾问了解推荐依据" @click="rememberDetailPosition"><span><b>咨询 AI 长寿顾问</b><small>进一步了解推荐依据</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
+    <RouterLink class="detail-product-action" :to="planRoute" aria-label="查看方案" @click="openPlan"><span><b>查看方案</b><small>了解方案与配套产品</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></RouterLink>
     <p class="detail-product-disclaimer">温馨提示：本推荐仅用于日常健康管理参考。保健食品不是药物，不能替代药物治疗疾病。</p>
   </section>
 </template>

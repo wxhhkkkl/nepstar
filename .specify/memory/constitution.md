@@ -1,32 +1,11 @@
 <!--
-  ============================================================================
-  SYNC IMPACT REPORT
-  ============================================================================
-  Version change: 1.1.0 → 1.2.0
-  Date: 2026-09-15
-
-  Modified principles:
-    - (unchanged) I. Test-Driven Development (TDD) — NON-NEGOTIABLE
-    - (unchanged) II. Scope Discipline (只做当前需求)
-    - (unchanged) III. Architecture Change Approval (架构变更需用户确认)
-    - (unchanged) IV. Clarify First, Don't Guess (先澄清不猜测)
-    - V. Canonical Repository Scope and Frontend Baseline →
-      V. Canonical Frontend Baseline and Technology
-
-  Added sections:
-    - Vue 3 + JavaScript frontend technology constraint
-
-  Removed sections: none
-
-  Templates:
-    - .specify/templates/plan-template.md       - ✅ updated (frontend stack check added)
-    - .specify/templates/spec-template.md       - ✅ aligned (scope boundaries already mandatory)
-    - .specify/templates/tasks-template.md      - ✅ updated (Vue 3 + JavaScript documented)
-    - .specify/templates/checklist-template.md  - ✅ aligned (no change required)
-    - CLAUDE.md                                  - ✅ aligned (no conflicting runtime guidance)
-
-  Deferred TODOs: none
-  ============================================================================
+Sync Impact Report — 2026-10-26
+Version: 1.2.0 → 1.2.1 (patch: actual migrated frontend path clarification)
+User approval: “都批准” in this conversation, 2026-10-26.
+Modified: Principle V baseline reportFront/report-v2 → reportFront/;
+source reportFront/src/, tests reportFront/tests/. Stack and scope rules unchanged.
+Templates: plan-template.md and tasks-template.md updated; spec-template.md checked.
+Added/removed principles: none. Deferred items: none.
 -->
 
 # Nepstar Constitution
@@ -92,7 +71,7 @@ All project work and generated artifacts MUST remain inside the canonical
 repository root `/Users/leelee/Desktop/体检报告/nepstar`.
 
 - The maintained report frontend baseline is
-  `reportFront/report-v2`.
+  `reportFront/` (source: `reportFront/src/`; tests: `reportFront/tests/`).
 - The maintained report frontend MUST use Vue 3 with JavaScript. TypeScript
   MUST NOT be introduced unless the user explicitly approves a later amendment.
 - Existing V2 visual styling, assets, responsive behavior, and business output
@@ -150,4 +129,4 @@ This constitution supersedes all other development practices in this project.
 - **Compliance review**: Every plan, spec, task list, and review MUST verify
   compliance with these principles.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-09 | **Last Amended**: 2026-09-15
+**Version**: 1.2.1 | **Ratified**: 2026-09-09 | **Last Amended**: 2026-10-26

@@ -1,0 +1,174 @@
+[
+  {
+    "bodyFont": "16px",
+    "buttons": [
+      {
+        "height": 44,
+        "text": "",
+        "width": 44,
+        "x": 10,
+        "y": 18
+      },
+      {
+        "height": 44,
+        "text": "查看指标",
+        "width": 75,
+        "x": 215,
+        "y": 299
+      },
+      {
+        "height": 50,
+        "text": "查看关联指标",
+        "width": 120,
+        "x": 18,
+        "y": 540.8
+      },
+      {
+        "height": 50,
+        "text": "咨询 AI 长寿顾问",
+        "width": 156,
+        "x": 146,
+        "y": 540.8
+      }
+    ],
+    "clientWidth": 320,
+    "height": 667,
+    "scrollWidth": 320,
+    "title": {
+      "height": 69.6,
+      "width": 152.6,
+      "x": 20,
+      "y": 139.2
+    },
+    "width": 335
+  },
+  {
+    "bodyFont": "16px",
+    "buttons": [
+      {
+        "height": 44,
+        "text": "",
+        "width": 44,
+        "x": 10,
+        "y": 18
+      },
+      {
+        "height": 44,
+        "text": "查看指标",
+        "width": 79.1,
+        "x": 259.9,
+        "y": 299
+      },
+      {
+        "height": 50,
+        "text": "查看关联指标",
+        "width": 143.9,
+        "x": 18,
+        "y": 707.9
+      },
+      {
+        "height": 50,
+        "text": "咨询 AI 长寿顾问",
+        "width": 187.1,
+        "x": 169.9,
+        "y": 707.9
+      }
+    ],
+    "clientWidth": 375,
+    "height": 812,
+    "scrollWidth": 375,
+    "title": {
+      "height": 75.4,
+      "width": 181.4,
+      "x": 22,
+      "y": 136.3
+    },
+    "width": 390
+  },
+  {
+    "bodyFont": "16px",
+    "buttons": [
+      {
+        "height": 44,
+        "text": "",
+        "width": 44,
+        "x": 10,
+        "y": 18
+      },
+      {
+        "height": 44,
+        "text": "查看指标",
+        "width": 79.1,
+        "x": 274.9,
+        "y": 299
+      },
+      {
+        "height": 50,
+        "text": "查看关联指标",
+        "width": 150.4,
+        "x": 18,
+        "y": 739.9
+      },
+      {
+        "height": 50,
+        "text": "咨询 AI 长寿顾问",
+        "width": 195.6,
+        "x": 176.4,
+        "y": 739.9
+      }
+    ],
+    "clientWidth": 390,
+    "height": 844,
+    "scrollWidth": 390,
+    "title": {
+      "height": 75.4,
+      "width": 189.9,
+      "x": 22,
+      "y": 136.3
+    },
+    "width": 405
+  },
+  {
+    "bodyFont": "16px",
+    "buttons": [
+      {
+        "height": 44,
+        "text": "",
+        "width": 44,
+        "x": 10,
+        "y": 18
+      },
+      {
+        "height": 44,
+        "text": "查看指标",
+        "width": 79.1,
+        "x": 298.9,
+        "y": 299
+      },
+      {
+        "height": 50,
+        "text": "查看关联指标",
+        "width": 160.9,
+        "x": 18,
+        "y": 791.9
+      },
+      {
+        "height": 50,
+        "text": "咨询 AI 长寿顾问",
+        "width": 209.1,
+        "x": 186.9,
+        "y": 791.9
+      }
+    ],
+    "clientWidth": 414,
+    "height": 896,
+    "scrollWidth": 414,
+    "title": {
+      "height": 75.4,
+      "width": 195,
+      "x": 22,
+      "y": 136.3
+    },
+    "width": 429
+  }
+]

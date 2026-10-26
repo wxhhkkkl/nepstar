@@ -4,7 +4,8 @@
 线上 JSON 一律 snake_case，与既有 ApiResponse 一致。
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal, Annotated, Union
 
 
 class ReportSummaryOut(BaseModel):
@@ -117,3 +118,70 @@ class ReportHomeOut(BaseModel):
 class ReportSystemDetailOut(BaseModel):
     report_code: str
     system: SystemDetailOut
+
+
+class PlanAssociationOut(BaseModel):
+    system_code: str
+    system_name: str
+    indicator_code: str
+    indicator_name: str
+    indicator_score: int = Field(ge=0, le=100)
+    trigger_score_below: int = Field(ge=0, le=100)
+
+
+class PlanImageOut(BaseModel):
+    url: str
+    alt: str
+
+
+class ProductParagraphOut(BaseModel):
+    type: Literal['paragraph']
+    text: str
+
+
+class ProductHeadingOut(BaseModel):
+    type: Literal['heading']
+    level: Literal[2, 3]
+    text: str
+
+
+class ProductListOut(BaseModel):
+    type: Literal['list']
+    ordered: bool
+    items: list[str]
+
+
+class ProductImageBlockOut(PlanImageOut):
+    type: Literal['image']
+
+
+ProductContentBlock = Annotated[Union[ProductParagraphOut, ProductHeadingOut, ProductListOut, ProductImageBlockOut], Field(discriminator='type')]
+
+
+class PlanProductOut(BaseModel):
+    product_id: int
+    name: str
+    description: str | None = None
+    images: list[PlanImageOut] = Field(default_factory=list)
+    detail_blocks: list[ProductContentBlock] = Field(default_factory=list)
+    detail_truncated: bool = False
+
+
+class PlanOut(BaseModel):
+    plan_id: int
+    name: str
+    description: str | None = None
+
+
+class PlanConsultOut(BaseModel):
+    status: Literal['available', 'maintenance', 'unavailable']
+    message: str | None = None
+
+
+class ReportPlanDetailOut(BaseModel):
+    report_code: str
+    plan: PlanOut
+    primary_indicator: PlanAssociationOut
+    related_indicators: list[PlanAssociationOut]
+    products: list[PlanProductOut]
+    consult: PlanConsultOut

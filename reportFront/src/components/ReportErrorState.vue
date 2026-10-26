@@ -11,6 +11,7 @@ const props = defineProps({
 
 // 报告不存在与无权访问对外仍合并展示，避免泄露报告是否存在。
 const MESSAGES = {
+  [ERROR_KINDS.PLAN_NOT_FOUND]: { eyebrow: 'PLAN UNAVAILABLE', title: '该方案暂不可查看', detail: '方案已调整，或不再与本次报告关联。', hint: '请返回报告查看当前方案', visual: 'missing' },
   [ERROR_KINDS.NOT_FOUND]: { eyebrow: 'REPORT NOT FOUND', title: '报告打不开', detail: '报告不存在，或这份报告不属于当前账户。', hint: '请核对链接中的报告编号和账户信息', visual: 'missing' },
   [ERROR_KINDS.NOT_READY]: { eyebrow: 'REPORT IN PROGRESS', title: '报告尚未生成完成', detail: '报告还在生成中，请稍后再试。', hint: '稍后可使用同一链接继续查看', visual: 'progress' },
   [ERROR_KINDS.SYSTEM_NOT_FOUND]: { eyebrow: 'SYSTEM UNAVAILABLE', title: '该系统不属于此报告', detail: '当前报告中没有这一系统，请重新选择。', visual: 'missing' },

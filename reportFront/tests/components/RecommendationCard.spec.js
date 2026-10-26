@@ -23,21 +23,22 @@ describe('RecommendationCard', () => {
     expect(mount(RecommendationCard, { props: { system: system('SYS_CARDIO') }, global: { stubs: { RouterLink: true } } }).html()).toBe('<!--v-if-->')
   })
 
-  it('opens AI consultation from the detail page and preserves the system as its return target', () => {
+  it('opens the report-bound plan detail from the system page', () => {
     const originalUrl = window.location.href
     window.history.replaceState({}, '', '/#/system/SYS_ENDOCRINE?reportId=R1&userId=1001')
     try {
       const wrapper = mount(RecommendationCard, {
         props: { system: system('SYS_ENDOCRINE'), variant: 'detail' },
-        global: { stubs: { RouterLink: { props: ['to'], template: '<a :data-name="to.name" :data-report="to.query.reportId" :data-user="to.query.userId" :data-plan="to.query.planId" :data-indicator="to.query.indicatorCode" :data-return-system="to.query.returnSystem"><slot /></a>' } } },
+        global: { stubs: { RouterLink: { props: ['to'], template: '<a :data-name="to.name" :data-report="to.query.reportId" :data-user="to.query.userId" :data-plan="to.params?.planId" :data-indicator="to.query.indicatorCode" :data-return-system="to.query.returnSystem"><slot /></a>' } } },
       })
       const destination = wrapper.get('.detail-product-action')
-      expect(destination.attributes('data-name')).toBe('ai-consult')
+      expect(destination.attributes('data-name')).toBe('plan-detail')
       expect(destination.attributes('data-report')).toBe('R1')
       expect(destination.attributes('data-user')).toBe('1001')
       expect(destination.attributes('data-plan')).toBe('1')
       expect(destination.attributes('data-indicator')).toBe('SYS_ENDOCRINE_PINEAL')
-      expect(destination.attributes('data-return-system')).toBe('SYS_ENDOCRINE')
+      expect(destination.attributes('data-return-system')).toBeUndefined()
+      expect(destination.text()).toContain('查看方案')
     } finally {
       window.history.replaceState({}, '', originalUrl)
     }

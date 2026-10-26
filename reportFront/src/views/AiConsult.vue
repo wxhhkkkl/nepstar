@@ -35,10 +35,27 @@ import { resolveProductImageUrl } from "@/data/reportAdapter.js";
 import { createUuid } from "@/utils/uuid.js";
 import { scoreAppearance, scoreStyle } from "@/utils/scoreColor.js";
 
+import { createPlanNavigation, discardPlanNavigation, planDetailRoute, consumeSourceReading, restoreScroll, planReturnRoute } from '@/utils/planNavigation.js';
+const planRouter = inject(routerKey, null);
+async function openManagementPlan(event, plan) {
+  if (!planRouter) return;
+  event.preventDefault();
+  if (!(await confirmPageLeave())) return;
+  const key = createPlanNavigation(
+    { ...reportQuery.value, planId: String(plan.plan_id), indicatorCode: plan.indicator_code },
+    { name: 'ai-consult', query: reportQuery.value },
+    { scrollY: window.scrollY, plansExpanded: plansExpanded.value },
+  );
+  const failure = await planRouter.push(planDetailRoute(reportQuery.value, plan.plan_id, plan.indicator_code, key));
+  if (failure) discardPlanNavigation(key);
+}
+
 defineOptions({ name: "AiConsult" });
 
 const reportQuery = ref(reportRouteQueryFromLocation());
 const backTo = computed(() => {
+  const planBack = planReturnRoute(reportQuery.value);
+  if (planBack) return planBack;
   const query = { ...reportQuery.value };
   const returnSystem = query.returnSystem;
   delete query.returnSystem;
@@ -433,7 +450,7 @@ function messageTime(value) {
 
 async function load() {
   const { reportCode, customerId } = reportParamsFromLocation();
-  reportQuery.value = reportRouteQueryFromLocation();
+  reportQuery.value = { ...reportRouteQueryFromLocation(), ...(planRouter?.currentRoute.value.query || {}) };
   if (!reportCode || customerId === null) {
     errorKind.value = "report_unavailable";
     state.value = "error";
@@ -479,6 +496,12 @@ async function load() {
         : "";
     state.value = "ready";
     onPageScroll();
+    const savedReading = consumeSourceReading(reportQuery.value, 'ai-consult');
+    if (savedReading) {
+      plansExpanded.value = savedReading.plansExpanded;
+      await nextTick();
+      await restoreScroll(savedReading.scrollY);
+    }
   } catch (error) {
     if (activeIdentity !== requestedIdentity) return;
     errorKind.value =
@@ -1186,7 +1209,7 @@ onUnmounted(() => {
     data-testid="ai-consult-welcome"
   >
     <header class="ai-topbar">
-      <RouterLink :to="backTo" class="ai-back" aria-label="返回报告"
+      <RouterLink :to="backTo" class="ai-back" :aria-label="backTo.name === 'plan-detail' ? '返回方案详情' : '返回报告'"
         ><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg
       ></RouterLink>
       <div class="ai-topbar-title">
@@ -1269,13 +1292,9 @@ onUnmounted(() => {
               <div class="ai-plan-item-clip">
                 <RouterLink
                   class="ai-plan-card"
-                  :to="{
-                    name: 'system-detail',
-                    params: { systemId: plan.system_code },
-                    query: { ...reportQuery, fromAiConsult: '1' },
-                  }"
+:to="planDetailRoute(reportQuery, plan.plan_id, plan.indicator_code)"
                   :aria-label="`查看${plan.plan_name}及推荐依据`"
-                  @click="rememberChatPosition"
+                  @click="openManagementPlan($event, plan)"
                 >
                   <div class="ai-plan-visual">
                     <img

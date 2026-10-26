@@ -8,7 +8,7 @@ from typing import Any, Awaitable, Callable
 from urllib.parse import quote
 
 from .ai_consult_sources import read_report_tool
-from .ai_consult_plan_context import resolve_entry_context
+from .ai_consult_plan_context import resolve_current_entry_context
 
 
 class EvidenceUnavailable(ValueError):
@@ -408,31 +408,16 @@ async def prepare_report_evidence(
                 prior_follow_up_questions, code, question
             )
         if requested_plan_id is not None:
-            plan_context = resolve_entry_context(
-                home,
-                plan_id=requested_plan_id,
-                indicator_code=code,
+            plan_context = await resolve_current_entry_context(
+                read_db, bound_scope, home, plan_id=requested_plan_id, indicator_code=code, reader=reader,
             )
-            if plan_context and plan_context.get("type") == "plan":
-                if catalog_score is not None and detail_score == catalog_score:
-                    matching_plans = [
-                        system.get("recommendation")
-                        for system in home.get("systems") or []
-                        if isinstance(system, dict)
-                        and system.get("system_code") == plan_context["system_code"]
-                        and isinstance(system.get("recommendation"), dict)
-                        and system["recommendation"].get("plan_id") == requested_plan_id
-                        and system["recommendation"].get("trigger_indicator_code") == code
-                    ]
-                    description = _safe_plan_description(
-                        matching_plans[0].get("description") if len(matching_plans) == 1 else None,
-                        report_code,
-                    )
-                    _add_plan_fact(facts, citations, bound_scope, plan_context, description)
-                else:
-                    warnings.append("plan_stale")
+            if (plan_context and plan_context.get('type') == 'plan'
+                    and catalog_score is not None
+                    and detail_score == catalog_score == plan_context.get('indicator_score')):
+                description = _safe_plan_description(plan_context.get('description'), report_code)
+                _add_plan_fact(facts, citations, bound_scope, plan_context, description)
             else:
-                warnings.append("plan_stale")
+                warnings.append('plan_stale')
         return EvidenceBundle(
             facts, citations, warnings, actions, user_context, previous_questions
         )

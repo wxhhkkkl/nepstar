@@ -83,6 +83,67 @@ class ReportIndicatorNotFoundError(ReportViewError):
         super().__init__(reason)
 
 
+class ReportPlanNotFoundError(ReportViewError):
+    key = "report.plan_not_found"
+    code = 404
+
+
+async def build_plan_context(db, report_code: str, plan_id: int, customer_id: int,
+                             indicator_code: str | None = None) -> dict:
+    """Resolve the effective plan against actual report branches, without product bodies."""
+    document, _ = await _load_document_and_meta(db, report_code, customer_id)
+    try:
+        systems, children, _, _, plans = await _load_registry(db, document)
+    except SQLAlchemyError as exc:
+        raise report_source.ReportSourceUnavailableError("Plan registry unavailable") from exc
+    matches = []
+    selected_plan = None
+    codes = [c.ind_code for group in children.values() for c in group]
+    for system in systems:
+        for child in children.get(system.id, []):
+            if codes.count(child.ind_code) != 1:
+                continue
+            node = report_source.find_target_under_system(
+                (document.get('ddsReportInfo') or {}).get('firstTarget'), system.target_id, child.target_id,
+            )
+            score = node.get('score') if node else None
+            if isinstance(score, bool) or not isinstance(score, (int, float)) or not 0 <= score <= 100 or int(score) != score:
+                continue
+            for plan in plans.get(child.id, []):
+                threshold = plan.get('trigger_score_below')
+                if threshold is None:
+                    threshold = 80
+                if plan.get('plan_id') != plan_id or not isinstance(threshold, (int, float)) or not 0 <= threshold <= 100 or score >= threshold:
+                    continue
+                matches.append(dict(system_code=system.ind_code, system_name=system.ind_name,
+                                    indicator_code=child.ind_code, indicator_name=child.ind_name,
+                                    indicator_score=int(score), trigger_score_below=int(threshold)))
+                selected_plan = plan
+                break
+    primary = next((m for m in matches if m['indicator_code'] == indicator_code), None) if indicator_code else (matches[0] if matches else None)
+    if primary is None or selected_plan is None:
+        raise ReportPlanNotFoundError('plan_not_found')
+    return dict(report_code=report_code,
+                plan=dict(plan_id=plan_id, name=selected_plan['plan_name'], description=selected_plan.get('description')),
+                primary_indicator=primary, related_indicators=matches,
+                product_ids=list(dict.fromkeys(p['product_id'] for p in selected_plan.get('products', []))))
+
+
+async def build_plan_detail(db, report_code: str, plan_id: int, customer_id: int,
+                            indicator_code: str | None = None) -> dict:
+    from .report_plan_source import fetch_product_details
+    from .ai_consult_control import public_entry_status
+    from ..schemas.report_view import ReportPlanDetailOut
+    from .product_content import parse_product_content, safe_media_url
+    context = await build_plan_context(db, report_code, plan_id, customer_id, indicator_code)
+    products = await fetch_product_details(db, context.pop('product_ids'))
+    for item in products:
+        item['detail_blocks'], item['detail_truncated'] = parse_product_content(item.pop('detail_html', None))
+        item['images'] = [{**image, 'url': safe_media_url(image['url'])} for image in item['images'] if safe_media_url(image['url'])]
+    return ReportPlanDetailOut.model_validate({**context, 'products': products,
+                                               'consult': await public_entry_status()}).model_dump()
+
+
 # --- 纯函数 ---
 
 

@@ -33,6 +33,14 @@ export function resolveProductImageUrl(value) {
   return LOCAL_PRODUCT_ASSETS[filename] || value || ''
 }
 
+export function adaptPlanDetail(dto) {
+  return { ...dto, products: (dto.products || []).map(product => ({ ...product,
+    images: (product.images || []).map(image => ({ ...image, url: resolveProductImageUrl(image.url) })),
+    detail_blocks: (product.detail_blocks || []).map(block => block.type === 'image'
+      ? { ...block, url: resolveProductImageUrl(block.url) } : block),
+  })) }
+}
+
 function resolveAiConsult(dto, assets) {
   if (!dto) return { enabled: false }
   if (LOCAL_AI_CONSULT_FILENAMES.has(filenameFromUrl(dto.entry_url)) && assets.aiConsultImage) {

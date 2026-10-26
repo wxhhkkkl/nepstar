@@ -170,20 +170,40 @@ async def read_report_tool(
     tool_name: str,
     *,
     indicator_code: str | None = None,
+    plan_id: int | None = None,
 ) -> dict[str, Any]:
-    """只开放首页事实和单指标事实；历史上界另经专门适配器实现。"""
+    """Only home, indicator and verified plan context; no product bodies or arbitrary SQL."""
     report_code, customer_id = _scope(bound_scope)
-    if tool_name not in {"home", "indicator"}:
+    if tool_name not in {"home", "indicator", "plan_context"}:
         raise ReadBoundaryViolation("Unknown report tool")
+    if tool_name != 'plan_context' and plan_id is not None:
+        raise ReadBoundaryViolation('Unexpected plan argument')
     if tool_name == "home" and indicator_code is not None:
         raise ReadBoundaryViolation("Unexpected indicator argument")
-    if tool_name == "indicator" and (
+    if tool_name in {"indicator", "plan_context"} and (
         not isinstance(indicator_code, str) or _INDICATOR_CODE.fullmatch(indicator_code) is None
     ):
         raise ReadBoundaryViolation("Invalid indicator code")
 
     service = _report_view_service()
     guarded_db = ReadOnlyReportSession(read_db)
+    if tool_name == 'plan_context':
+        if type(plan_id) is not int or plan_id <= 0:
+            raise ReadBoundaryViolation('Invalid plan ID')
+        try:
+            data = await service.build_plan_context(guarded_db, report_code, plan_id, customer_id, indicator_code)
+        except Exception as exc:
+            if getattr(exc, 'key', None) == 'report.plan_not_found':
+                return {}
+            raise
+        plan = data.get('plan') or {}
+        primary = data.get('primary_indicator') or {}
+        if data.get('report_code') != report_code or plan.get('plan_id') != plan_id or primary.get('indicator_code') != indicator_code:
+            raise ReadBoundaryViolation('Plan scope mismatch')
+        return {'report_code': report_code, 'plan_id': plan_id, 'plan_name': plan.get('name'),
+                'description': plan.get('description'), **{
+                    key: primary.get(key) for key in ('system_code', 'system_name', 'indicator_code', 'indicator_name', 'indicator_score', 'trigger_score_below')
+                }}
     if tool_name == "home":
         data = await service.build_home(guarded_db, report_code, customer_id)
         report = data.get("report") or {}

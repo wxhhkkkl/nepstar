@@ -35,7 +35,7 @@
 
 - [ ] All target files are inside the canonical repository root.
 - [ ] If the report frontend is in scope, the plan targets
-      `reportFront/report-v2` only, unless another version was explicitly
+      `reportFront` only, unless another version was explicitly
       authorized by the user.
 - [ ] Report frontend implementation uses Vue 3 + JavaScript, not TypeScript,
       and preserves the approved V2 visual behavior unless the spec changes it.

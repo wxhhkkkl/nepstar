@@ -6,7 +6,7 @@
 
 import time
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Path, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
@@ -15,6 +15,27 @@ from ..services import report_source, report_view_service
 from ..utils.report_log import log_report_request
 
 router = APIRouter(prefix="/report-view", tags=["report-view"])
+
+
+@router.get('/{report_code}/plans/{plan_id}')
+async def get_report_plan_detail(
+    report_code: str, response: Response, plan_id: int = Path(gt=0),
+    customer_id: int = Query(gt=0),
+    indicator_code: str | None = Query(default=None, min_length=2, max_length=64, pattern=r'^[A-Z][A-Z0-9_]+$'),
+    db: AsyncSession = Depends(get_db),
+):
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    started = time.perf_counter()
+    try:
+        data = await report_view_service.build_plan_detail(db, report_code, plan_id, customer_id, indicator_code)
+    except report_view_service.ReportViewError as exc:
+        _log_failure(report_code, exc.reason, started)
+        return ApiResponse(code=exc.code, message=exc.key)
+    except report_source.ReportSourceUnavailableError:
+        _log_failure(report_code, 'unavailable', started)
+        return ApiResponse(code=503, message='report.unavailable')
+    return ApiResponse(data=data)
 
 
 @router.get("/{report_code}/home")

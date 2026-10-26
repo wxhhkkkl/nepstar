@@ -1,4 +1,5 @@
 <script setup>
+import { consumeSourceReading, restoreScroll } from '@/utils/planNavigation.js'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { ReportApiError, fetchReportHome, reportParamsFromLocation, reportRouteQueryFromLocation } from '@/api/reportClient.js'
 import { toReportViewModel } from '@/data/reportAdapter.js'
@@ -37,6 +38,9 @@ async function load() {
     state.value = 'ready'
     await nextTick()
     await restoreHomeScroll()
+    const navigationQuery = reportRouteQueryFromLocation()
+    const savedPlanSource = consumeSourceReading(navigationQuery, 'home')
+    if (savedPlanSource) await restoreScroll(savedPlanSource.scrollY)
   } catch (error) {
     errorKind.value = error instanceof ReportApiError ? error.kind : 'network'
     state.value = 'error'

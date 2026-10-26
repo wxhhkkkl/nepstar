@@ -21,7 +21,7 @@ description: "Task list template for feature implementation"
 ## Path Conventions
 
 - **Canonical repository root**: `/Users/leelee/Desktop/体检报告/nepstar`
-- **Maintained report frontend**: `reportFront/report-v2/`
+- **Maintained report frontend**: `reportFront/`
 - **Report frontend stack**: Vue 3 + JavaScript (TypeScript is out of scope)
 - Tasks MUST NOT target `reportFront/baogaoV2`, V3, legacy report directories, or
   `KH503` unless the feature specification explicitly includes them.

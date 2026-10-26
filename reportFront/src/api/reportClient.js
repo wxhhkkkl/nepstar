@@ -15,6 +15,7 @@ export const ERROR_KINDS = {
   NOT_READY: 'not_ready',
   SYSTEM_NOT_FOUND: 'system_not_found',
   INDICATOR_NOT_FOUND: 'indicator_not_found',
+  PLAN_NOT_FOUND: 'plan_not_found',
   ROUTE_NOT_FOUND: 'route_not_found',
   UNAVAILABLE: 'unavailable',
   NETWORK: 'network',
@@ -26,6 +27,7 @@ const MESSAGE_TO_KIND = {
   'report.not_ready': ERROR_KINDS.NOT_READY,
   'report.system_not_found': ERROR_KINDS.SYSTEM_NOT_FOUND,
   'report.indicator_not_found': ERROR_KINDS.INDICATOR_NOT_FOUND,
+  'report.plan_not_found': ERROR_KINDS.PLAN_NOT_FOUND,
   'report.unavailable': ERROR_KINDS.UNAVAILABLE,
 }
 
@@ -86,6 +88,12 @@ export function fetchIndicatorDetail(reportCode, indicatorCode, customerId, opti
     `/report-view/${encodeURIComponent(reportCode)}/indicators/${encodeURIComponent(indicatorCode)}?${query}`,
     options,
   )
+}
+
+export function fetchPlanDetail(reportCode, planId, customerId, indicatorCode, options) {
+  const query = new URLSearchParams({ customer_id: String(customerId) })
+  if (indicatorCode) query.set('indicator_code', indicatorCode)
+  return request(`/report-view/${encodeURIComponent(reportCode)}/plans/${encodeURIComponent(planId)}?${query}`, options)
 }
 
 function locationHashParams(hash) {
