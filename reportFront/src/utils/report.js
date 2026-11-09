@@ -1,3 +1,11 @@
+export function averageScore(items) {
+  const scores = items.map((item) => item.score)
+    .filter((score) => Number.isFinite(score) && score >= 0 && score <= 100)
+  return scores.length
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+    : null
+}
+
 export function getVisibleSystems(report) {
   const byId = new Map(report.systems.map((system) => [system.id, system]))
   return report.systemOrder

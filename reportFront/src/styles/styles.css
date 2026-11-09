@@ -1379,13 +1379,6 @@ svg {
     font-size: 13px
 }
 
-.detail-indicator-list small {
-    display: block;
-    margin-top: 3px;
-    color: var(--muted);
-    font-size: 8px
-}
-
 .detail-indicator-list i {
     display: block;
     height: 4px;

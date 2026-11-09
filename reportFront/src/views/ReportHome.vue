@@ -3,6 +3,7 @@ import { consumeSourceReading, restoreScroll } from '@/utils/planNavigation.js'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { ReportApiError, fetchReportHome, reportParamsFromLocation, reportRouteQueryFromLocation } from '@/api/reportClient.js'
 import { toReportViewModel } from '@/data/reportAdapter.js'
+import { averageScore, getVisibleSystems } from '@/utils/report.js'
 import { reportAssets } from '@/data/report.js'
 import { restoreHomeScroll, saveHomeScroll } from '@/composables/useScrollRestoration.js'
 import AiConsultEntry from '@/components/AiConsultEntry.vue'
@@ -34,7 +35,12 @@ async function load() {
   state.value = 'loading'
   try {
     const dto = await fetchReportHome(reportCode, customerId)
-    report.value = toReportViewModel(dto, { assets: ASSETS })
+    const homeReport = toReportViewModel(dto, { assets: ASSETS })
+    for (const system of homeReport.systems) {
+      system.score = averageScore(system.indicators)
+    }
+    homeReport.score = averageScore(getVisibleSystems(homeReport))
+    report.value = homeReport
     state.value = 'ready'
     await nextTick()
     await restoreHomeScroll()

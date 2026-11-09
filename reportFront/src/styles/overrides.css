@@ -2327,12 +2327,6 @@ body {
     line-height: 1.4
 }
 
-.detail-v2 .detail-indicator-list small {
-    margin-top: 5px;
-    font-size: 13px;
-    line-height: 1.45
-}
-
 .detail-v2 .detail-indicator-list>article>strong {
     font-size: 24px
 }

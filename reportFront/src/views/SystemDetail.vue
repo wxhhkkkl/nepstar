@@ -9,6 +9,7 @@ import {
   reportRouteQueryFromLocation,
 } from "@/api/reportClient.js";
 import { toSystemViewModel } from "@/data/reportAdapter.js";
+import { averageScore } from "@/utils/report.js";
 import DetailChart from "@/components/DetailChart.vue";
 import { scoreAppearance, scoreStyle } from "@/utils/scoreColor.js";
 import RecommendationCard from "@/components/RecommendationCard.vue";
@@ -74,7 +75,9 @@ async function load() {
       currentSystemCode.value,
       customerId,
     );
-    system.value = toSystemViewModel(dto.system);
+    const detailSystem = toSystemViewModel(dto.system);
+    detailSystem.score = averageScore(detailSystem.indicators);
+    system.value = detailSystem;
     state.value = "ready";
     await nextTick();
     await restoreSystemDetailScroll(reportCode, currentSystemCode.value);
@@ -197,8 +200,7 @@ watchEffect(() => {
             }}</span>
             <div>
               <h3>{{ item.name }}</h3>
-              <small>权重 {{ item.weight }}%</small
-              ><i><b :style="{ width: `${item.score ?? 0}%` }"></b></i>
+              <i><b :style="{ width: `${item.score ?? 0}%` }"></b></i>
             </div>
             <strong class="score-value">{{ item.score ?? '—' }}</strong>
           </article></RouterLink
@@ -214,7 +216,6 @@ watchEffect(() => {
       <span class="eyebrow">LIVE MEASUREMENT</span>
       <div class="section-heading">
         <h2>直接采集</h2>
-        <span>不参与加权</span>
       </div>
       <div class="detail-direct-list">
         <article v-for="item in system.direct" :key="item.name">
