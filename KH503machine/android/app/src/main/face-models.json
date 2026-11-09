@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "sourceApkSha256": "9bd8400478d5d397866781b94110f07ec6749e4e7ce537342de00e595737c65e",
+  "models": [
+    {
+      "file": "avg_hog_61pt.dat",
+      "size": 31232,
+      "sha256": "8187265ad09eb4048b59ff9d8e4f0f54e321841321e2ea13e36c3d7a0a1c5c97"
+    },
+    {
+      "file": "tiny_darknet.iml.mobile",
+      "size": 558848,
+      "sha256": "1190fcd18d7f5245bc634c9f9f08b3ab84bd9dcc95c13580e0463291cc9bc26c"
+    },
+    {
+      "file": "v7_face_0.25_r3.0.iml",
+      "size": 628716,
+      "sha256": "bd131e9617ee9d37dc9ec6d0d6a13f89836424998c00beb6e02227834956cd9e"
+    },
+    {
+      "file": "v7_face_0.35_r2.0.iml",
+      "size": 2391308,
+      "sha256": "84adee60c2dc40e85aba0ca8f2cbcc181549ce42afdea161489474400ff1fe01"
+    },
+    {
+      "file": "v7_keypoint_tiny_darknet_215_bn.iml",
+      "size": 561652,
+      "sha256": "e9bc4fa7a771e1e17a28fd5e56dc5c3bbd12c56e1b18d3f746a777a4abee13e5"
+    },
+    {
+      "file": "v8_face_0.25_r3.0.iml",
+      "size": 629724,
+      "sha256": "04c0f58bb02767af92dd7c67b049d474375ea5454efd736311ece261f0326bec"
+    },
+    {
+      "file": "v8_face_0.35_r2.0.iml",
+      "size": 2392036,
+      "sha256": "b23c8bc90dd5c2e8af5abe3094afdfaaaba999dd8c0fc835326551431471bca1"
+    },
+    {
+      "file": "v8_keypoint_tiny_darknet_215_bn.iml",
+      "size": 561912,
+      "sha256": "2faef8a552825c0dc139b6fe23ec9b5263922f89f01f56aebf8e3263e935fcf6"
+    }
+  ],
+  "nativeLibrary": {
+    "file": "jniLibs/armeabi-v7a/liborionvision-lib.so",
+    "apkFile": "lib/armeabi-v7a/liborionvision-lib.so",
+    "sha256": "349fdc8ed38b3d09c9c66bd787574cf328adf3e397deacc0f18a2d66508248e2"
+  },
+  "jar": {
+    "file": "libs/orion_vision.jar",
+    "sha256": "44969e032b2b80e2c6d39c35610b19b20d5504598ddae4c8c7d66549d364c97d"
+  }
+}
