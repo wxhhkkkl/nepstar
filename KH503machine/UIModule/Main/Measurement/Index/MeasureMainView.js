@@ -1954,9 +1954,9 @@ export default class MeasureMainView extends ActionButtonsMixin(PureComponent) {
         const heartRateView = this._renderHeartRateView()
         // 波形图
         // const chartView = this._renderChartView()
-        const hideECG = modeUtil.getMode() == 30
+        const hideECG = modeUtil.getMode() == 31
         // Keep the chart mounted so its ref continues receiving ECG data;
-        // hide its display only in mode 30.
+        // hide its display only in mode 31.
         const chartViewECG = this._renderChartViewECG(hideECG)
         const chartViewBO = this._renderChartViewBloodOxygen(hideECG)
         const heartRateProgressView = this._renderHeartRateProgressView()

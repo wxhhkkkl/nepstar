@@ -4,7 +4,7 @@
 
 当前统一使用 **React 16.8.6 + React Native 0.60.3**，以 `package-lock.json` 为唯一依赖锁。旧 Yarn 锁文件对应其他版本，已移出工程。结构、硬件依赖和兼容问题见 [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md)。
 
-检测模式 **`handleMode = 30`**：保留原模式 30 的扫码、用户绑定、检测、报告及完成流程，免除头部及左右腿的佩戴检查和提醒；双手、指夹及原报告数据校验继续保留。不再启用新增模式 32。说明见 [MODE30.md](MODE30.md)，离线检查执行 `npm run test:mode`。
+检测模式 **`handleMode = 31`**：保留原模式 31 的业务流程，免除头部及左右腿的佩戴检查和提醒；双手、指夹及原报告数据校验继续保留。模式 30 不再免头腿，恢复完整的头部和左右腿佩戴要求。不再启用新增模式 32。说明见 [MODE31.md](MODE31.md)，此前模式 30 方案见 [MODE30.md](MODE30.md)，离线检查执行 `npm run test:mode`。
 
 大屏启动修复历史见 [STARTUP_FIX.md](STARTUP_FIX.md)，当前摄像头及原流程恢复修订见 [CAMERA_FIX.md](CAMERA_FIX.md)。人脸 SDK 的 `.iml` 为必需模型数据，Gradle 会检查完整性；发布前还需执行 `python3 scripts/verify-face-models.py --apk <安装包路径>`。
 

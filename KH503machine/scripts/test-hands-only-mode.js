@@ -27,13 +27,13 @@ check('release logging retains console.assert required by RN networking', () => 
   assert.strictEqual(global.console.time(), 'timer');
 });
 
-check('only official mode 30 skips head and legs', () => {
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 31, 32].forEach(mode => {
+check('only official mode 31 skips head and legs', () => {
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 30, 32].forEach(mode => {
     assert.strictEqual(policy.isHandsOnlyMode(mode), false);
     assert.strictEqual(policy.isHandsOnlyMode(String(mode)), false);
   });
-  assert.strictEqual(policy.isHandsOnlyMode(30), true);
-  assert.strictEqual(policy.isHandsOnlyMode('30'), true);
+  assert.strictEqual(policy.isHandsOnlyMode(31), true);
+  assert.strictEqual(policy.isHandsOnlyMode('31'), true);
 });
 
 // Run methods extracted from the actual legacy screens, without mounting RN.
@@ -49,7 +49,7 @@ function method(relative, name, context) {
   return vm.runInNewContext(code, context);
 }
 const equippedFile = 'UIModule/Main/Checking/DeviceEquipped/DeviceEquippedView.js';
-check('original wearing screen skips only head and legs in mode 30', () => {
+check('original wearing screen skips only head and legs in mode 31', () => {
   for (const handsOnly of [false, true]) {
     for (const hand of [false, true]) for (const press of [false, true]) {
       let destination, step;
@@ -82,7 +82,7 @@ check('legacy modes still require the head after both legs are connected', () =>
   });
   assert.strictEqual(step, 2);
 });
-check('head and leg panels and overlays are absent only in mode 30', () => {
+check('head and leg panels and overlays are absent only in mode 31', () => {
   ['_renderPanel1', '_renderPanel2', '_renderHeadSensor', '_renderFootSensor'].forEach(name => {
     assert.strictEqual(method(equippedFile, name, {}).call({_handsOnly: true}), null);
   });
@@ -142,15 +142,17 @@ async function main() {
   assert.strictEqual(util.getMode(), 30);
   assert.strictEqual(util.needJumpInQRView(), true);
   assert.strictEqual(util.needZeroUserId(), false);
-  assert.strictEqual(mode.isHandsOnly(), true);
+  assert.strictEqual(mode.isHandsOnly(), false);
   assert.strictEqual(util.needJumpCodeInput(), false);
+  qrInfo.handleMode = 31;
+  assert.strictEqual(util.getMode(), 31); assert.strictEqual(mode.isHandsOnly(), true);
   qrInfo.handleMode = 0;
   assert.strictEqual(util.getMode(), 0); assert.strictEqual(mode.isHandsOnly(), false);
   assert.strictEqual(util.needJumpInQRView(), false); assert.strictEqual(util.needJumpCodeInput(), true);
-  for (const value of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 30, '30', 31, 32, '32']) {
+  for (const value of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 30, '30', 31, '31', 32, '32']) {
     qrInfo.handleMode = value;
     assert.strictEqual(util.getMode(), value);
-    assert.strictEqual(mode.isHandsOnly(), Number(value) === 30);
+    assert.strictEqual(mode.isHandsOnly(), Number(value) === 31);
     assert.strictEqual(util.needZeroUserId(), [2, 3, 4, 5, 6, 7, 10].includes(Number(value)));
     assert.strictEqual(util.needJumpInQRView(), [1, 2, 3, 4, 5, 6, 7, 8, 9, 30, 31].includes(Number(value)));
     assert.strictEqual(util.needJumpCodeInput(), Number(value) === 0);
