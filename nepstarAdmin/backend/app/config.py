@@ -56,6 +56,21 @@ class Settings(BaseSettings):
     REPORT_AI_CONSULT_ENTRY_TYPE: str = "route"
     REPORT_AI_CONSULT_ENTRY_URL: str = "/ai-consult"
     REPORT_SAVE_ENABLED: bool = False  # 保存报告按钮当前隐藏
+    # 海王报告推送/拉取集成。凭据与地址只存 .env，禁止入库/入代码/返回前端。
+    HAIXIN_APP_KEY: str = ""
+    HAIXIN_APP_SECRET: str = ""
+    HAIXIN_APP_KEYS: dict[str, str] = {}  # 拉取验签的新旧凭据映射 {appKey: secret}
+    HAIXIN_PUSH_URL: str = ""
+    HAIXIN_PUSH_ENABLED: bool = False
+    HAIXIN_PUSH_METHOD: str = "POST"
+    HAIXIN_PUSH_TIMEOUT_SECONDS: float = 5.0
+    HAIXIN_PUSH_FIELD_MAP: dict[str, str] = {}
+    HAIXIN_SIGN_TOLERANCE_SECONDS: int = 600
+    HAIXIN_PULL_DEFAULT_DAYS: int = 1
+    HAIXIN_PULL_MAX_DAYS: int = 31
+    HAIXIN_PULL_DEFAULT_PAGE_SIZE: int = 50
+    HAIXIN_PULL_MAX_PAGE_SIZE: int = 100
+    HAIXIN_AUTO_MAX_FAILED_ATTEMPTS: int = 3  # 同一 reportId 自动失败记录上限
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

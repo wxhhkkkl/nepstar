@@ -8,6 +8,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/dashboard', name: 'Dashboard', component: () => import('@/views/dashboard/DashboardPage.vue'), meta: { requiresAuth: true } },
   { path: '/device/list', name: 'DeviceList', component: () => import('@/views/device/DeviceList.vue'), meta: { requiresAuth: true } },
   { path: '/report/list', name: 'ReportList', component: () => import('@/views/report/ReportList.vue'), meta: { requiresAuth: true } },
+  { path: '/report/push-records', name: 'ReportPushLog', component: () => import('@/views/report/ReportPushLog.vue'), meta: { requiresAuth: true, permission: { menuPath: '/report/push-records', action: 'view' } } },
   { path: '/customer/list', name: 'CustomerList', component: () => import('@/views/customer/CustomerList.vue'), meta: { requiresAuth: true } },
   { path: '/system/users', name: 'UserList', component: () => import('@/views/system/UserList.vue'), meta: { requiresAuth: true } },
   { path: '/system/roles', name: 'RoleList', component: () => import('@/views/system/RoleList.vue'), meta: { requiresAuth: true } },

@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Current feature plan: specs/007-product-plan-detail/plan.md
+Current feature plan: specs/008-report-push-and-callback/plan.md
 (research.md, data-model.md, quickstart.md, and contracts/ live alongside it)
 <!-- SPECKIT END -->
 

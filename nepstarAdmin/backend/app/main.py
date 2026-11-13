@@ -21,6 +21,7 @@ from .api import (
     organizations,
     plans,
     products,
+    report_push,
     report_view,
     reports,
     roles,
@@ -29,8 +30,10 @@ from .api import (
 from .database import ai_consult_storage_ready, async_session
 from .config import settings
 from .i18n import get_message
-from .services.health_seed import seed_health_menus
+from .services import report_push_service
 from .services.ai_consult_admin_menu import seed_ai_consult_admin_menu
+from .services.health_seed import seed_health_menus
+from .services.report_push_menu import seed_report_push_menu
 from .services.ai_consult_recovery import run_generation_recovery_job
 from .services.organization_service import seed_root_org
 from .services.role_service import seed_admin_role
@@ -86,6 +89,8 @@ app.include_router(menus.router, prefix="/api/v1")
 app.include_router(organizations.router, prefix="/api/v1")
 app.include_router(devices.router, prefix="/api/v1")
 app.include_router(reports.router, prefix="/api/v1")
+# 对外集成：设备回调（无签名）与客户拉取（海王签名）
+app.include_router(report_push.router, prefix="/api/v1")
 app.include_router(customers.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(indicators.router, prefix="/api/v1")
@@ -141,7 +146,12 @@ async def startup_event():
     async with async_session() as db:
         await seed_root_org(db)
         await seed_health_menus(db)  # 健康管理菜单，须在 seed_admin_role 之前执行以便自动授权
+        await seed_report_push_menu(db)  # 推送记录菜单，同样须在 seed_admin_role 之前
         await seed_admin_role(db)
+    try:
+        await report_push_service.sweep_stale_pending()
+    except Exception:
+        logger.warning("report_push_pending_sweep_failed", exc_info=True)
     if ai_consult_storage_ready():
         try:
             await seed_ai_consult_admin_menu()
@@ -162,6 +172,7 @@ async def shutdown_event():
         recovery_task.cancel()
         with suppress(asyncio.CancelledError):
             await recovery_task
+    await report_push_service.cancel_background_tasks()
     await mongo.close()
 
 
