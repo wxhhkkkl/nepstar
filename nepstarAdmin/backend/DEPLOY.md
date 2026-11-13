@@ -60,3 +60,21 @@ bash deploy.sh logs
 运行文件存放在 `backend/.deploy/`：依赖环境按 Python/requirements 内容复用，日志按部署时间保存，权限默认仅部署用户可访问，Git 已忽略。脚本不会自动清理环境、日志、咨询记录或备份。日志可能包含应用异常信息，不要公开未脱敏原文。
 
 这个脚本管理直接运行的服务，不配置开机自启动，也不更新 Nginx、管理端或报告端。服务器重启后，可在后端目录再次执行 `bash deploy.sh`。更新期间有短暂中断；健康检查通过表示该进程已响应，不替代线上报告、AI 回答、代理流式显示和手机验收。
+
+## 报告推送 / 拉取集成（008）
+
+- 迁移：新表 `sa_report_push_log` 由 revision `010` 创建；仍须走经审阅的 nepstar-only runner 或由 DBA 执行 SQL，不能直接 `alembic upgrade head`。`bash deploy.sh check` 会按 ORM 元数据核对表与索引。
+- 回调 `POST /api/v1/report-callback/device` 按本期决定不做签名，Nginx 必须限制来源 IP 并做频控，不要无防护暴露到公网。示例：
+
+```nginx
+location = /api/v1/report-callback/device {
+    allow <设备侧出口IP>;
+    deny all;
+    limit_req zone=report_callback burst=10 nodelay;
+    proxy_pass http://127.0.0.1:8001;
+}
+```
+
+- 拉取 `GET /api/v1/open/reports` 返回完整姓名/手机号，只能经 HTTPS 暴露；Nginx 不要记录该路径的查询串与响应体，应用日志已排除 secret 与 PII。
+- `.env` 新增 `HAIXIN_*` 配置；`HAIXIN_PUSH_ENABLED` 默认 `false`，联调前保持关闭，避免误发真实请求。
+- 凭据轮换：主 `HAIXIN_APP_KEY`/`HAIXIN_APP_SECRET` 用于出站推送；`HAIXIN_APP_KEYS` 可同时登记新旧 appKey 供拉取验签，移除旧 key 后其请求立即返回 401。

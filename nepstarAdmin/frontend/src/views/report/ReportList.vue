@@ -77,7 +77,7 @@
           <el-table-column prop="status_text" :label="$t('report.reportStatus') || '状态'" width="80" />
           <el-table-column prop="mobile" :label="$t('report.mobile') || '手机号'" width="130" />
           <el-table-column prop="name" :label="$t('report.name') || '姓名'" width="100" />
-          <el-table-column :label="$t('common.operation') || '操作'" width="80" fixed="right">
+          <el-table-column :label="$t('common.operation') || '操作'" width="170" fixed="right">
             <template #default="{ row }">
               <el-button
                 v-if="row.report_url"
@@ -97,6 +97,15 @@
                 @click="handleUrlUnavailable"
               >
                 {{ $t('report.view') || '查看' }}
+              </el-button>
+              <el-button
+                type="warning"
+                size="small"
+                link
+                :loading="pushingId === row.report_id"
+                @click="handlePush(row)"
+              >
+                {{ $t('report.pushButton') || '再次推送' }}
               </el-button>
             </template>
           </el-table-column>
@@ -127,7 +136,7 @@
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CloseBold } from '@element-plus/icons-vue';
-import { getReports } from '@/api/reports';
+import { getReports, pushReport, PUSH_REASON_KEYS } from '@/api/reports';
 import { getOrganizationsTree, type OrgTreeNode } from '@/api/devices';
 import OrgTreePanel from '@/components/OrgTreePanel.vue';
 import { useI18n } from 'vue-i18n';
@@ -147,6 +156,7 @@ const selectedOrgId = ref<number | null>(null);
 const selectedOrgName = ref('');
 const dateRange = ref<string[] | null>(null);
 const snFilter = ref('');
+const pushingId = ref<number | null>(null);
 
 // ---- 数据加载 ----
 async function fetchOrgTree() {
@@ -218,6 +228,29 @@ function openReportUrl(url: string) {
 
 function handleUrlUnavailable() {
   ElMessage.warning(t('report.urlUnavailable') || '报告地址不可用');
+}
+
+function pushReasonText(reason?: string | null) {
+  if (!reason) return t('report.pushFailed') || '推送失败';
+  const key = PUSH_REASON_KEYS[reason] || 'pushReasonUnknown';
+  return t(`report.${key}`) || reason;
+}
+
+async function handlePush(row: any) {
+  if (!row.report_id || pushingId.value !== null) return;
+  pushingId.value = row.report_id;
+  try {
+    const r = await pushReport(row.report_id);
+    if (r.data?.status === 'success') {
+      ElMessage.success(t('report.pushSuccess') || '推送成功');
+    } else {
+      ElMessage.error(pushReasonText(r.data?.failure_reason));
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.message || t('common.operationFailed') || '操作失败');
+  } finally {
+    pushingId.value = null;
+  }
 }
 
 // ---- 初始化 ----
