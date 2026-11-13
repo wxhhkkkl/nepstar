@@ -37,3 +37,6 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# KH503 Android 本地产物（Gradle 缓存 / IDE 配置 / 本机二进制）
+KH503/
