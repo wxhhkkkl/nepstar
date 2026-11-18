@@ -52,7 +52,7 @@ appKey=test&phone=13798261307&timestamp=1547795196&type=1&version=1.0&secret=tes
 {
   "code": "0",
   "message": "success",
-  "data": "{\"records\":[{\"report_id\":123456,\"report_code\":\"KH503LS0005835V261106093253957\",\"customer_id\":15418089,\"device_sn\":\"KH503LS0005835V\",\"device_name\":\"检测仪-A\",\"inspect_date\":\"2026-11-06T10:32:53\",\"total_score\":82,\"status\":1,\"status_text\":\"有效\",\"name\":\"袁勇\",\"mobile\":\"13812345678\",\"report_url\":\"http://kj101.jiankangzhan.com/common.html?reportId=KH503LS0005835V261106093253957&customerId=15418089&middlePage=false&realName=1\"}],\"total\":1,\"page\":1,\"pageSize\":50,\"startDate\":\"2026-11-06\",\"endDate\":\"2026-11-13\"}"
+  "data": "{\"records\":[{\"report_id\":123456,\"report_code\":\"KH503LS0005835V261106093253957\",\"customer_id\":15418089,\"appCustomerId\":\"1765248003014\",\"device_sn\":\"KH503LS0005835V\",\"device_name\":\"检测仪-A\",\"inspect_date\":\"2026-11-06T10:32:53\",\"total_score\":82,\"status\":1,\"status_text\":\"有效\",\"name\":\"袁勇\",\"mobile\":\"13812345678\",\"report_url\":\"http://kj101.jiankangzhan.com/common.html?reportId=KH503LS0005835V261106093253957&customerId=15418089&middlePage=false&realName=1\"}],\"total\":1,\"page\":1,\"pageSize\":50,\"startDate\":\"2026-11-06\",\"endDate\":\"2026-11-13\"}"
 }
 ```
 
@@ -63,6 +63,7 @@ appKey=test&phone=13798261307&timestamp=1547795196&type=1&version=1.0&secret=tes
 | `records[].report_id` | 后台报告 ID |
 | `records[].report_code` | 报告编号 |
 | `records[].customer_id` | 客户编号 |
+| `records[].appCustomerId` | 客户开锁时上报的 app 客户号（来自设备回调）；该报告未收到回调时为空串 `""` |
 | `records[].device_sn` | 设备 SN |
 | `records[].device_name` | 设备名称 |
 | `records[].inspect_date` | 检测时间（GMT+8，ISO 格式） |

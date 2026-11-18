@@ -61,7 +61,7 @@ curl -s -X POST http://127.0.0.1:8000/api/v1/report-callback/device \
     "reportId": "KH503LS0005835V261106093253957",
     "deviceId": "KH503LS0005835V",
     "h5Url": "http://kj101.jiankangzhan.com/common.html?reportId=KH503LS0005835V261106093253957&customerId=15418089",
-    "appCustomerInfo": "{\"userName\":\"测试\",\"mobile\":\"13800000000\"}",
+    "appCustomerInfo": "{\"appCustomerId\":\"1765248003014\",\"userName\":\"测试\",\"mobile\":\"13800000000\"}",
     "modelType": 30
   }'
 ```
@@ -131,6 +131,7 @@ print(r.status_code, r.json())
 
 - `code == "0"`；
 - `data` 为字符串，`json.loads(data)` 后含 `records`、`total`、`startDate`、`endDate`；
+- 每条记录含 `appCustomerId`：4.1 回调携带过 `appCustomerId` 时应返回该值，未收到回调的报告返回空串；
 - 篡改任意参数或把 `timestamp` 改成 20 分钟前 → `code == "401"`。
 
 ### 4.5 推送记录页

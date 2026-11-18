@@ -77,7 +77,7 @@ LIMIT :page_size OFFSET ...
 **Decision**:
 - 公开路由 `POST /api/v1/report-callback/device`，无签名；
 - 只依赖 `reportId`（= `inspect_base.report_code`）与 `deviceId`（= `sn_num`）定位；
-- 其余字段（`h5Url`、`appCustomerInfo`、`printH5`、`modelType`、`exceptionTab`、`customerType`）接收但不参与定位，不落库；
+- 其余字段（`h5Url`、`appCustomerInfo`、`printH5`、`modelType`、`exceptionTab`、`customerType`）接收但不参与定位，不落库；例外：从 `appCustomerInfo` 提取 `appCustomerId` 写入推送记录，供拉取接口返回（2026-11-18 补充）；
 - 回调在写入/复用推送记录后立即返回 `{"code": 200, "message": "success", "data": {"accepted": true}}`；
 - 异步任务查找报告：立即查一次，失败后延迟 `10s / 20s / 30s` 再查，共 3 次重试（跨度约 1 分钟）；
 - 仍未定位或报告无效 → 推送记录 `failed`，原因 `report.not_found` / `report.invalid`；

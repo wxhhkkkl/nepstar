@@ -28,6 +28,7 @@ class SAReportPushLog(Base):
     report_id: Mapped[int | None] = mapped_column(BigInteger)
     report_code: Mapped[str] = mapped_column(String(64), nullable=False)
     device_sn: Mapped[str | None] = mapped_column(String(64))
+    app_customer_id: Mapped[str | None] = mapped_column(String(64))
     trigger_type: Mapped[str] = mapped_column(String(10), nullable=False)
     operator_id: Mapped[int | None] = mapped_column(BigInteger)
     status: Mapped[str] = mapped_column(String(10), nullable=False)

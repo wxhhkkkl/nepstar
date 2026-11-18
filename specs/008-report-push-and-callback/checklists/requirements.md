@@ -44,7 +44,7 @@
 - 第二轮 `/speckit.clarify` 4 项澄清已完成（2026-11-13）：
   1. 拉取接口用 GET + query，签名覆盖全部非空参数，基于原始值计算（FR-009、FR-010）。
   2. 拉取返回时间范围内全部有效报告，不按推送结果过滤（FR-013）。
-  3. 回调沿用设备侧现有格式（reportId/deviceId/h5Url/appCustomerInfo 等），以 reportId 幂等，个人信息不落盘（FR-005、FR-006）。
+  3. 回调沿用设备侧现有格式（reportId/deviceId/h5Url/appCustomerInfo 等），以 reportId 幂等，除 appCustomerId 外个人信息不落盘（FR-005、FR-006）。
   4. 拉取返回完整姓名与手机号，推送内容不含 PII；日志与推送记录不记录（FR-013、FR-014、Edge Cases）。
 - 第三轮 `/speckit.clarify` 3 项澄清已完成（2026-11-13）：
   1. 不单独建回调事件表，回调结果写入推送记录（FR-007、Key Entities）。

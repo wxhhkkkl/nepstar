@@ -31,7 +31,7 @@ Content-Type: application/json
 | `reportId` | 是 | 等于旧库 `inspect_base.report_code`，幂等键 |
 | `deviceId` | 是 | 等于旧库 `inspect_base.sn_num`，辅助校验 |
 | `h5Url` | 否 | 仅接收；报告链接由后台按既有规则重新构造 |
-| `appCustomerInfo` | 否 | 含姓名/手机号等个人信息，不持久化、不写日志 |
+| `appCustomerInfo` | 部分 | 仅提取 `appCustomerId`（客户开锁时的 app 客户号）写入推送记录，供拉取接口返回；姓名/手机号等其他个人信息不持久化、不写日志 |
 | `printH5` | 否 | 不持久化 |
 | `modelType` | 否 | 不持久化 |
 | `exceptionTab` | 否 | 不持久化 |
@@ -68,8 +68,8 @@ HTTP 状态码保持 200（与后台既有业务错误风格一致），设备�
 
 ## 处理规则
 
-1. 校验 `reportId`、`deviceId` 非空且为字符串；
-2. 检查该 `reportId` 的自动失败记录数：达到上限时直接应答“已处理”；否则按 `reportId` 创建自动推送记录（`dedupe_key = reportId`）；若唯一键冲突，说明已有 `pending`/`success`/`skipped` 记录，直接应答；`failed` 记录的 `dedupe_key` 已清空，不阻塞新记录；
+1. 校验 `reportId`、`deviceId` 非空且为字符串；从 `appCustomerInfo`（JSON 字符串或对象）提取 `appCustomerId`，缺失、格式错误或 JSON 非法时按空处理，不影响受理；
+2. 检查该 `reportId` 的自动失败记录数：达到上限时直接应答“已处理”；否则按 `reportId` 创建自动推送记录（`dedupe_key = reportId`，携带 `appCustomerId` 时一并写入 `app_customer_id`）；若唯一键冲突，说明已有 `pending`/`success`/`skipped` 记录，直接应答（原记录 `app_customer_id` 为空且本次携带时补写）；`failed` 记录的 `dedupe_key` 已清空，不阻塞新记录；
 3. 立即应答；
 4. 异步定位报告：首次立即查，失败后 10s / 20s / 30s 重试；
 5. 报告不存在或 `status != 1` → 记录 `failed`（`report.not_found` / `report.invalid`）；

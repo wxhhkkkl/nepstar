@@ -1,13 +1,16 @@
 # ruff: noqa: N815 — 设备侧回调字段沿用既有 camelCase 契约
 """报告推送/回调/拉取的请求与响应模型。"""
 
+import json
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class DeviceCallbackPayload(BaseModel):
     """设备侧检测完成回调。
 
-    只依赖 `reportId` 与 `deviceId`；其余字段允许透传但从不持久化。
+    只依赖 `reportId` 与 `deviceId`；其余字段允许透传但不持久化，
+    仅从 `appCustomerInfo` 提取开锁时的 `appCustomerId` 供拉取接口返回。
     """
 
     model_config = ConfigDict(extra="allow")
@@ -20,6 +23,21 @@ class DeviceCallbackPayload(BaseModel):
     modelType: int | None = None
     exceptionTab: str | list | None = None
     customerType: int | None = None
+
+    def app_customer_id(self) -> str | None:
+        """只提取 appCustomerId；姓名/手机号等其他字段不读取。"""
+        info = self.appCustomerInfo
+        if isinstance(info, str):
+            try:
+                info = json.loads(info)
+            except ValueError:
+                return None
+        if not isinstance(info, dict):
+            return None
+        value = info.get("appCustomerId")
+        if value is None or value == "":
+            return None
+        return str(value)[:64]
 
 
 class PushResult(BaseModel):

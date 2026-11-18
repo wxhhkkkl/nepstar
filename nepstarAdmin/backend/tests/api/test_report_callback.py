@@ -76,5 +76,43 @@ async def test_extra_fields_are_accepted_and_not_persisted(client: AsyncClient, 
     handled = handler.await_args
     assert handled.args[1] == VALID["reportId"]
     assert handled.args[2] == VALID["deviceId"]
-    # 只传定位字段，不把 appCustomerInfo 传给服务层
-    assert len(handled.args) == 3
+    # 只传定位字段与 appCustomerId，不把姓名/手机号传给服务层
+    assert len(handled.args) == 4
+    assert handled.args[3] is None
+
+
+async def test_app_customer_id_extracted_from_json_string(client: AsyncClient, monkeypatch):
+    handler = AsyncMock(return_value=CallbackDecision(None, duplicate=True, should_deliver=False))
+    monkeypatch.setattr(report_push_service, "handle_callback", handler)
+
+    payload = {
+        **VALID,
+        "appCustomerInfo": (
+            '{"appCustomerId":"1765248003014","userName":"袁勇",'
+            '"mobile":"28982108221"}'
+        ),
+    }
+    await client.post("/api/v1/report-callback/device", json=payload)
+
+    assert handler.await_args.args[3] == "1765248003014"
+
+
+async def test_app_customer_id_extracted_from_dict(client: AsyncClient, monkeypatch):
+    handler = AsyncMock(return_value=CallbackDecision(None, duplicate=True, should_deliver=False))
+    monkeypatch.setattr(report_push_service, "handle_callback", handler)
+
+    payload = {**VALID, "appCustomerInfo": {"appCustomerId": 1765248003014, "userName": "袁勇"}}
+    await client.post("/api/v1/report-callback/device", json=payload)
+
+    assert handler.await_args.args[3] == "1765248003014"
+
+
+async def test_malformed_app_customer_info_does_not_fail(client: AsyncClient, monkeypatch):
+    handler = AsyncMock(return_value=CallbackDecision(None, duplicate=True, should_deliver=False))
+    monkeypatch.setattr(report_push_service, "handle_callback", handler)
+
+    payload = {**VALID, "appCustomerInfo": "{not json"}
+    response = await client.post("/api/v1/report-callback/device", json=payload)
+
+    assert response.json()["code"] == 200
+    assert handler.await_args.args[3] is None

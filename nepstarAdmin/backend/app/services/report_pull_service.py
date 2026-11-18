@@ -15,6 +15,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
+from ..models.new.sa_report_push_log import SAReportPushLog
 from ..models.old.inspect_base import inspect_base_table
 from ..models.old.ne import ne_table
 from .report_service import _build_report_url, _status_text
@@ -80,6 +81,7 @@ def _serialize(row) -> dict:
         "report_id": m.get("inspect_base_id"),
         "report_code": report_code,
         "customer_id": customer_id,
+        "appCustomerId": m.get("app_customer_id") or "",
         "device_sn": m.get("sn_num"),
         "device_name": m.get("device_name"),
         "inspect_date": (
@@ -104,10 +106,24 @@ async def list_reports_for_partner(
     if inspect_base_table is None:
         raise PullUnavailableError()
 
+    app_customer_ids = (
+        select(
+            SAReportPushLog.report_code,
+            func.max(SAReportPushLog.app_customer_id).label("app_customer_id"),
+        )
+        .where(SAReportPushLog.app_customer_id.is_not(None))
+        .group_by(SAReportPushLog.report_code)
+        .subquery()
+    )
     base = (
-        select(inspect_base_table, ne_table.c.device_name)
+        select(inspect_base_table, ne_table.c.device_name, app_customer_ids.c.app_customer_id)
         .select_from(inspect_base_table)
         .join(ne_table, inspect_base_table.c.device_id == ne_table.c.ne_id, isouter=True)
+        .join(
+            app_customer_ids,
+            app_customer_ids.c.report_code == inspect_base_table.c.report_code,
+            isouter=True,
+        )
         .where(
             inspect_base_table.c.dept_id == int(settings.DEPT_ID),
             inspect_base_table.c.status == 1,

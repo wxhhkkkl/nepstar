@@ -45,3 +45,41 @@ def test_resolve_secret_supports_rotation(monkeypatch):
     assert svc.resolve_secret("new") == "new-secret"
     assert svc.resolve_secret("old") == "old-secret"
     assert svc.resolve_secret("missing") is None
+
+
+class _Row:
+    def __init__(self, **values):
+        self._mapping = values
+
+
+def test_serialize_returns_app_customer_id():
+    row = _Row(
+        inspect_base_id=2,
+        report_code="KH503TEST",
+        customer_id=None,
+        app_customer_id="1765248003014",
+        sn_num="SN",
+        device_name="D",
+        inspect_date=None,
+        total_score=80,
+        status=1,
+        name="n",
+        mobile="m",
+    )
+    assert svc._serialize(row)["appCustomerId"] == "1765248003014"
+
+
+def test_serialize_defaults_missing_app_customer_id_to_empty_string():
+    row = _Row(
+        inspect_base_id=2,
+        report_code="KH503TEST",
+        customer_id=None,
+        sn_num="SN",
+        device_name="D",
+        inspect_date=None,
+        total_score=80,
+        status=1,
+        name="n",
+        mobile="m",
+    )
+    assert svc._serialize(row)["appCustomerId"] == ""

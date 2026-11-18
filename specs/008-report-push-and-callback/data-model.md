@@ -32,6 +32,7 @@ CREATE TABLE nepstar.sa_report_push_log (
   report_id        BIGINT       NULL COMMENT '旧库 inspect_base_id',
   report_code      VARCHAR(64)  NOT NULL COMMENT '报告编号；回调幂等键',
   device_sn        VARCHAR(64)  NULL,
+  app_customer_id  VARCHAR(64)  NULL COMMENT '客户开锁 app 客户号，来自回调 appCustomerInfo',
   trigger_type     VARCHAR(10)  NOT NULL COMMENT 'manual/auto',
   operator_id      BIGINT       NULL COMMENT '人工推送操作人',
   status           VARCHAR(10)  NOT NULL COMMENT 'pending/success/failed/skipped',
@@ -52,6 +53,7 @@ CREATE TABLE nepstar.sa_report_push_log (
 ### 字段规则
 
 - `report_code`：必填；来自报告主记录。自动推送的 `dedupe_key` 与它相同。
+- `app_customer_id`：可空；仅当回调 `appCustomerInfo` 携带 `appCustomerId` 时写入，重复回调可为原记录补写；拉取接口按 `report_code` 取该值返回，缺失时返回空串。仅保存该 ID，不保存姓名/手机号等其他字段。
 - `dedupe_key`：自动推送在 `pending`/`success`/`skipped` 状态下为 `report_code`；转为 `failed` 时**清空为 NULL**，让同一报告的下一次回调可以新建一条尝试记录，同时保留原失败记录。人工推送始终为 NULL；MySQL 唯一索引允许多个 NULL，因此人工补发可重复。
 - `status` 取值：
   - `pending`：已受理，等待投递或正在定位报告；

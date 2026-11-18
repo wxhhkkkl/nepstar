@@ -374,7 +374,12 @@ async def _failed_auto_count(db: AsyncSession, report_code: str) -> int:
     ).scalar() or 0
 
 
-async def handle_callback(db: AsyncSession, report_code: str, device_sn: str) -> CallbackDecision:
+async def handle_callback(
+    db: AsyncSession,
+    report_code: str,
+    device_sn: str,
+    app_customer_id: str | None = None,
+) -> CallbackDecision:
     """回调受理：创建/复用自动记录并立即返回，不等待客户接口。"""
     existing = (
         await db.execute(
@@ -382,6 +387,9 @@ async def handle_callback(db: AsyncSession, report_code: str, device_sn: str) ->
         )
     ).scalar_one_or_none()
     if existing is not None:
+        if app_customer_id and existing.app_customer_id is None:
+            existing.app_customer_id = app_customer_id
+            await db.commit()
         return CallbackDecision(existing.id, duplicate=True, should_deliver=False)
 
     if await _has_success(db, report_code):
@@ -389,6 +397,7 @@ async def handle_callback(db: AsyncSession, report_code: str, device_sn: str) ->
             report_id=None,
             report_code=report_code,
             device_sn=device_sn,
+            app_customer_id=app_customer_id,
             trigger_type=TRIGGER_AUTO,
             operator_id=None,
             status=STATUS_SKIPPED,
@@ -411,6 +420,7 @@ async def handle_callback(db: AsyncSession, report_code: str, device_sn: str) ->
         report_id=None,
         report_code=report_code,
         device_sn=device_sn,
+        app_customer_id=app_customer_id,
         trigger_type=TRIGGER_AUTO,
         operator_id=None,
         status=STATUS_PENDING,

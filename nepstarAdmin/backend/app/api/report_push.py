@@ -36,7 +36,7 @@ async def device_callback(request: Request, db: AsyncSession = Depends(get_db)):
         return ApiResponse(code=400, message="callback.invalid")
 
     decision = await report_push_service.handle_callback(
-        db, payload.reportId, payload.deviceId
+        db, payload.reportId, payload.deviceId, payload.app_customer_id()
     )
     if decision.should_deliver and decision.record_id is not None:
         report_push_service.spawn_auto_delivery(decision.record_id)
