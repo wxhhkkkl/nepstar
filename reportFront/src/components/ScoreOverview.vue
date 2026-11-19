@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import { useScoreAnimation } from '@/composables/useScoreAnimation.js'
 import SaveReportButton from './SaveReportButton.vue'
-import ScoreLegend from './ScoreLegend.vue'
 import { scoreAppearance, scoreStyle } from '@/utils/scoreColor.js'
 
 const props = defineProps({ report: { type: Object, required: true } })
@@ -43,5 +42,4 @@ function replay() {
       <button id="replayScore" class="replay-button" type="button" aria-label="重播长寿指数动效" @click="replay"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5" /><path d="M19 12a7 7 0 1 0-2 5" /></svg><span>重播动效</span></button>
     </div>
   </section>
-  <ScoreLegend />
 </template>

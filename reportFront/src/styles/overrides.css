@@ -2437,6 +2437,7 @@ body {
 
 /* V2.15 — 总分影响项的定向健康管理方案，紧随对应问题呈现。 */
 .issue-plan {
+    display: none;
     position: relative;
     overflow: hidden;
     margin-bottom: 10px;

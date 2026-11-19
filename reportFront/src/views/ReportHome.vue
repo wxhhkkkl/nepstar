@@ -7,6 +7,7 @@ import { averageScore, getVisibleSystems } from '@/utils/report.js'
 import { reportAssets } from '@/data/report.js'
 import { restoreHomeScroll, saveHomeScroll } from '@/composables/useScrollRestoration.js'
 import AiConsultEntry from '@/components/AiConsultEntry.vue'
+import PriorityPlans from '@/components/PriorityPlans.vue'
 import ReportHomeSkeleton from '@/components/ReportHomeSkeleton.vue'
 import ReportProfile from '@/components/ReportProfile.vue'
 import ReportErrorState from '@/components/ReportErrorState.vue'
@@ -61,6 +62,7 @@ onMounted(load)
   <ReportErrorState v-else-if="state !== 'ready'" :kind="errorKind" />
   <main v-else class="app-shell report-v2" data-testid="report-home">
     <ScoreOverview :report="report" />
+    <PriorityPlans :report="report" />
     <ReportProfile :report="report" />
     <AiConsultEntry
       v-if="report.aiConsult?.enabled"
