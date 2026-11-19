@@ -110,8 +110,8 @@ android {
         manifestPlaceholders = [appLabel: "@string/app_name"]
         minSdkVersion 21
         targetSdkVersion 22
-        versionCode 53
-        versionName "KHL17.0.4"
+        versionCode 54
+        versionName "KHL17.0.5"
 
 
         ndk {
