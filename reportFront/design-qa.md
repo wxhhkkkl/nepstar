@@ -1,44 +1,26 @@
-# 首页优先关注区 Design QA
+# 首页优先关注区设计验收
 
-Date: 2026-11-17
+2026-11-20
 
-## Comparison target and evidence
+## 对照依据
 
-- Source visual truth: `/Users/leelee/.codex/generated_images/01a15372-8b35-78a1-86d4-6ec9598d9dda/exec-3b5eb6f9-11ef-41fc-8229-16609850b509.png` (first design, 1247×1261px).
-- Follow-up screenshot from the user: `/var/folders/k7/kgj25zk13_v17pbwsp5tzymh0000gn/T/codex-clipboard-78988131-e993-409c-8290-a2d9a344a9ea.png` (426×370px; shows the two existing rows).
-- Latest spacing/numbering reference: `/var/folders/k7/kgj25zk13_v17pbwsp5tzymh0000gn/T/codex-clipboard-ac5ca8bd-752b-44fd-ac15-3165fedd83a9.png` (412×505px; three rows, with top/bottom spacing marked on the first plan card).
-- Latest number placement/compactness reference: `/var/folders/k7/kgj25zk13_v17pbwsp5tzymh0000gn/T/codex-clipboard-f2f1e6d7-a97d-4d94-b274-ef14d4a41aef.png` (621×468px; arrow points to the left gutter for sequence numbers).
-- Source CSS size and density normalization: unavailable; the source is a generated design image and was not normalized.
-- Implementation: `src/components/PriorityPlans.vue`, report home route `http://127.0.0.1:5176/#/?reportId=KH503LS0005865V220721182530852&userId=11922495`.
-- Implementation screenshot path: unavailable. The browser route returned “REPORT NOT FOUND”, so the priority section did not render and a valid screenshot could not be captured.
-- Implementation viewport and pixel dimensions: unavailable because no valid page capture was produced.
-- State: intended report with two matched priority recommendations, 性腺分泌 95 and 骨质疏松 93, plus a development-only third demo row, 骨密度 90. The demo row targets the second row's bone indicator detail; its visible “模拟” badge was removed per the latest request. The local API did not provide a valid rendered report during preview.
+- 视觉目标为用户选择的[第一张设计稿](/Users/leelee/.codex/generated_images/01a15372-8b35-78a1-86d4-6ec9598d9dda/exec-3b5eb6f9-11ef-41fc-8229-16609850b509.png)，原图 1247 × 1261 像素。
+- [本地首页实拍](/Users/leelee/.codex/visualizations/2026/11/20/01a1f713-0d9c-7063-964e-4a0d4cb022bb/report-home-preview.png)使用合成报告数据，包含性腺分泌 95、骨质疏松 93 两条匹配方案。
+- 浏览器视口 429 × 1024 CSS 像素（含 15px 滚动条），设备像素比为 1。应用内容宽 414px，关注区为 414 × 420 CSS 像素。内嵌浏览器原始截图为 414 × 988 像素，按视口宽度还原比例后裁切。参考稿缩放到 414 × 419 像素。
+- [全区对照](/Users/leelee/.codex/visualizations/2026/11/20/01a1f713-0d9c-7063-964e-4a0d4cb022bb/priority-comparison.png)与[双行细节对照](/Users/leelee/.codex/visualizations/2026/11/20/01a1f713-0d9c-7063-964e-4a0d4cb022bb/priority-rows-comparison.png)均为左侧设计稿、右侧浏览器实拍，展示相同的两项匹配状态。
 
-## Findings
+## 检查结果
 
-- [BLOCKED] Visual comparison could not be completed. The local report route returned “REPORT NOT FOUND”, leaving no rendered priority section to compare. Typography, spacing, color, product-image fidelity, and report-specific copy remain unverified in the browser.
-  - Fix: make a valid local report available, then capture the same report state and viewport for full-view and focused comparison.
-- Production build passed with Vite; `git diff --check` passed. These checks confirm compilation and patch formatting only; they do not replace visual QA.
+- 字体沿用报告字体，从标题、指标名到方案名有清晰层级。两条方案名在 414px 内容宽度下均为单行，320px 下可换行且无横向溢出。
+- 版式使用浅蓝灰底、白色圆角分组、细分隔线、右对齐分数和蓝色入口。标题和项数同行，方案序号位于缩略图左侧，页脚提示左对齐。上线时浏览器字体和总分卡阴影会影响像素表现。
+- 两张礼盒缩略图来自项目原有产品资源，均加载成功。调整透明留白后完整显示礼盒主体，包装细节以实际资源为准。
+- 两条方案入口均打开对应详情及其关联指标。详情页返回后恢复到首页关注区。无匹配方案时隐藏整个分区。浏览器无警告或错误。
+- 使用独立输出目录执行生产构建通过。浏览器验证使用合成数据，未连接线上报告接口。
 
-## Comparison history
+## 对照调整记录
 
-- First design selected: one grouped list pairs each priority indicator and score with its matched management plan. The implementation follows this structure and restores the subtitle/count and larger plan thumbnails.
-- Follow-up: product covers render in their original 2:3 aspect ratio; a third dev-only mock item routes to the second row's bone indicator detail. Sequence numbers 01–03 use 14px type and sit beside the product cards, vertically centered against them. Smaller covers and tighter spacing reduce overall card height. No mock badge is shown.
-- Post-change browser evidence is blocked by the missing local report; no visual pass is claimed.
-
-## Required fidelity surfaces
-
-- Typography: not verified against a rendered page.
-- Spacing and layout rhythm: not verified against a rendered page.
-- Colors and visual tokens: implementation uses the report app's existing tokens; visual comparison remains blocked.
-- Image quality and asset fidelity: component uses the existing management-plan images in a 2:3 frame; the new rendered crop and scale remain unverified.
-- Copy and content: the selected design's heading, count, indicator scores, plan titles, and note are represented in the component; actual report data remains unavailable in preview.
-
-## Implementation checklist
-
-- [ ] Load a valid report through the local API.
-- [ ] Capture the mobile report view and focused priority-plan region.
-- [ ] Compare against the source image, fix any P0/P1/P2 differences, and repeat the capture.
+- 首轮发现活力值标签偏下、礼盒主体偏满，以及长标题在目标宽度折行。
+- 调整标签居中对齐、透明图留白、方案行的间距和字号后重新截屏。最终对照中两条标题和对应入口完整位于同一行，第二行礼盒未被截去，列表行高和分隔位置与参考稿一致。
 
 ---
 
@@ -68,4 +50,4 @@ State: 指定报告首页，滚动到免疫力卡片，综合分 88，子项分�
 构建：Vite 生产构建通过，输出到 /tmp/nepstar-immune-build。
 限制：本次视觉检查为 414px；小于 390px 配置三列换行，未完成该宽度浏览器截图。未重跑路由交互测试。
 
-final result: blocked
+final result: passed

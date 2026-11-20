@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { reportRouteQueryFromLocation } from "@/api/reportClient.js";
 import { saveHomeScroll } from "@/composables/useScrollRestoration.js";
+import { reportAssets } from "@/data/report.js";
 import {
   createPlanNavigation,
   discardPlanNavigation,
@@ -13,52 +14,28 @@ import { getVisibleSystems } from "@/utils/report.js";
 const props = defineProps({ report: { type: Object, required: true } });
 const router = useRouter();
 const reportQuery = reportRouteQueryFromLocation();
-const prioritySystems = computed(() =>
-  getVisibleSystems(props.report).filter((system) => system.recommendation),
+const productCutouts = new Set([
+  reportAssets.sleepPlanImage,
+  reportAssets.calciumPlanImage,
+]);
+
+const priorityRows = computed(() =>
+  getVisibleSystems(props.report)
+    .filter((system) => system.recommendation)
+    .map((system) => {
+      const plan = system.recommendation;
+      const indicator = system.indicators.find(
+        (item) => item.indicator_code === plan.triggerIndicatorCode,
+      );
+      return {
+        id: system.id,
+        name:
+          indicator?.name || plan.issue?.split(" · 活力值")[0] || system.name,
+        plan,
+        title: plan.eyebrow || plan.title,
+      };
+    }),
 );
-const priorityRows = computed(() => {
-  const rows = prioritySystems.value.map((system) => ({
-    system,
-    isMock: false,
-  }));
-  const second = prioritySystems.value[1];
-  const targetIndicatorCode = second?.recommendation?.triggerIndicatorCode;
-
-  // Local demo only: keep fabricated health data out of production builds.
-  if (
-    import.meta.env.DEV &&
-    prioritySystems.value.length === 2 &&
-    second.systemCode === "SYS_BONE" &&
-    targetIndicatorCode
-  ) {
-    rows.push({
-      isMock: true,
-      system: {
-        id: "demo-bone-density",
-        systemCode: second.systemCode,
-        name: "骨密度",
-        indicators: [{ indicator_code: targetIndicatorCode, name: "骨密度" }],
-        recommendation: {
-          ...second.recommendation,
-          issue: "骨密度 · 活力值 90",
-          indicatorScore: 90,
-          eyebrow: "骨密度健康管理方案",
-          title: "骨密度健康管理方案",
-        },
-      },
-    });
-  }
-
-  return rows;
-});
-
-function indicatorName(system) {
-  const { issue, triggerIndicatorCode } = system.recommendation;
-  const indicator = system.indicators.find(
-    (item) => item.indicator_code === triggerIndicatorCode,
-  );
-  return indicator?.name || issue?.split(" · 活力值")[0] || system.name;
-}
 
 function planRoute(plan, key) {
   return planDetailRoute(
@@ -69,22 +46,7 @@ function planRoute(plan, key) {
   );
 }
 
-function priorityRoute(row) {
-  if (row.isMock) {
-    return {
-      name: "indicator-detail",
-      params: {
-        systemId: row.system.systemCode,
-        indicatorCode: row.system.recommendation.triggerIndicatorCode,
-      },
-      query: reportQuery,
-    };
-  }
-
-  return planRoute(row.system.recommendation);
-}
-
-async function openPriority(event, row) {
+async function openPlan(event, plan) {
   if (
     event.defaultPrevented ||
     event.button !== 0 ||
@@ -95,14 +57,9 @@ async function openPriority(event, row) {
   ) {
     return;
   }
+
   event.preventDefault();
   saveHomeScroll();
-  if (row.isMock) {
-    await router.push(priorityRoute(row));
-    return;
-  }
-
-  const plan = row.system.recommendation;
   const identity = {
     ...reportQuery,
     planId: plan.planId,
@@ -126,59 +83,54 @@ async function openPriority(event, row) {
     data-testid="priority-plans"
   >
     <div class="priority-plans-heading">
-      <div>
+      <div class="priority-title-line">
         <h2 id="priorityPlansTitle">本次优先关注</h2>
       </div>
+      <p>已匹配健康管理方案</p>
     </div>
 
     <ul class="priority-list" aria-label="优先关注指标及对应方案">
       <li
         v-for="(row, index) in priorityRows"
-        :key="row.system.id"
+        :key="row.id"
         class="priority-item"
       >
-        <div class="priority-item-content">
-          <div class="priority-item-heading">
-            <h3 class="priority-item-name">{{ indicatorName(row.system) }}</h3>
-            <p class="priority-item-score">
-              <span>活力值</span>
-              <b>{{ row.system.recommendation.indicatorScore ?? "—" }}</b>
-            </p>
-          </div>
-
-          <div class="priority-plan-line">
-            <span class="priority-index" aria-hidden="true">{{
-              String(index + 1).padStart(2, "0")
-            }}</span>
-            <RouterLink v-slot="{ href }" :to="priorityRoute(row)" custom>
-              <a
-                class="management-plan-row"
-                :href="href"
-                :aria-label="`${row.isMock ? '查看指标详情' : '查看方案'}：${row.system.recommendation.eyebrow || row.system.recommendation.title}`"
-                @click="openPriority($event, row)"
-              >
-                <span class="management-plan-visual" aria-hidden="true">
-                  <img
-                    v-if="row.system.recommendation.image"
-                    :src="row.system.recommendation.image"
-                    :alt="row.system.recommendation.imageAlt"
-                    width="48"
-                    height="72"
-                  />
-                </span>
-                <span class="management-plan-title">
-                  {{
-                    row.system.recommendation.eyebrow ||
-                    row.system.recommendation.title
-                  }}
-                </span>
-                <span class="management-plan-action">{{
-                  row.isMock ? "查看详情" : "查看方案"
-                }}</span>
-              </a>
-            </RouterLink>
-          </div>
+        <div class="priority-item-heading">
+          <h3 class="priority-item-name">{{ row.name }}</h3>
+          <p class="priority-item-score">
+            <span>活力值</span>
+            <b>{{ row.plan.indicatorScore ?? "—" }}</b>
+          </p>
         </div>
+
+        <RouterLink v-slot="{ href }" :to="planRoute(row.plan)" custom>
+          <a
+            class="management-plan-row"
+            :class="{ 'has-product-image': row.plan.image }"
+            :href="href"
+            :aria-label="`查看方案：${row.title}`"
+            @click="openPlan($event, row.plan)"
+          >
+            <span class="management-plan-number" aria-hidden="true">
+              {{ String(index + 1).padStart(2, "0") }}
+            </span>
+            <span
+              v-if="row.plan.image"
+              class="management-plan-visual"
+              :class="{
+                'is-product-cutout': productCutouts.has(row.plan.image),
+              }"
+              aria-hidden="true"
+            >
+              <img :src="row.plan.image" alt="" />
+            </span>
+            <span class="management-plan-title">{{ row.title }}</span>
+            <span class="management-plan-action">
+              查看方案
+              <i class="management-plan-arrow" aria-hidden="true"></i>
+            </span>
+          </a>
+        </RouterLink>
       </li>
     </ul>
 
@@ -188,202 +140,196 @@ async function openPriority(event, row) {
 
 <style scoped>
 .priority-plans {
-  --priority-accent: #25ddd5;
-  --priority-background: #09141e;
-  --priority-panel: #102637;
-  --priority-card: #eaf7f9;
-  --priority-ink: #10243a;
-  margin: 14px 12px 18px;
-  padding: 16px 10px 12px;
-  border-radius: 20px;
-  color: #edf7f8;
-  background: var(--priority-background);
+  --priority-ink: #101c2e;
+  --priority-muted: #566981;
+  --priority-line: #d3e1ef;
+  --priority-link: #0c67a8;
+  --priority-thumbnail: clamp(56px, 19vw, 78px);
+  padding: 26px 10px 16px;
+  color: var(--priority-ink);
+  background: #eaf2f8;
 }
 
 .priority-plans-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0 0 8px;
-  padding: 0 12px;
+  margin: 0 12px 14px;
 }
 
-.priority-plans-heading h2 {
+.priority-title-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.priority-title-line h2 {
   margin: 0;
-  color: #edf7f8;
-  font-size: 18px;
+  font-size: 23px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.4;
+}
+
+.priority-title-line span {
+  color: var(--priority-muted);
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.priority-plans-heading p {
+  margin: 7px 0 0;
+  color: var(--priority-muted);
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .priority-list {
   margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid #2a4b5b;
-  border-radius: 18px;
-  background: var(--priority-panel);
+  padding: 0 13px;
+  border-radius: 17px;
+  background: var(--white);
   list-style: none;
 }
 
 .priority-item {
-  padding: 8px 10px;
+  padding: 12px 2px;
 }
 
 .priority-item + .priority-item {
-  border-top: 1px solid #2a4b5b;
+  border-top: 1px solid var(--priority-line);
 }
 
 .priority-item-heading {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.priority-index {
-  justify-self: center;
-  color: var(--priority-accent);
-  font: 700 22px/1 var(--font-report-number);
-  letter-spacing: 0.04em;
-}
-
-.priority-plan-line {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  align-items: center;
-  gap: 7px;
-  margin-top: 6px;
-}
-
-.priority-item-content {
-  min-width: 0;
+  gap: 10px;
+  min-height: 32px;
 }
 
 .priority-item-name {
   min-width: 0;
   margin: 0;
-  color: #eaf6f7;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
 .priority-item-score {
-  flex: 0 0 auto;
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 5px;
+  gap: 9px;
   margin: 0;
-  color: #b5ced5;
-  font-size: 12px;
+  color: var(--priority-muted);
+  font-size: 14px;
 }
 
 .priority-item-score b {
-  color: var(--priority-accent);
-  font: 700 18px/1 var(--font-report-number);
+  color: var(--priority-ink);
+  font-size: 25px;
+  line-height: 1.25;
 }
 
 .management-plan-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  min-height: 74px;
-  margin-top: 0;
-  padding: 0 6px;
-  border: 1px solid #d2e8eb;
-  border-radius: 13px;
-  color: var(--priority-ink);
-  background: var(--priority-card);
+  gap: clamp(7px, 2.2vw, 9px);
+  min-height: 80px;
+  margin-top: 1px;
+  color: inherit;
   text-decoration: none;
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease;
+  border-radius: 6px;
 }
 
-.management-plan-row:active {
-  border-color: #83d7d5;
-  background: #d7eff2;
+.management-plan-row.has-product-image {
+  grid-template-columns: 18px var(--priority-thumbnail) minmax(0, 1fr) auto;
 }
 
 .management-plan-row:focus-visible {
-  outline: 2px solid var(--priority-accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--priority-link);
+  outline-offset: 1px;
+}
+
+.management-plan-row:active .management-plan-action {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.management-plan-number {
+  color: #8b96a8;
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-align: center;
 }
 
 .management-plan-visual {
-  display: grid;
-  width: 42px;
-  height: 63px;
-  place-items: center;
-  overflow: visible;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 80px;
+  overflow: hidden;
 }
 
 .management-plan-visual img {
   display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 2 / 3;
   object-fit: contain;
-  object-position: center;
+}
+
+.is-product-cutout img {
+  /* Center the stock artwork so only its transparent margins extend outside the frame. */
+  position: absolute;
+  inset-inline: 3px;
+  top: 50%;
+  width: calc(100% - 6px);
+  height: auto;
+  transform: translateY(-50%);
 }
 
 .management-plan-title {
+  display: flex;
+  align-items: center;
   min-width: 0;
-  color: var(--priority-ink);
   font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
+  font-weight: 400;
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
+.has-product-image .management-plan-title {
+  min-height: 29px;
+  padding-inline-start: clamp(7px, 2.2vw, 9px);
+  border-inline-start: 1px solid #c7d9ea;
+}
+
 .management-plan-action {
-  display: inline-grid;
-  min-height: 32px;
-  place-items: center;
-  padding: 5px 5px;
-  border-radius: 6px;
-  color: #09202d;
-  background: var(--priority-accent);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 44px;
+  color: var(--priority-link);
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
-.management-plans-note {
-  margin: 9px 4px 0;
-  color: #b5ced5;
-  font-size: 11px;
-  line-height: 1.45;
+.management-plan-arrow {
+  width: 13px;
+  height: 13px;
+  background-color: currentColor;
+  mask: url("../assets/report-back.svg") center / 17px no-repeat;
+  transform: rotate(180deg);
 }
 
-@media (max-width: 360px) {
-  .priority-item {
-    padding: 6px 8px;
-  }
-
-  .priority-plan-line {
-    grid-template-columns: 30px minmax(0, 1fr);
-    gap: 6px;
-  }
-
-  .management-plan-row {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-    gap: 7px;
-    padding: 0 5px;
-  }
-
-  .management-plan-visual {
-    width: 40px;
-    height: 60px;
-  }
-
-  .management-plan-title {
-    font-size: 12px;
-  }
+.management-plans-note {
+  margin: 12px 4px 0;
+  color: var(--priority-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
 }
 </style>
